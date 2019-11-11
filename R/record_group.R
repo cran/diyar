@@ -5,34 +5,37 @@
 #'
 #' @param df \code{data.frame}. One or more datasets appended together.
 #' @param sn Unique \code{numeric} record identifier. Optional.
-#' @param criteria Column names of the attributes to match. Records with matching values in these columns are grouped together.
+#' @param criteria Column names of attributes to match. Records with matching values in these columns are grouped together.
 #' @param sub_criteria Matching sub-criteria. Additional matching conditions for each stage (\code{criteria}).
-#' @param data_source Unique dataset identifier. Useful when \code{data.frame} contains data from multiple datasets.
+#' @param data_source Unique dataset identifier. Useful when \code{df} contains data from multiple sources.
 #' @param group_stats If \code{TRUE}, output will include additional columns with useful stats for each record group.
 #' @param display If \code{TRUE}, status messages are printed on screen.
+#' @param to_s4 if \code{TRUE}, changes the returned value to a \code{\link[=pid-class]{pid}} object.
 #'
-#' @return \code{data.frame}
+#' @return \code{data.frame} (\code{\link[=pid-class]{pid}} objects if \code{to_s4} is \code{TRUE})
 #'
 #' \itemize{
 #' \item \code{sn} - unique record identifier as provided
 #' \item \code{pid} - unique group identifier
-#' \item \code{pid_cri} - matching criteria for each record in the group
-#' \item \code{pid_dataset} - list of datasets in each group
+#' \item \code{pid_cri} - matched criteria for each record in the group
+#' \item \code{pid_dataset} - data sources in each group
 #' \item \code{pid_total} - number of records in each group
 #' }
 #'
-#' @seealso \code{\link{episode_group}}, \code{\link{overlap}} and \code{\link{number_line}}
+#' \code{pid} objects will be the default output from the next release onwards
+#'
+#' @seealso \code{\link{episode_group}} and \code{\link{number_line}}
 #'
 #' @details
 #' Record grouping occurs in stages of matching \code{criteria}.
 #'
-#' Records are matched in two ways; an exact match - the equivalent of \code{(==)}, or matching a range of values.
-#' An example of range matching is matching on a date give or take 5 days, or matching on age give or take 2 years.
-#' To do this, create a \code{\link{number_line}} object with the range of values, and assign the actual value to the \code{gid} argument.
+#' Records are matched in two ways; an exact match - the equivalent of \code{(==)}, or matching a range of numeric values.
+#' An example of range matching is matching a date give or take 5 days, or matching an age give or take 2 years.
+#' To do this, create a \code{\link{number_line}} object based on the range of values, and assign the actual value assigned to \code{gid}.
 #' Then use the \code{\link{number_line}} as a \code{sub_criteria}.
 #'
-#' A match at each stage is considered more certain than those at subsequent stages.
-#' Therefore, \code{criteria} should be listed in order of decreasing certainty.
+#' A match at each stage is considered more relevant than those at subsequent stages.
+#' Therefore, \code{criteria} should be listed in order of decreasing relevance or certainty.
 #'
 #' \code{sub_criteria} can be used to force additional matching conditions at each stage.
 #' If \code{sub_criteria} is not \code{NULL}, only records with matching \code{criteria} and \code{sub_criteria} values are grouped together.
@@ -40,89 +43,99 @@
 #' If all \code{criteria} values are missing, that record is assigned a unique group ID.
 #'
 #' When a \code{data_source} identifier is included,
-#' \code{pid_dataset} is included in the output. This shows the datasets included in each group.
+#' \code{pid_dataset} is included in the output. This shows the data sources included in each group.
 #'
 #' @examples
 #' library(dplyr)
 #' library(tidyr)
 #'
 #' three_people <- data.frame(forename=c("Obinna","James","Ojay","James","Obinna"),
-#' stringsAsFactors = FALSE)
-#' bind_cols(three_people, record_group(three_people, criteria= forename))
+#'                            stringsAsFactors = FALSE)
+#'
+#' # Old way - merging or binding results back to the data.frame
+#' output <-  bind_cols(three_people, record_group(three_people, criteria= forename))
+#' output
+#'
+#' # New way - pid_object
+#' three_people$pids_a <- output$pids <- record_group(three_people, criteria= forename, to_s4 = TRUE)
+#' output
 #'
 #' # To handle missing or unknown data, recode missing or unknown values to NA or "".
-#' three_people$r_id <- 1:5
-#' three_people$forename <- ifelse(three_people$r_id %in% c(1,4), NA, three_people$forename)
-#' bind_cols(three_people, record_group(three_people, criteria= forename))
+#' three_people$forename[c(1,4)] <- NA
+#' three_people$pids_b <- record_group(three_people, criteria= forename, to_s4 =TRUE)
+#' three_people
 #'
 #' data(staff_records); staff_records
 #'
 #' # Range matching
-#' dob <- select(staff_records, sex)
+#' dob <- staff_records["sex"]
 #' dob$age <- c(10,8,20,5,5,9,7)
 #'
 #' # age range - age + 20 years
 #' dob$range <- number_line(dob$age, dob$age+20, gid=dob$age)
-#' bind_cols(dob, record_group(dob, criteria = sex, sub_criteria = list(s1a="range"), display = FALSE))
+#' dob$pids_a <- record_group(dob, criteria = sex, sub_criteria = list(s1a="range"), to_s4 = TRUE)
 #'
 #' # age range - age +- 20 years
 #' dob$range <- number_line(dob$age-20, dob$age+20, gid=dob$age)
-#' bind_cols(dob, record_group(dob, criteria = sex, sub_criteria = list(s1a="range")))
+#' dob$pids_b <- record_group(dob, criteria = sex, sub_criteria = list(s1a="range"), to_s4 = TRUE)
 #'
-#' # Do not directly use number_line objects as criterias.
-#' # Instead, use it as the sub_criteria to a 'dummy criteria'
-#' dob$dum_var <- 1
-#' bind_cols(dob, record_group(dob, criteria = dum_var, sub_criteria = list(s1a="range")))
+#' dob$pids_c <- record_group(dob, criteria = range, to_s4 = TRUE)
+#' dob
 #'
 #' # Two or more stages of record grouping
-#' pids <- record_group(staff_records, sn = r_id, criteria = c(forename, surname),
-#' data_source = sex, display = FALSE)
-#' left_join(staff_records, pids, by=c("r_id"="sn"))
+#' staff_records$pids_a <- record_group(staff_records, sn = r_id, criteria = c(forename, surname),
+#'                                      data_source = sex, display = FALSE, to_s4 = TRUE)
+#' staff_records
 #'
 #' # Add sex to the second stage to be more certain
-#' staff_records_b <- unite(staff_records, cri_2, c(surname, sex), sep ="-")
-#' pids <- record_group(staff_records_b, r_id, c(forename, cri_2),
-#' data_source = dataset, display = FALSE)
-#' bind_cols(staff_records_b, pids)
+#' staff_records <- unite(staff_records, cri_2, c(surname, sex), sep ="-")
+#' staff_records$pids_b <- record_group(staff_records, r_id, c(forename, cri_2),
+#'                                      data_source = dataset, display = FALSE, to_s4 = TRUE)
+#' staff_records
 #'
 #' # Using sub-criteria
 #' data(missing_staff_id); missing_staff_id
 #'
-#' pids <- record_group(missing_staff_id, r_id, c(staff_id, age),
-#' list(s2a=c("initials","hair_colour","branch_office")), data_source = source_1)
-#' left_join(missing_staff_id, pids, by=c("r_id"="sn"))
+#' missing_staff_id$pids <- record_group(missing_staff_id, r_id, c(staff_id, age),
+#' list(s2a=c("initials","hair_colour","branch_office")), data_source = source_1, to_s4 = TRUE)
 #'
-#' pids <- record_group(missing_staff_id, r_id, c(staff_id, age),
-#' list(s2a=c("initials","hair_colour","branch_office")), data_source = c(source_1, source_2))
-#' bind_cols(missing_staff_id, pids)
+#' missing_staff_id
 #'
 #' @export
 
-record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source = NULL, group_stats=FALSE, display=TRUE){
+record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source = NULL, group_stats=FALSE, display=TRUE, to_s4 = FALSE){
   if(!is.data.frame(df)) stop(paste("A dataframe is required"))
-  if(!(is.logical(group_stats) & is.logical(display))) stop(paste("'group_stats' and 'display' must be TRUE or FALSE"))
+  if(!(is.logical(group_stats) & is.logical(display) & is.logical(to_s4))) stop(paste("'group_stats', 'display' and 'to_s4' must be TRUE or FALSE"))
 
   . <- NULL
-  enq_vr <- function(x, vr){
-    x <- names(dplyr::select(x, !!vr))
-
-    if(length(x)==0){
-      x <- NULL
-    }else{
-      x
+  if(to_s4 == FALSE){
+    if (is.null(getOption("diyar.record_group.output"))){
+      options("diyar.record_group.output"= TRUE)
     }
-    return(x)
+    if (getOption("diyar.record_group.output")){
+      message(paste("The default output of record_group() will be changed to pid objects in the next release.",
+                    "Please consider switching earlier by using 'to_s4=TRUE' or to_s4()",
+                    "This message is displayed once per session.", sep = "\n"))
+    }
+    options("diyar.record_group.output"= FALSE)
   }
+  enq_vr <- function(x){
+    x <- as.character(x)
+    if(x[1]=="c" & length(x)>1) x <- x[2:length(x)]
+    if(length(x)==0) x <- NULL
+    x
+  }
+
   fmt <- function(g) formatC(g, format="d", big.mark=",")
 
-  ds <- enq_vr(head(df,1), dplyr::enquo(data_source))
+  ds <- enq_vr(substitute(data_source))
 
   df_vars <- names(df)
 
-  rd_sn <- enq_vr(head(df,1), dplyr::enquo(sn))
+  rd_sn <- enq_vr(substitute(sn))
 
   sub_cri_lst <- unlist(sub_criteria, use.names = FALSE)
-  cri_lst <- enq_vr(head(df,1), dplyr::enquo(criteria))
+  cri_lst <- enq_vr(substitute(criteria))
 
   if(!is.null(rd_sn)){
     if(!(all(df[[rd_sn]] > 0) & is.numeric(as.numeric(df[[rd_sn]])))) stop(paste("'",rd_sn,"' as 'sn' must be > 0", sep=""))
@@ -153,6 +166,21 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
 
   cri_no <- length(cri_lst)
 
+  for(i in 1:cri_no){
+    if(is.number_line(df[[cri_lst[i]]])){
+      #dummy criteria
+      rp_vr <- paste("dmvr_d",i,sep="")
+      df[[rp_vr]] <- 1
+      # make nl a sub_criteria for the dummy criteria
+      if(is.null(sub_criteria)) sub_criteria <- list()
+      sub_criteria[paste("s",i,"zr",sep="")] <- cri_lst[i]
+      # update criteria list
+      cri_lst[i] <- rp_vr
+    }
+  }
+  #update 'sub_cri_lst'
+  sub_cri_lst <- unlist(sub_criteria, use.names = FALSE)
+
   range_match <- function(x, tr_x) {
     if(any(!diyar::overlap(diyar::as.number_line(x@gid), x))) stop("Actual value (gid) is outside the range created in a number_line object")
     if(utils::packageVersion("dplyr") < package_version("0.8.0.1")) stop("dplyr >= v0.8.0.1 is required for range matching")
@@ -171,7 +199,7 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
     df$cri <- df[[cri_lst[i]]]
 
     attr <- attributes(sub_criteria)[["names"]]
-    attr <- subset(attr, stringr::str_detect(attr,paste("s",i,sep="")))
+    attr <- subset(attr, grepl(paste("s",i,sep=""), attr))
 
     curr_attr <- ifelse(length(attr)==0, FALSE, TRUE)
 
@@ -281,7 +309,7 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
     }
   }
 
-  df$pid_cri <- ifelse(df$pid_cri==Inf, "None", paste("Criteria",df$pid_cri))
+  df$pid_cri <- ifelse(df$pid_cri==Inf, 0, df$pid_cri)
 
   df <- df %>%
     # records not yet assigned a group ID are assigned new unique group IDs
@@ -301,7 +329,7 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
        dplyr::arrange(.data$dsvr) %>%
        tidyr::spread(key= "dsvr", value= "val") %>%
        tidyr::unite("pid_dataset", sourc_list, sep=",") %>%
-       dplyr::mutate(pid_dataset = stringr::str_replace_all(.data$pid_dataset,"NA,|,NA|^NA$","")) %>%
+       dplyr::mutate(pid_dataset = gsub("NA,|,NA|^NA$","",.data$pid_dataset)) %>%
        dplyr::full_join(df, by="pid")
 
       df <- dplyr::select(df, .data$sn, .data$pid, .data$pid_cri, .data$pid_dataset, .data$pr_sn)
@@ -317,5 +345,6 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
 
    pd <- ifelse(display,"\n","")
    cat(paste(pd,"Record grouping complete - ",fmt(removed + (total_1-tagged_1))," record(s) assigned a group unique ID. \n" , sep =""))
+   if(to_s4) df <- diyar::to_s4(df)
    df
 }
