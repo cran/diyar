@@ -31,9 +31,9 @@ Cheat sheet
 Usage
 -----
 
-There are two main aspects of the `diyar` package; record and episode grouping, both of which use `number_line` objects
+There are two main aspects of the `diyar` package; multistage record grouping (`record_group()`) and episode grouping (`fixed_episodes()`, `rolling_episodes()` and `episode_group()`) for applying case definitions in epidemiological analysis. `number_line` objects are used for both.
 
--   `number_line` object are series of real numbers on a number line. These can be manipulated and merged.
+-   `number_line` objects - series of real numbers on a number line. These can be manipulated and merged.
 
 ``` r
 library(diyar)
@@ -54,7 +54,7 @@ number_line_sequence(nl, by =3)
 #> [11] "2019-04-30"
 ```
 
--   `fixed_episodes()`, `rolling_episodes()` and `episode_group()` - Group records into chronological episodes for the purpose of record deduplication and implementing case definitions in epidemiological analysis. ***NOTE; `to_s4` and `to_s4()` changes their output from a data.frame (current default) to `epid` objects. `epid` objects will be the default output in the next release.***
+-   `fixed_episodes()`, `rolling_episodes()` and `episode_group()` - Group records into chronological episodes. ***NOTE; `to_s4` and `to_s4()` changes their output from a data.frame (current default) to `epid` objects. `epid` objects will be the default output in the next release.***
 
 ``` r
 data(infections);
@@ -67,21 +67,12 @@ db$date
 # Fixed episodes
 db$f_epid <- fixed_episodes(date = db$date, case_length = 15, 
                               display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-#> The default output of fixed_episodes() will be changed to epid objects in the next release.
-#> Please consider switching earlier by using 'to_s4=TRUE' or to_s4()
-#> This message is displayed once per session.
-#> The default output of episode_group() will be changed to epid objects in the next release.
-#> Please consider switching earlier by using 'to_s4=TRUE' or to_s4()
-#> This message is displayed once per session.
 #> Episode grouping complete - 0 record(s) assinged a unique ID.
 
 # Rolling episodes
 db$r_epid <- rolling_episodes(date = db$date, case_length = 15, 
                               recurrence_length = 40, display = FALSE, to_s4 = TRUE, 
                               group_stats = TRUE)
-#> The default output of rolling_episodes() will be changed to epid objects in the next release.
-#> Please consider switching earlier by using 'to_s4=TRUE' or to_s4()
-#> This message is displayed once per session.
 #> Episode grouping complete - 0 record(s) assinged a unique ID.
 db[c("f_epid","r_epid")]
 #> # A tibble: 11 x 2
@@ -100,7 +91,7 @@ db[c("f_epid","r_epid")]
 #> 11 E-10 2018-05-25 -> 2018-05-31 (D) E-1 2018-04-01 -> 2018-05-31 (D)
 ```
 
--   `record_group()` - Perform multistage deterministic linkages while addressing missing data with a specified list of alternative matching criteria, or range of values. ***NOTE; `to_s4` and `to_s4()` changes the output from a data.frame (current default) to `pid` objects. `pid` objects will be the default output in the next release.***
+-   `record_group()` - Perform multistage deterministic linkages while addressing missing data using a specified list of alternative matching criteria or matching range of values. ***NOTE; `to_s4` and `to_s4()` changes the output from a data.frame (current default) to `pid` objects. `pid` objects will be the default output in the next release.***
 
 ``` r
 # Two stages of record grouping
@@ -108,9 +99,6 @@ data(staff_records);
 
 staff_records$pids_a <- record_group(staff_records, sn = r_id, criteria = c(forename, surname),
                      data_source = sex, display = FALSE, to_s4 = TRUE)
-#> The default output of record_group() will be changed to pid objects in the next release.
-#> Please consider switching earlier by using 'to_s4=TRUE' or to_s4()
-#> This message is displayed once per session.
 #> Record grouping complete - 1 record(s) assigned a group unique ID.
 staff_records
 #> # A tibble: 7 x 6

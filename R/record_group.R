@@ -4,25 +4,25 @@
 #' @description Group matching records from one or more datasets.
 #'
 #' @param df \code{data.frame}. One or more datasets appended together.
-#' @param sn Unique \code{numeric} record identifier. Optional.
+#' @param sn Unique numerical record identifier. Optional.
 #' @param criteria Column names of attributes to match. Records with matching values in these columns are grouped together.
 #' @param sub_criteria Matching sub-criteria. Additional matching conditions for each stage (\code{criteria}).
 #' @param data_source Unique dataset identifier. Useful when \code{df} contains data from multiple sources.
 #' @param group_stats If \code{TRUE}, output will include additional columns with useful stats for each record group.
 #' @param display If \code{TRUE}, status messages are printed on screen.
-#' @param to_s4 if \code{TRUE}, changes the returned value to a \code{\link[=pid-class]{pid}} object.
+#' @param to_s4 if \code{TRUE}, changes the returned output to a \code{\link[=pid-class]{pid}} object.
 #'
 #' @return \code{data.frame} (\code{\link[=pid-class]{pid}} objects if \code{to_s4} is \code{TRUE})
 #'
 #' \itemize{
 #' \item \code{sn} - unique record identifier as provided
-#' \item \code{pid} - unique group identifier
+#' \item \code{pid | .Data} - unique group identifier
 #' \item \code{pid_cri} - matched criteria for each record in the group
 #' \item \code{pid_dataset} - data sources in each group
 #' \item \code{pid_total} - number of records in each group
 #' }
 #'
-#' \code{pid} objects will be the default output from the next release onwards
+#' \code{pid} objects will be the default output from the next release.
 #'
 #' @seealso \code{\link{episode_group}} and \code{\link{number_line}}
 #'
@@ -43,7 +43,7 @@
 #' If all \code{criteria} values are missing, that record is assigned a unique group ID.
 #'
 #' When a \code{data_source} identifier is included,
-#' \code{pid_dataset} is included in the output. This shows the data sources included in each group.
+#' \code{pid_dataset} is included in the output. This lists the source of every record in each record group.
 #'
 #' @examples
 #' library(dplyr)
@@ -52,13 +52,8 @@
 #' three_people <- data.frame(forename=c("Obinna","James","Ojay","James","Obinna"),
 #'                            stringsAsFactors = FALSE)
 #'
-#' # Old way - merging or binding results back to the data.frame
-#' output <-  bind_cols(three_people, record_group(three_people, criteria= forename))
-#' output
-#'
-#' # New way - pid_object
-#' three_people$pids_a <- output$pids <- record_group(three_people, criteria= forename, to_s4 = TRUE)
-#' output
+#' three_people$pids_a <- record_group(three_people, criteria= forename, to_s4 = TRUE)
+#' three_people
 #'
 #' # To handle missing or unknown data, recode missing or unknown values to NA or "".
 #' three_people$forename[c(1,4)] <- NA
@@ -69,25 +64,28 @@
 #'
 #' # Range matching
 #' dob <- staff_records["sex"]
-#' dob$age <- c(10,8,20,5,5,9,7)
+#' dob$age <- c(30,28,40,25,25,29,27)
 #'
-#' # age range - age + 20 years
-#' dob$range <- number_line(dob$age, dob$age+20, gid=dob$age)
-#' dob$pids_a <- record_group(dob, criteria = sex, sub_criteria = list(s1a="range"), to_s4 = TRUE)
+#' # age range: age + 20 years
+#' dob$range_a <- number_line(dob$age, dob$age+20, gid=dob$age)
+#' dob$pids_a <- record_group(dob, criteria = sex, sub_criteria = list(s1a="range_a"), to_s4 = TRUE)
+#' dob[c("sex","age","range_a","pids_a")]
 #'
-#' # age range - age +- 20 years
-#' dob$range <- number_line(dob$age-20, dob$age+20, gid=dob$age)
-#' dob$pids_b <- record_group(dob, criteria = sex, sub_criteria = list(s1a="range"), to_s4 = TRUE)
+#' # age range: age +- 20 years
+#' dob$range_b <- number_line(dob$age-20, dob$age+20, gid=dob$age)
+#' dob$pids_b <- record_group(dob, criteria = sex, sub_criteria = list(s1a="range_b"), to_s4 = TRUE)
+#' dob[c("sex","age","range_b","pids_b")]
 #'
-#' dob$pids_c <- record_group(dob, criteria = range, to_s4 = TRUE)
-#' dob
+#' dob$pids_c <- record_group(dob, criteria = range_b, to_s4 = TRUE)
+#' dob[c("age","range_b","pids_c")]
 #'
-#' # Two or more stages of record grouping
+#'
+#' # Multistage record grouping
 #' staff_records$pids_a <- record_group(staff_records, sn = r_id, criteria = c(forename, surname),
 #'                                      data_source = sex, display = FALSE, to_s4 = TRUE)
 #' staff_records
 #'
-#' # Add sex to the second stage to be more certain
+#' # Add `sex` to the second stage (`cri`) to be more certain
 #' staff_records <- unite(staff_records, cri_2, c(surname, sex), sep ="-")
 #' staff_records$pids_b <- record_group(staff_records, r_id, c(forename, cri_2),
 #'                                      data_source = dataset, display = FALSE, to_s4 = TRUE)
@@ -115,6 +113,12 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
     if (getOption("diyar.record_group.output")){
       message(paste("The default output of record_group() will be changed to pid objects in the next release.",
                     "Please consider switching earlier by using 'to_s4=TRUE' or to_s4()",
+                    "",
+                    "# Old way - merge or bind (col) results back to the `df`",
+                    "df <- cbind(df, record_group(df, criteria= x))",
+                    "",
+                    "# New way - `pid` objects",
+                    "df$pids <- record_group(df, criteria= x, to_s4 = TRUE)",
                     "This message is displayed once per session.", sep = "\n"))
     }
     options("diyar.record_group.output"= FALSE)
@@ -228,10 +232,10 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
       curr_sub_cri_lst <- "sn"
     }
 
-    df$skip <- df$m_tag <- c <- min_m_tag <- min_pid <- 0
+    df$force_check <- df$skip <- df$m_tag <- c <- min_m_tag <- min_pid <- 0
 
     while (min_pid==0 | min_m_tag==-1) {
-      df$force_check <- ifelse(df$m_tag==-1,2,df$tag)
+      #df$force_check <- ifelse(df$m_tag==-1,2,df$tag)
       if(c+1 >1 & display ) cat(paste("\nMatching criteria ",i,": iteration ",c+1, sep=""))
 
       TR <- df %>%
@@ -244,13 +248,17 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
       df <- dplyr::left_join(df,TR, by="cri")
 
       df$sub_cri_match <- ifelse(!sub_crx_func(df) %in% c(NA, FALSE),1,0)
-      df$skip <- ifelse(df$sub_cri_match==1,1,df$skip)
+      # no need to check again
+      # df$m_tag <- ifelse(df$sub_cri_match==1 & df$m_tag==-1 & df$pid==df$tr_pid & !is.na(df$tr_pid),1,df$m_tag)
 
       df <- df %>%
         dplyr::mutate(
-          m_tag = ifelse(.data$m_tag==1 & .data$tr_pid ==0 & .data$sub_cri_match==1 & .data$pid_cri <= .data$tr_pid_cri, -1, .data$m_tag),
+          m_tag = ifelse(.data$m_tag==1 &
+                           #.data$tr_pid ==0 &
+                           .data$sub_cri_match==1 & .data$pid_cri <= .data$tr_pid_cri, -1, .data$m_tag),
+          m_tag = ifelse(.data$sub_cri_match==1 & .data$m_tag==-1 & .data$pid==.data$tr_pid & !is.na(.data$tr_pid),1,.data$m_tag),
           pid = ifelse(
-            .data$tr_m_tag==-1 & .data$pid!=0 & !.data$tr_pid %in% c(0,NA) & .data$pid_cri >= .data$tr_pid_cri &  .data$sub_cri_match==1,
+            (.data$m_tag==-1 & .data$pid!=0) | (.data$sub_cri_match==1 & .data$pid==0 & !is.na(.data$tr_pid)),
             .data$tr_pid, .data$pid
           ),
           #inherit pid
@@ -264,8 +272,10 @@ record_group <- function(df, sn=NULL, criteria, sub_criteria=NULL, data_source =
             .data$tr_sn, .data$pid
           ),
           m_tag = ifelse(.data$pid !=0 & .data$m_tag != -1,1, .data$m_tag),
-          m_tag = ifelse(.data$sn==.data$tr_sn & .data$m_tag ==-1, 1, .data$m_tag )
+          m_tag = ifelse(.data$sn==.data$tr_sn & !is.na(.data$tr_sn) & .data$m_tag ==-1, 1, .data$m_tag )
         )
+
+      df$skip <- ifelse(df$m_tag ==-1 & !is.na(df$m_tag), 0, ifelse(df$sub_cri_match==1, 1, df$skip))
 
       min_pid <- df %>%
         dplyr::filter(!.data$cri %in% c("",NA)) %>%

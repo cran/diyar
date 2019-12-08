@@ -43,7 +43,7 @@ f_epids$epid <- f_epids$epids@.Data
 plot <- bind_rows(
   mutate(r_epids, method="rolling episodes"),
   mutate(f_epids, method="fixed episodes")) %>% 
-  mutate(epi=7, recur=14) %>% 
+  mutate(epi=14, recur=14) %>% 
   select(method, rid, epid, date, dt_a, dt_z, epi, recur, case_nm) %>% 
   mutate(epid = paste("EP",epid,sep="")) %>% 
   mutate_at(vars(dt_a, dt_z), funs(dmy(format(.,"%d/%m/%Y")))) 
@@ -90,27 +90,28 @@ ggplot(plot, aes(x=date, y=rid, group=rid, colour=epid)) +
 data("infections_3");
 dbs <- infections_3[c("pid","date")]; dbs
 
-# Maximum of one episode with one recurrence period
-dbs$eps_1 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 1,display = FALSE, 
-                              rolls_max = 1, episodes_max = 1, to_s4 = TRUE)
+# Maximum of one fixed episode grouping per strata
+dbs$eps_1 <- fixed_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 1, to_s4 = TRUE)
 
-# Maximum of two episodes with one recurrence period
-dbs$eps_2 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 1,display = FALSE, 
-                              rolls_max = 1, episodes_max = 2, to_s4 = TRUE)
+# Maximum of one rolling episode grouping per strata
+dbs$eps_2 <- rolling_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 1, to_s4 = TRUE)
+
+# Maximum of two fixed episode grouping per strata
+dbs$eps_3 <- fixed_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 2, to_s4 = TRUE)
 
 dbs
 
 
 ## ----warning=FALSE, message=FALSE----------------------------------------
 # Infinite recurrence periods per episode (Default)
-dbs$eps_3 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, to_s4 = TRUE)
+dbs$eps_4 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, to_s4 = TRUE)
 
 # Maximum of one recurrence period per episode
-dbs$eps_4 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, 
+dbs$eps_5 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, 
                               rolls_max = 1, to_s4 = TRUE)
 
 # Maximum of two recurrence periods per episode
-dbs$eps_5 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, 
+dbs$eps_6 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, 
                               rolls_max = 2, to_s4 = TRUE)
 
 dbs
@@ -139,7 +140,8 @@ fixed_episodes(date=dates, case_length=6, to_s4=TRUE, display=FALSE, group_stats
 # user defined preference via custom sort is prioritised before from_last 
 fixed_episodes(date=dates, case_length=6, to_s4=TRUE, custom_sort = user_sort, display=FALSE, group_stats = TRUE)
 
-# user defined preference via custom sort is prioritised before from_last. Duplicates flagged from both directions
+# user defined preference via custom sort is prioritised before from_last. 
+# Duplicates are flagged from both directions
 fixed_episodes(date=dates, case_length=6, to_s4=TRUE, custom_sort = user_sort, display=FALSE, 
                bi_direction = TRUE, group_stats = TRUE)
 
@@ -166,6 +168,8 @@ dbs
 dbs <- tibble(date=c("01/04/2019", "05/04/2019"))
 
 dbs$date <- as.Date(dbs$date, "%d/%M/%Y")
+
+# 10-day periods beginning with the `date`
 dbs$period <- number_line(dbs$date, dbs$date + 10)
 
 dbs
@@ -173,68 +177,68 @@ dbs
 # Grouping events
 fixed_episodes(date=dbs$date, case_length=30, to_s4=TRUE, display=FALSE, group_stat=TRUE)
 
-# Grouping periods
+# Grouping the 10-day periods
 fixed_episodes(date=dbs$period, case_length=30, to_s4=TRUE, display=FALSE, group_stat=TRUE)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
-data("hospital_admissions"); hospital_admissions
+hos_admin <- diyar::hospital_admissions; hos_admin
 
-hospital_admissions$admin_period <- number_line(hospital_admissions$admin_dt, hospital_admissions$discharge_dt)
+hos_admin$admin_period <- number_line(hos_admin$admin_dt, hos_admin$discharge_dt)
 
 # Grouping the actual admissions into episodes
-fixed_episodes(date=hospital_admissions$admin_dt, sn=hospital_admissions$rd_id, case_length = 0, 
-                display = FALSE, to_s4 = TRUE, group_stats = TRUE)
+fixed_episodes(date=hos_admin$admin_dt, sn=hos_admin$rd_id, case_length=0, 
+                display=FALSE, to_s4=TRUE, group_stats=TRUE)
 
 # Grouping the periods of stay (admission -> discharge)
-fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
-                display = FALSE, to_s4 = TRUE, group_stats = TRUE)
+fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
+                display=FALSE, to_s4=TRUE, group_stats=TRUE)
 
 
 ## ----warning=FALSE-------------------------------------------------------
 # Overlapping intervals
-across <- fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
+across <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
                overlap_method = "across", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
 
 across
 
 # Chained intervals
-chain <- fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
+chain <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
                overlap_method = "chain", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
 
 chain
 
 # Intervals with aligned end points
-aligns_end <- fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
+aligns_end <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
                overlap_method = "aligns_end", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
 
 aligns_end
 
 # Intervals with aligned start points
-aligns_start <- fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
+aligns_start <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length=0, 
                overlap_method = "aligns_start", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
 
 aligns_start
 
 # Intervals occurring completely within others
-inbetween <- fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
+inbetween <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
                overlap_method = "inbetween", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
 
 inbetween
 
 # Chained intervals and those occurring completely within others
-chain_inbetween <- fixed_episodes(date=hospital_admissions$admin_period, sn=hospital_admissions$rd_id, case_length = 0, 
+chain_inbetween <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
                overlap_method = c("chain","inbetween"), display = FALSE, to_s4 = TRUE, group_stats = TRUE)
 
 chain_inbetween
 
 
 ## ----echo=FALSE, fig.height=5, fig.width=8, message=FALSE, warning=FALSE----
-across <- cbind(hospital_admissions, to_df(across))
-chain <- cbind(hospital_admissions, to_df(chain))
-aligns_start <- cbind(hospital_admissions, to_df(aligns_start))
-chain_inbetween <- cbind(hospital_admissions, to_df(chain_inbetween))
-inbetween <- cbind(hospital_admissions, to_df(inbetween))
-aligns_end <- cbind(hospital_admissions, to_df(aligns_end))
+across <- cbind(hos_admin, to_df(across))
+chain <- cbind(hos_admin, to_df(chain))
+aligns_start <- cbind(hos_admin, to_df(aligns_start))
+chain_inbetween <- cbind(hos_admin, to_df(chain_inbetween))
+inbetween <- cbind(hos_admin, to_df(inbetween))
+aligns_end <- cbind(hos_admin, to_df(aligns_end))
 
 plot <- rbind(
   mutate(across, method="across"),
@@ -286,7 +290,7 @@ ggplot(plot, aes(x=val, y=rd_id, group=rd_id, label=lab, colour=epid_2)) +
 ## ----warning=FALSE, include=FALSE----------------------------------------
 
 # Overlapping intervals
-ha2 <- hospital_admissions
+ha2 <- hos_admin
 ha2$epi_len <- 30
 ha2$shift <- ifelse(ha2$rd_id %in% c(2,8,5,7), 0, 30)
 ha2$admin_period <- shift_number_line(ha2$admin_period, duration(ha2$shift, "days"))
@@ -393,6 +397,7 @@ ggplot(plot, aes(x=val, y=rd_id, group=rd_id, label=lab, colour=epid_2)) +
 ## ----warning=FALSE-------------------------------------------------------
 data(infections)
 dbs <- infections[c("date","infection")]
+dbs <- dbs[dbs$infection%in% c("UTI","BSI"),]
 dbs$epi <- ifelse(dbs$infection=="UTI", 7, 14)
 dbs$recur <- ifelse(dbs$infection=="UTI", 30, 0)
 
@@ -412,10 +417,9 @@ dbs$epids <- episode_group(infections_4, sn=rid, strata=c(pid, organism, source)
 dbs
 
 ## ----warning=FALSE, message=FALSE----------------------------------------
-data("hourly_data"); hourly_data
-dbs <- hourly_data
+data("hourly_data"); dbs <- hourly_data
 
-dbs$datetime
+dbs[c("datetime", "category")]
 
 rolling_episodes(strata = dbs$category, date = dbs$datetime, case_length = 5,
                  episode_unit = "hours", recurrence_length = 9, group_stats = TRUE, to_s4 = TRUE, display = FALSE)
@@ -434,7 +438,7 @@ data(infections)
 
 dbs <- infections[c("date","infection")]; dbs
 
-# unique record ids
+# familiar unique record ids for reference
 rd_id <- c(640,17,58,21,130,79,45,300,40,13,31)
 
 # strata based on matching sources of infection
@@ -445,4 +449,15 @@ dbs$epids <- fixed_episodes(sn = rd_id, date = dbs$date, strata = dbs$pids,
                              to_s4 = TRUE, display = FALSE, group_stats = TRUE, case_length = 10)
 
 dbs
+
+## ----warning=FALSE, message=FALSE----------------------------------------
+vals <- c(8.1,6,12,8.5,12,3,8,15,5,7)
+
+vals
+
+fixed_episodes(vals, case_length = .5, group_stats = T, to_s4 = T, display = F)
+
+fixed_episodes(vals, case_length = 5, group_stats = T, to_s4 = T, display = F)
+
+fixed_episodes(vals, case_length = 100, group_stats = T, to_s4 = T, display = F)
 

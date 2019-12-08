@@ -2,8 +2,8 @@ Package: diyar
 Type: Package
 Title: Multistage Record Linkage and Case Definition for
         Epidemiological Analysis
-Date: 2019-11-09
-Version: 0.0.2
+Date: 2019-12-08
+Version: 0.0.3
 URL: https://cran.r-project.org/package=diyar
 BugReports: https://github.com/OlisaNsonwu/diyar/issues
 Author: Olisaeloka Nsonwu
@@ -22,10 +22,10 @@ LazyData: true
 Imports: methods, utils, rlang, dplyr (>= 0.7.5), lubridate (>= 1.7.4),
         tidyr (>= 0.8.2)
 RoxygenNote: 6.1.1
-Suggests: ggplot2, janitor, knitr, rmarkdown, testthat, covr
+Suggests: phonics, ggplot2, janitor, knitr, rmarkdown, testthat, covr
 VignetteBuilder: knitr
 Language: en-GB
 NeedsCompilation: no
-Packaged: 2019-11-10 23:40:23 UTC; Loky
+Packaged: 2019-12-08 21:56:37 UTC; Loky
 Repository: CRAN
-Date/Publication: 2019-11-11 08:50:10 UTC
+Date/Publication: 2019-12-08 22:20:02 UTC

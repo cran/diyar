@@ -36,15 +36,16 @@ library(tidyr)
 data(Opes); Opes
 
 # 1 stage linkage
-  # sub_criteria - name, and either department, hair colour or date of birth
+  # stage 1 - name AND (department OR hair_colour OR date_of_birth)
 Opes$pids_a <- record_group(Opes, criteria = name, 
-                            sub_criteria = list("s1a"=c("department","hair_colour","date_of_birth")),
+                            sub_criteria = list(
+                              "s1a"=c("department","hair_colour","date_of_birth")),
                             display = FALSE, to_s4 = TRUE)
 
 Opes[c("name","department","hair_colour","date_of_birth","pids_a")]
   
 # 1 stage linkage 
-  # sub_criteria - name, and either department or hair colour, and date of birth 
+  # stage 1 - name AND ((department OR hair_colour) AND (date_of_birth)) 
 Opes$pids_b <- record_group(Opes, criteria = name, 
                             sub_criteria = list(
                               "s1a"=c("department","hair_colour"),
@@ -54,17 +55,17 @@ Opes$pids_b <- record_group(Opes, criteria = name,
 Opes[c("name","department","hair_colour","date_of_birth","pids_b")]
 
 # 1 stage linkage 
-  # sub_criteria - name, and either department or hair colour, and either day and month of birth, day and year of birth or month and year of birth
+  # stage 1 - name AND ((department OR hair_colour) AND (dd-mm OR dd-yyyy OR mm-yyyy))
 Opes$pids_c <- record_group(Opes, criteria = name, 
                             sub_criteria = list(
-                              "s1a"=c("department","hair_colour"), 
+                              "s1a"=c("department","hair_colour"),
                               "s1b"=c("db_pt1","db_pt2","db_pt3")),
                             display = FALSE, to_s4 =TRUE)
 
 Opes[c("name","department","hair_colour","date_of_birth","pids_c")]
 
 # 1 stage linkage 
-  # sub_criteria - name, and department, and hair colour, and either day and month of birth, day and year of birth or month and year of birth
+  # stage 1 - name AND ((department)  AND (hair_colour) AND (dd-mm OR dd-yyyy OR mm-yyyy))
 Opes$pids_d <- record_group(Opes, criteria =name, 
                sub_criteria = list(
                  "s1a"=c("department"),
@@ -76,7 +77,7 @@ Opes[c("name","department","hair_colour","date_of_birth","pids_d")]
 
 ## ---- warning=FALSE, message=FALSE---------------------------------------
 # 1 stage linkage 
-  # stage 1 - name, and date of birth, and department and hair colour 
+  # stage 1 - name AND ((department)  AND (hair_colour) AND (date_of_birth))
 Opes$pids_e <- record_group(Opes, criteri = name, 
                             sub_criteria = list(
                               "s1a"=c("department"), 
@@ -86,6 +87,8 @@ Opes$pids_e <- record_group(Opes, criteri = name,
 
 Opes$cri <- paste(Opes$name, Opes$date_of_birth, Opes$department, Opes$hair_colour, sep="-")
 
+# 1 stage linkage 
+  # stage 1 - name AND department AND hair_colour AND date_of_birth
 Opes$pids_f <- record_group(Opes, criteria = cri,  display = TRUE, to_s4 =TRUE)
 
 Opes[c("name","department","hair_colour","date_of_birth","pids_e","pids_f")]
@@ -95,7 +98,7 @@ library(lubridate)
 Opes_c <- Opes["date_of_birth"]
 Opes_c
 
-# Match on date of birth + 3 months
+# Match on date of birth + 2 years
 Opes_c$date_of_birth <- dmy(Opes_c$date_of_birth)
 Opes_c$range_a <- expand_number_line(as.number_line(Opes_c$date_of_birth), period(2, "years"), "end")
 Opes_c$range_a@gid <- as.numeric(Opes_c$date_of_birth)
@@ -124,19 +127,12 @@ patient_list_2
 patient_list_2$forename <- ifelse(patient_list_2$rd_id %in% 1:3, "Nil", patient_list_2$forename)
 # 2 stage linkage
     # Stage 1 - forename
-    # Stage 2 - Surname
+    # Stage 2 - surname
+
 patient_list_2$pids_b <- record_group(patient_list_2, criteria = c(forename, surname), 
                                       display = FALSE, to_s4 =TRUE)
 
-# 2 stage linkage
-    # Stage 1 - forename
-    # Stage 2 - Surname and sex
-patient_list_2 <- mutate(patient_list_2, cri_3 = paste(surname,sex,sep=""))
-
-patient_list_2$pids_c <- record_group(patient_list_2, criteria = c(forename, cri_3), 
-                                      display = FALSE, to_s4 = TRUE)
-
-patient_list_2[c("forename","surname","sex","pids_b","pids_c")]
+patient_list_2[c("forename","surname","pids_b")]
 
 ## ----warning=FALSE, message=FALSE----------------------------------------
 # Using NA as the proxy for missing value
@@ -151,5 +147,15 @@ patient_list_2 <- mutate(patient_list_2,forename = ifelse(is.na(forename),"",for
 patient_list_2$pids_e <- record_group(patient_list_2, rd_id, c(forename, surname), 
                                       display = FALSE, to_s4 = TRUE)
 
-patient_list_2[c("forename","surname","sex","pids_d","pids_e")]
+patient_list_2[c("forename","surname","pids_d","pids_e")]
+
+## ----warning=FALSE, message=FALSE----------------------------------------
+library(phonics)
+
+patient_list_2$soundex <- soundex(patient_list_2$surname)
+
+patient_list_2$pids_e <- record_group(patient_list_2, rd_id, c(forename, soundex), 
+                                      display = FALSE, to_s4 = TRUE)
+
+patient_list_2[c("forename","surname","soundex","pids_d","pids_e")]
 

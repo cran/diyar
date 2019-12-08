@@ -123,31 +123,50 @@ sort.number_line <- function(x, decreasing = FALSE, ...){
 #' @rdname number_line-class
 #' @export
 format.number_line <- function(x, ...){
-  x <- x[1:length(x@start)]
-  s <- ifelse(x@start + x@.Data > x@start, "->","<-")
-  s <- ifelse(x@start + x@.Data == x@start, "==",s)
-  s <- ifelse(!is.finite(x@start + x@.Data) , "??",s)
+  if (length(x)==0) "number_line(0)"
+  else{
+    x <- x[1:length(x@start)]
+    s <- ifelse(x@start + x@.Data > x@start,"->","<-")
+    s <- ifelse(x@start + x@.Data == x@start, "==",s)
+    s <- ifelse(!is.finite(x@start + x@.Data) , "??",s)
 
-  paste(x@start, s, x@start + x@.Data, sep=" ")
+    paste(x@start, s, x@start + x@.Data, sep=" ")
+  }
 }
 
 #' @name epid-class
 #' @title \code{epid} object
 #'
 #' @description
-#' An S4 object to store the results of \code{\link{fixed_episodes}}, \code{\link{rolling_episodes}} and \code{\link{episode_group}}
+#' S4 objects to store the results of \code{\link{fixed_episodes}}, \code{\link{rolling_episodes}} and \code{\link{episode_group}}
 #'
 #' @aliases epid-class
 #' @importFrom "methods" "new"
 #' @importFrom "utils" "head"
 #' @export
 setClass("epid", contains = "numeric", representation(sn = "numeric", case_nm= "character", epid_interval = "number_line",
-                                                     epid_length= "ANY", epid_total = "numeric", epid_dataset ="character"))
+                                                      epid_length= "ANY", epid_total = "numeric", epid_dataset ="character"))
+
+#' @rdname epid-class
+#' @export
+as.epid <- function(x){
+  er1 <- suppressWarnings(try(as.numeric(x), silent = TRUE))
+  er2 <- suppressWarnings(try(as.numeric(x) + 0, silent = TRUE))
+
+  if(!is.numeric(er1) | !is.numeric(er2)) stop(paste("`x` can't be coerced to an `epid` object",sep=""))
+
+  x[!is.finite(as.numeric(x))] <- NA
+  x <- methods::new("epid", .Data = as.numeric(x), sn = 1:length(x), case_nm = rep(NA_character_, length(x)),
+                    epid_interval = as.number_line(rep(NA_real_, length(x))), epid_total = rep(NA_real_, length(x)),
+                    epid_dataset = rep(NA_character_, length(x)))
+  return(x)
+}
 
 #' @rdname epid-class
 #' @export
 format.epid <- function(x, ...){
-  paste("E-",formatC(x@.Data, width= nchar(max(x@.Data)), flag="0"), ifelse(is.na(x@epid_interval),"", paste(" ",format.number_line(x@epid_interval),sep="")), " (", substr(x@case_nm,1,1), ")", sep="")
+  if (length(x)==0) "epid(0)"
+  else return(paste("E-",formatC(x@.Data, width= nchar(max(x@.Data)), flag="0"), ifelse(is.na(x@epid_interval),"", paste(" ",format.number_line(x@epid_interval),sep="")), " (", substr(x@case_nm,1,1), ")", sep=""))
 }
 
 #' @rdname epid-class
@@ -169,7 +188,7 @@ setMethod("show", signature(object="epid"), function(object){
 #' @param x x
 #' @param ... ...
 setMethod("rep", signature(x = "epid"), function(x, ...) {
-  methods::new("epid", rep(x@.Data, ...), case_nm = rep(x@case_nm, ...), epid_interval = rep(x@epid_interval, ...),
+  methods::new("epid", rep(x@.Data, ...), sn = rep(x@sn, ...), case_nm = rep(x@case_nm, ...), epid_interval = rep(x@epid_interval, ...),
                epid_length = rep(x@epid_length, ...), epid_total = rep(x@epid_total, ...), epid_dataset = rep(x@epid_dataset, ...))
 })
 
@@ -195,12 +214,33 @@ setMethod("[[", signature(x = "epid"),
                          epid_interval = x@epid_interval[i])
           })
 
+#' @rdname epid-class
+setMethod("c", signature(x = "epid"), function(x,...) {
+  e <- lapply(list(x, ...), function(y) y@epid_interval)
+  for(i in 1:length(e)){
+    if(i==1) ei <- e[[i]]
+    if(i>1) ei <- c(ei, e[[i]])
+  }
+
+  sn <- unlist(lapply(list(x, ...), function(y) y@sn))
+  case_nm <- unlist(lapply(list(x, ...), function(y) y@case_nm))
+  epid_length <- unlist(lapply(list(x, ...), function(y) y@epid_length))
+  epid_total <- unlist(lapply(list(x, ...), function(y) y@epid_total))
+  epid_dataset <- unlist(lapply(list(x, ...), function(y) y@epid_dataset))
+  zi <- unlist(list(x, ...))
+
+  methods::new("epid", zi, case_nm = case_nm, sn = sn,
+               epid_length = epid_length, epid_total = epid_total, epid_dataset = epid_dataset,
+               epid_interval = ei)
+
+})
+
 #' @name pid-class
 #'
 #' @title \code{pid} objects
 #'
 #' @description
-#' An S4 object to store the results of \code{\link{record_group}}
+#' S4 objects to store the results of \code{\link{record_group}}
 #'
 #' @aliases pid-class
 #' @importFrom "methods" "new"
@@ -211,11 +251,25 @@ setClass("pid", contains = "numeric", representation(sn = "numeric", pid_cri= "n
 
 #' @rdname pid-class
 #' @export
-format.pid <- function(x, ...){
+as.pid <- function(x, ...){
+  er1 <- suppressWarnings(try(as.numeric(x), silent = TRUE))
+  er2 <- suppressWarnings(try(as.numeric(x) + 0, silent = TRUE))
 
-  paste("P-", formatC(x@.Data, width= nchar(max(x@.Data)), flag="0"), " (",
-        ifelse(x@pid_cri==0,"No Hit", paste("CRI ", formatC(x@pid_cri, width = 2, flag=0), sep="")),
-        ")", sep="")
+  if(!is.numeric(er1) | !is.numeric(er2)) stop(paste("`x` can't be coerced to an `pid``  object",sep=""))
+
+  x[!is.finite(as.numeric(x))] <- NA
+  x <- methods::new("pid", .Data = as.numeric(x), sn = 1:length(x), pid_cri = rep(NA_real_, length(x)),
+                    pid_total = rep(NA_real_, length(x)), pid_dataset = rep(NA_character_, length(x)))
+  return(x)
+}
+
+#' @rdname pid-class
+#' @export
+format.pid <- function(x, ...){
+  if (length(x)==0) "pid(0)"
+  else return(paste("P-", formatC(x@.Data, width= nchar(max(x@.Data)), flag="0"), " (",
+                    ifelse(x@pid_cri==0,"No Hit", paste("CRI ", formatC(x@pid_cri, width = 2, flag=0), sep="")),
+                    ")", sep=""))
 }
 
 #' @rdname pid-class
@@ -260,3 +314,17 @@ setMethod("[[", signature(x = "pid"),
             methods::new("pid", x@.Data[i], pid_cri = x@pid_cri[i], sn = x@sn[i],
                          pid_total = x@pid_total[i], pid_dataset = x@pid_dataset[i])
           })
+
+#' @rdname pid-class
+setMethod("c", signature(x = "pid"), function(x,...) {
+
+  sn <- unlist(lapply(list(x, ...), function(y) y@sn))
+  pid_cri <- unlist(lapply(list(x, ...), function(y) y@pid_cri))
+  pid_total <- unlist(lapply(list(x, ...), function(y) y@pid_total))
+  pid_dataset <- unlist(lapply(list(x, ...), function(y) y@pid_dataset))
+  zi <- unlist(list(x, ...))
+
+  methods::new("pid", zi, pid_cri = pid_cri, sn = sn,
+               pid_total = pid_total, pid_dataset = pid_dataset)
+
+})

@@ -1,4 +1,14 @@
 
+Version 0.0.3
+=============
+
+Changes
+-------
+
+-   [\#7](https://github.com/OlisaNsonwu/diyar/issues/7) `episode_group()`, `fixed_episodes()` and `rolling_episodes()` - optimized to take less time when working with large datasets
+-   `episode_group()`, `fixed_episodes()` and `rolling_episodes()` - `date` argument now supports numeric values
+-   `compress_number_line()` - the output (`gid` slot) is now a group identifier just like in `epid` objects (`epid_interval`)
+
 Version 0.0.2
 =============
 

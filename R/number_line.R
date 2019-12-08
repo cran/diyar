@@ -35,6 +35,7 @@ number_line <- function(l, r, id = NULL, gid = NULL){
   er2 <- try(as.numeric(r), silent = TRUE)
   er3 <- try(as.numeric(r) - as.numeric(l), silent = TRUE)
 
+  if(missing(l) & missing(r) & missing(id) & missing(gid)) return(new("number_line"))
   if(!is.numeric(er1) | !is.numeric(er2) | !is.numeric(er3)) stop(paste("'l' or 'r' aren't compatible for a number_line object",sep=""))
   if(!(is.numeric(id) | is.null(id))) stop(paste("'id' must be numeric",sep=""))
   if(!(is.numeric(gid) | is.null(gid))) stop(paste("'gid' must be numeric",sep=""))
@@ -198,14 +199,14 @@ expand_number_line <- function(x, by=1, point ="both"){
   if(!all(is.character(point)) | length(point)!=1) stop(paste("'point' must be a character object of length 1"))
   if(all(!tolower(point) %in% c("both","start","end"))) stop(paste("`point` must be either 'start','end' or 'both'"))
 
-    by[!is.finite(by)] <- NA_real_
-    n <- ifelse(x@.Data<0 & is.finite(x@.Data),-1,1)
-    by <- by * n
-    if(point == "both") x <- diyar::number_line(x@start - by, (x@start + x@.Data) + by, id = x@id, gid = x@gid)
-    if(point == "start") x <- diyar::number_line(x@start - by, (x@start + x@.Data), id = x@id, gid = x@gid)
-    if(point == "end") x <- diyar::number_line(x@start, (x@start + x@.Data) + by, id = x@id, gid = x@gid)
+  by[!is.finite(by)] <- NA_real_
+  n <- ifelse(x@.Data<0 & is.finite(x@.Data),-1,1)
+  by <- by * n
+  if(point == "both") x <- diyar::number_line(x@start - by, (x@start + x@.Data) + by, id = x@id, gid = x@gid)
+  if(point == "start") x <- diyar::number_line(x@start - by, (x@start + x@.Data), id = x@id, gid = x@gid)
+  if(point == "end") x <- diyar::number_line(x@start, (x@start + x@.Data) + by, id = x@id, gid = x@gid)
 
-    return(x)
+  return(x)
 }
 
 #' @rdname number_line
@@ -247,6 +248,7 @@ compress_number_line <- function(x, method = c("across","chain","aligns_start","
     h <- (x@id == l@id | diyar::overlap(l, x, method=method)) & ifelse(collapse, TRUE, (t!=1))
     x[which(h)]@.Data <- as.numeric(max(x[which(h),]@start + x[which(h),]@.Data)) - as.numeric(min(x[which(h),]@start))
     x[which(h)]@start <- min(x[which(h),]@start)
+    x[which(h)]@gid <- sort(x[which(h),])[1]@id
     t[which(h)] <- 1
     if(min(t)==1) break
     j <- j + 1
@@ -267,7 +269,7 @@ compress_number_line <- function(x, method = c("across","chain","aligns_start","
 #' number_line_sequence(number_line(5, 1), .5)
 #' number_line_sequence(number_line(dmy("01/04/2019"), dmy("10/04/2019")), 1)
 #'
-#' # The length of the vector depends on the object class
+#' # The length of the resulting vector will depend on the object class
 #' number_line_sequence(number_line(dmy("01/04/2019"), dmy("04/04/2019")), 1.5)
 #'
 #' nl <- number_line(dmy_hms("01/04/2019 00:00:00"), dmy_hms("04/04/2019 00:00:00"))

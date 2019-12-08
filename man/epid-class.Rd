@@ -3,14 +3,18 @@
 \docType{class}
 \name{epid-class}
 \alias{epid-class}
+\alias{as.epid}
 \alias{format.epid}
 \alias{unique.epid}
 \alias{show,epid-method}
 \alias{rep,epid-method}
 \alias{[,epid-method}
 \alias{[[,epid-method}
+\alias{c,epid-method}
 \title{\code{epid} object}
 \usage{
+as.epid(x)
+
 \method{format}{epid}(x, ...)
 
 \method{unique}{epid}(x, ...)
@@ -22,6 +26,8 @@
 \S4method{[}{epid}(x, i, j, ..., drop = TRUE)
 
 \S4method{[[}{epid}(x, i, j, ..., exact = TRUE)
+
+\S4method{c}{epid}(x, ...)
 }
 \arguments{
 \item{x}{x}
@@ -39,5 +45,5 @@
 \item{exact}{exact}
 }
 \description{
-An S4 object to store the results of \code{\link{fixed_episodes}}, \code{\link{rolling_episodes}} and \code{\link{episode_group}}
+S4 objects to store the results of \code{\link{fixed_episodes}}, \code{\link{rolling_episodes}} and \code{\link{episode_group}}
 }

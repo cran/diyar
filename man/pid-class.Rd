@@ -3,14 +3,18 @@
 \docType{class}
 \name{pid-class}
 \alias{pid-class}
+\alias{as.pid}
 \alias{format.pid}
 \alias{unique.pid}
 \alias{show,pid-method}
 \alias{rep,pid-method}
 \alias{[,pid-method}
 \alias{[[,pid-method}
+\alias{c,pid-method}
 \title{\code{pid} objects}
 \usage{
+as.pid(x, ...)
+
 \method{format}{pid}(x, ...)
 
 \method{unique}{pid}(x, ...)
@@ -22,6 +26,8 @@
 \S4method{[}{pid}(x, i, j, ..., drop = TRUE)
 
 \S4method{[[}{pid}(x, i, j, ..., exact = TRUE)
+
+\S4method{c}{pid}(x, ...)
 }
 \arguments{
 \item{x}{x}
@@ -39,5 +45,5 @@
 \item{exact}{exact}
 }
 \description{
-An S4 object to store the results of \code{\link{record_group}}
+S4 objects to store the results of \code{\link{record_group}}
 }
