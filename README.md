@@ -49,68 +49,64 @@ shift_number_line(nl, -2)
 expand_number_line(nl, 2)
 #> [1] "2019-03-30 -> 2019-05-02"
 number_line_sequence(nl, by =3)
+#> [[1]]
 #>  [1] "2019-04-01" "2019-04-04" "2019-04-07" "2019-04-10" "2019-04-13"
 #>  [6] "2019-04-16" "2019-04-19" "2019-04-22" "2019-04-25" "2019-04-28"
-#> [11] "2019-04-30"
 ```
 
--   `fixed_episodes()`, `rolling_episodes()` and `episode_group()` - Group records into chronological episodes. ***NOTE; `to_s4` and `to_s4()` changes their output from a data.frame (current default) to `epid` objects. `epid` objects will be the default output in the next release.***
+-   `fixed_episodes()`, `rolling_episodes()` and `episode_group()` - Group records into chronological episodes. ***`epid` objects are now the default output. Use `to_s4` or `to_df()` to change this to data.frames***
 
 ``` r
 data(infections);
 db <- infections[c("date")]
+# Dates
 db$date
 #>  [1] "2018-04-01" "2018-04-07" "2018-04-13" "2018-04-19" "2018-04-25"
 #>  [6] "2018-05-01" "2018-05-07" "2018-05-13" "2018-05-19" "2018-05-25"
 #> [11] "2018-05-31"
 
 # Fixed episodes
-db$f_epid <- fixed_episodes(date = db$date, case_length = 15, 
-                              display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-#> Episode grouping complete - 0 record(s) assinged a unique ID.
+db$f_epid <- fixed_episodes(date = db$date, case_length = 15, display = F, group_stats = T)
+#> Episode grouping complete: 0 record(s) with a unique ID.
 
 # Rolling episodes
-db$r_epid <- rolling_episodes(date = db$date, case_length = 15, 
-                              recurrence_length = 40, display = FALSE, to_s4 = TRUE, 
-                              group_stats = TRUE)
-#> Episode grouping complete - 0 record(s) assinged a unique ID.
+db$r_epid <- rolling_episodes(date = db$date, case_length = 15, recurrence_length = 40, display = F,
+                              group_stats = T)
+#> Episode grouping complete: 0 record(s) with a unique ID.
+
 db[c("f_epid","r_epid")]
-#> # A tibble: 11 x 2
-#>    f_epid                            r_epid                          
-#>    <epid>                            <epid>                          
-#>  1 E-01 2018-04-01 -> 2018-04-13 (C) E-1 2018-04-01 -> 2018-05-31 (C)
-#>  2 E-01 2018-04-01 -> 2018-04-13 (D) E-1 2018-04-01 -> 2018-05-31 (D)
-#>  3 E-01 2018-04-01 -> 2018-04-13 (D) E-1 2018-04-01 -> 2018-05-31 (D)
-#>  4 E-04 2018-04-19 -> 2018-05-01 (C) E-1 2018-04-01 -> 2018-05-31 (R)
-#>  5 E-04 2018-04-19 -> 2018-05-01 (D) E-1 2018-04-01 -> 2018-05-31 (D)
-#>  6 E-04 2018-04-19 -> 2018-05-01 (D) E-1 2018-04-01 -> 2018-05-31 (D)
-#>  7 E-07 2018-05-07 -> 2018-05-19 (C) E-1 2018-04-01 -> 2018-05-31 (D)
-#>  8 E-07 2018-05-07 -> 2018-05-19 (D) E-1 2018-04-01 -> 2018-05-31 (D)
-#>  9 E-07 2018-05-07 -> 2018-05-19 (D) E-1 2018-04-01 -> 2018-05-31 (D)
-#> 10 E-10 2018-05-25 -> 2018-05-31 (C) E-1 2018-04-01 -> 2018-05-31 (R)
-#> 11 E-10 2018-05-25 -> 2018-05-31 (D) E-1 2018-04-01 -> 2018-05-31 (D)
+#>                               f_epid                           r_epid
+#> 1  E.01 2018-04-01 -> 2018-04-13 (C) E.1 2018-04-01 -> 2018-05-31 (C)
+#> 2  E.01 2018-04-01 -> 2018-04-13 (D) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 3  E.01 2018-04-01 -> 2018-04-13 (D) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 4  E.04 2018-04-19 -> 2018-05-01 (C) E.1 2018-04-01 -> 2018-05-31 (R)
+#> 5  E.04 2018-04-19 -> 2018-05-01 (D) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 6  E.04 2018-04-19 -> 2018-05-01 (D) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 7  E.07 2018-05-07 -> 2018-05-19 (C) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 8  E.07 2018-05-07 -> 2018-05-19 (D) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 9  E.07 2018-05-07 -> 2018-05-19 (D) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 10 E.10 2018-05-25 -> 2018-05-31 (C) E.1 2018-04-01 -> 2018-05-31 (D)
+#> 11 E.10 2018-05-25 -> 2018-05-31 (D) E.1 2018-04-01 -> 2018-05-31 (D)
 ```
 
--   `record_group()` - Perform multistage deterministic linkages while addressing missing data using a specified list of alternative matching criteria or matching range of values. ***NOTE; `to_s4` and `to_s4()` changes the output from a data.frame (current default) to `pid` objects. `pid` objects will be the default output in the next release.***
+-   `record_group()` - Perform multistage deterministic linkages while addressing missing data using a specified list of alternative matching criteria or matching range of values. ***`pid` objects are now the default output. Use `to_s4` or `to_df()` to change this to a data.frames***
 
 ``` r
 # Two stages of record grouping
 data(staff_records);
 
 staff_records$pids_a <- record_group(staff_records, sn = r_id, criteria = c(forename, surname),
-                     data_source = sex, display = FALSE, to_s4 = TRUE)
-#> Record grouping complete - 1 record(s) assigned a group unique ID.
+                     data_source = sex, display = FALSE)
+#> Record grouping complete: 1 record(s) with a unique ID.
 staff_records
-#> # A tibble: 7 x 6
-#>    r_id forename surname  sex   dataset    pids_a      
-#>   <int> <chr>    <chr>    <chr> <chr>      <pid>       
-#> 1     1 James    Green    M     Staff list P-1 (CRI 02)
-#> 2     2 <NA>     Anderson M     Staff list P-2 (CRI 02)
-#> 3     3 Jamey    Green    M     Pay slips  P-1 (CRI 02)
-#> 4     4 ""       <NA>     F     Pay slips  P-4 (No Hit)
-#> 5     5 Derrick  Anderson M     Staff list P-2 (CRI 02)
-#> 6     6 Darrack  Anderson M     Pay slips  P-2 (CRI 02)
-#> 7     7 Christie Green    F     Staff list P-1 (CRI 02)
+#>   r_id forename  surname sex    dataset       pids_a
+#> 1    1    James    Green   M Staff list P.1 (CRI 02)
+#> 2    2     <NA> Anderson   M Staff list P.2 (CRI 02)
+#> 3    3    Jamey    Green   M  Pay slips P.1 (CRI 02)
+#> 4    4              <NA>   F  Pay slips P.4 (No Hit)
+#> 5    5  Derrick Anderson   M Staff list P.2 (CRI 02)
+#> 6    6  Darrack Anderson   M  Pay slips P.2 (CRI 02)
+#> 7    7 Christie    Green   F Staff list P.1 (CRI 02)
 ```
 
 Find out more [here](https://olisansonwu.github.io/diyar/index.html)!

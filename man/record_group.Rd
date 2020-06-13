@@ -5,65 +5,64 @@
 \title{Multistage deterministic record linkage}
 \usage{
 record_group(df, sn = NULL, criteria, sub_criteria = NULL,
-  data_source = NULL, group_stats = FALSE, display = TRUE,
-  to_s4 = FALSE)
+  strata = NULL, data_source = NULL, group_stats = FALSE,
+  display = TRUE, to_s4 = TRUE)
 }
 \arguments{
 \item{df}{\code{data.frame}. One or more datasets appended together.}
 
 \item{sn}{Unique numerical record identifier. Optional.}
 
-\item{criteria}{Column names of attributes to match. Records with matching values in these columns are grouped together.}
+\item{criteria}{Column names of attributes to match. Each \code{criteria} is a stage in the process and the order in which they are listed determines the relevance of matches.}
 
 \item{sub_criteria}{Matching sub-criteria. Additional matching conditions for each stage (\code{criteria}).}
+
+\item{strata}{Subsets of the dataset. Record grouping will be done separately with each subset of the dataset. You can use multiple columns supplied as column names.}
 
 \item{data_source}{Unique dataset identifier. Useful when \code{df} contains data from multiple sources.}
 
 \item{group_stats}{If \code{TRUE}, output will include additional columns with useful stats for each record group.}
 
-\item{display}{If \code{TRUE}, status messages are printed on screen.}
+\item{display}{If \code{TRUE} (default), a progress message is printed on screen.}
 
-\item{to_s4}{if \code{TRUE}, changes the returned output to a \code{\link[=pid-class]{pid}} object.}
+\item{to_s4}{If \code{TRUE} (default), record groups are returned as a \code{\link[=pid-class]{pid}} object.}
 }
 \value{
-\code{data.frame} (\code{\link[=pid-class]{pid}} objects if \code{to_s4} is \code{TRUE})
+\code{\link[=pid-class]{pid}} objects or \code{data.frame} if \code{to_s4} is \code{FALSE})
 
 \itemize{
-\item \code{sn} - unique record identifier as provided
+\item \code{sn} - unique record identifier as provided (or generated)
 \item \code{pid | .Data} - unique group identifier
-\item \code{pid_cri} - matched criteria for each record in the group
+\item \code{link_id} - unique record identifier of matching records
+\item \code{pid_cri} - matching criteria
 \item \code{pid_dataset} - data sources in each group
 \item \code{pid_total} - number of records in each group
 }
-
-\code{pid} objects will be the default output from the next release.
 }
 \description{
-Group matching records from one or more datasets.
+Group matching or partially matching records in multiple stages of relevance using different criteria.
 }
 \details{
 Record grouping occurs in stages of matching \code{criteria}.
 
-Records are matched in two ways; an exact match - the equivalent of \code{(==)}, or matching a range of numeric values.
+Records are matched in two ways: an exact match i.e. the equivalent of \code{(==)}, or range matching.
 An example of range matching is matching a date give or take 5 days, or matching an age give or take 2 years.
-To do this, create a \code{\link{number_line}} object based on the range of values, and assign the actual value assigned to \code{gid}.
-Then use the \code{\link{number_line}} as a \code{sub_criteria}.
+To do this, create the range as a \code{\link{number_line}} object and supply it to the \code{criteria} or \code{sub_criteria} argument.
+The actual value within each range must be assigned to the \code{gid} slot of the \code{number_line} object.
 
-A match at each stage is considered more relevant than those at subsequent stages.
+A match at each stage is considered more relevant than a match at the next stage.
 Therefore, \code{criteria} should be listed in order of decreasing relevance or certainty.
 
 \code{sub_criteria} can be used to force additional matching conditions at each stage.
 If \code{sub_criteria} is not \code{NULL}, only records with matching \code{criteria} and \code{sub_criteria} values are grouped together.
-If a record has missing values for any \code{criteria}, it's skipped at that stage, and another attempt is made at the next stage.
-If all \code{criteria} values are missing, that record is assigned a unique group ID.
+If a record has missing values for any \code{criteria}, that record is skipped at that stage, and another attempt is made at the next stage.
+If there are no matches for a record at every stage, that record is assigned a unique group ID.
 
-When a \code{data_source} identifier is included,
+When a \code{data_source} identifier is provided,
 \code{pid_dataset} is included in the output. This lists the source of every record in each record group.
 }
 \examples{
-library(dplyr)
-library(tidyr)
-
+library(diyar)
 three_people <- data.frame(forename=c("Obinna","James","Ojay","James","Obinna"),
                            stringsAsFactors = FALSE)
 
@@ -101,7 +100,7 @@ staff_records$pids_a <- record_group(staff_records, sn = r_id, criteria = c(fore
 staff_records
 
 # Add `sex` to the second stage (`cri`) to be more certain
-staff_records <- unite(staff_records, cri_2, c(surname, sex), sep ="-")
+staff_records$cri_2 <- paste0(staff_records$surname,"-", staff_records$sex)
 staff_records$pids_b <- record_group(staff_records, r_id, c(forename, cri_2),
                                      data_source = dataset, display = FALSE, to_s4 = TRUE)
 staff_records
@@ -113,7 +112,6 @@ missing_staff_id$pids <- record_group(missing_staff_id, r_id, c(staff_id, age),
 list(s2a=c("initials","hair_colour","branch_office")), data_source = source_1, to_s4 = TRUE)
 
 missing_staff_id
-
 }
 \seealso{
 \code{\link{episode_group}} and \code{\link{number_line}}

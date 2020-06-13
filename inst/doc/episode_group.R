@@ -4,449 +4,584 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
+## ----include=FALSE-------------------------------------------------------
+plot_epid <- diyar:::plot_epid
+date <- function(x) as.Date(x, "%d/%m/%Y")
+dttm <- function(x) as.POSIXct(x, "UTC",format="%d/%m/%Y %H:%M:%S")
+
+## ----message=FALSE, warning=FALSE, include=FALSE-------------------------
+library(diyar)
+ds <- c("01/04/2019", "06/04/2019", "10/04/2019", "11/04/2019")
+ds <- as.Date(ds, "%d/%m/%Y")
+ep <- rolling_episodes(ds, case_length = 6, group_stats = T, data_source = c("DS1","DS1","DS3", "DS1"))
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+df <- data.frame(events =ds, data_source = c("DS1","DS1","DS3", "DS1"), epid= ep)
+df
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+to_df(df$ep)
+
 ## ----message=FALSE, warning=FALSE----------------------------------------
-library(dplyr); library(lubridate); library(diyar)
+library(diyar)
 
-data("infections_2")
-dates <- infections_2$date
+# Events
+ds <- c("01/04/2019", "03/04/2019", "13/04/2019","16/04/2019", "18/04/2019")
+ds <- data.frame(date= as.Date(ds, "%d/%m/%Y"))
+ds$date
 
-# Fixed episodes
-f <- fixed_episodes(date = dates, case_length=14, group_stats = TRUE, to_s4 =TRUE)
+## ----warning=FALSE-------------------------------------------------------
+# 6-day (5-day difference) episodes - fixed episodes
+ds$f1 <- fixed_episodes(ds$date, case_length = 5, display = F)
 
-# Rolling episodes
-r <- rolling_episodes(date = dates, case_length=14, group_stats = TRUE, display = FALSE, to_s4 =TRUE)
+ds$f1
 
-dates # dates
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$f1, date= ds$date, case_length = 5)
 
-f # fixed episode identifiers
+## ----warning=FALSE-------------------------------------------------------
+rng <- number_line(12, 16); rng
+ds$f2 <- fixed_episodes(ds$date, case_length = rng, display = F)
 
-r # rolling episode identifiers
+ds$f2
 
-## ----echo=FALSE, fig.height=4, fig.width=7, message=FALSE, warning=FALSE----
-library(tidyr); library(ggplot2)
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$f2, date= ds$date, case_length = rng)
 
-r_epids <- f_epids <- infections_2[c("rid","pid","date")]
+## ----warning=FALSE-------------------------------------------------------
+ds$f3 <- fixed_episodes(ds$date, case_length = rng, display = F, skip_if_b4_lengths = F)
 
-f_epids$epids <- f
-r_epids$epids <- r
+ds$f3
 
-r_epids$dt_a <- start_point(r_epids$epids@epid_interval)
-r_epids$dt_z <- end_point(r_epids$epids@epid_interval)
-r_epids$case_nm <- r_epids$epids@case_nm
-r_epids$epid <- r_epids$epids@.Data
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$f3, date= ds$date, case_length = rng)
 
-f_epids$dt_a <- start_point(f_epids$epids@epid_interval)
-f_epids$dt_z <- end_point(f_epids$epids@epid_interval)
-f_epids$case_nm <- f_epids$epids@case_nm
-f_epids$epid <- f_epids$epids@.Data
+## ----warning=FALSE-------------------------------------------------------
+ds$f4 <- fixed_episodes(ds$date, case_length = 5, from_last = T, display = F)
 
-plot <- bind_rows(
-  mutate(r_epids, method="rolling episodes"),
-  mutate(f_epids, method="fixed episodes")) %>% 
-  mutate(epi=14, recur=14) %>% 
-  select(method, rid, epid, date, dt_a, dt_z, epi, recur, case_nm) %>% 
-  mutate(epid = paste("EP",epid,sep="")) %>% 
-  mutate_at(vars(dt_a, dt_z), funs(dmy(format(.,"%d/%m/%Y")))) 
+ds$f4
 
-plot <- plot %>% 
-  group_by(method, epid) %>% 
-  arrange(date) %>% 
-  mutate(
-    last_record = ifelse(row_number()==n(),1,0),
-    recur_dup = ifelse(case_nm=="Duplicate" & !is.na(case_nm[row_number()+1]) & case_nm[row_number()+1] == "Recurrent", 1,0)
-    ) %>% 
-  ungroup() %>% 
-  mutate(
-    dash_range = case_when(
-      case_nm=="Case" ~ epi, 
-      (case_nm =="Recurrent" & last_record !=1) | (recur_dup ==1) ~ recur,
-      TRUE ~ 0
-    ), 
-    dash_num = ifelse(dash_range==0,"",paste(dash_range, "days")),
-    dash_range = date + duration(dash_range,"days")
-  )
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$f4, date= ds$date, case_length = 5, from_last = T)
 
-g_area <- unique(select(plot, method, epid, date=dt_a, dt_z)) 
-g_area$rid <- max(plot$rid)
+## ----warning=FALSE-------------------------------------------------------
+ds2 <- data.frame(date=  as.Date(c("13/03/2020", "01/04/2020","15/08/2020",
+                                   "11/12/2020", "31/12/2020"), "%d/%m/%Y"),
+                  diag = c("HBV","HIV","MyCt","HBV", "MyCt"), stringsAsFactors = F)
 
-ggplot(plot, aes(x=date, y=rid, group=rid, colour=epid)) +
-  geom_point() +
-  geom_segment(aes(x=date,xend=dash_range,y=rid,yend=rid), linetype=2) +
-  geom_text(aes(hjust="right", label=case_nm), nudge_x = -2, nudge_y = .05, show.legend = FALSE) +
-  geom_text(aes(hjust="left", label=dash_num), nudge_x = 2, nudge_y = .18, show.legend = FALSE, size =2.5) +
-  scale_y_continuous("Record ID", breaks = 1:6) +
-  scale_x_date("Specimen date", limits = c(dmy("15/03/2019"), dmy("01/07/2019") ), date_breaks = "25 days", date_labels = "%d %b") +
-  facet_wrap(~method, scales = "free_y") +
-  guides(col = guide_legend(nrow = 1)) +
-  theme(
-    strip.background = element_rect(fill="transparent"),
-    axis.line = element_line(colour = "black"),
-    panel.grid = element_blank(),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
+
+# First make the HIV diagnosis the index event 
+ds2$user_ord <- ifelse(ds2$diag=="HIV", 1,2)
+
+# Then track concurrent infections up to 6 months AFTER the HIV diagnosis
+ds2$ep1 <- fixed_episodes(date = ds2$date, custom_sort = ds2$user_ord, data_source = ds2$diag,
+                          case_length = 6, episode_unit = "months", display = F)
+
+# Using `data_source` populates the `epid_dataset` slot of the `epid` object. 
+# This is useful when you're working with different datasets
+ds2$ep1_ds <- ds2$ep1@epid_dataset
+
+# Track preceeding infections up to 6 months BEFORE the HIV diagnosis
+ds2$ep2 <- fixed_episodes(date = ds2$date, custom_sort = ds2$user_ord, data_source = ds2$diag,
+                          case_length = -6, episode_unit = "months", display = F)
+
+ds2$ep2_ds <- ds2$ep2@epid_dataset
+
+ds2
+
+## ----warning=FALSE-------------------------------------------------------
+# Track preceeding and concurrent infections up to 6 months BEFORE OR AFTER the HIV diagnosis
+
+# Method 1a
+# Track diagnoses 6 months AFTER the HIV diagnosis.
+  # `bi_direction` then tells the function to also check 6 months BEFORE the HIV diagnosis
+ds2$ep3a <- fixed_episodes(date = ds2$date, custom_sort = ds2$user_ord, case_length = 6, 
+                           bi_direction = T, episode_unit = "months", display = F)
+
+# Method 1b
+# Track diagnoses 6 months BEFORE the HIV diagnosis
+  # bi_direction` then tells the function to also check 6 months AFTER the HIV diagnosis
+ds2$ep3b <- fixed_episodes(date = ds2$date, custom_sort = ds2$user_ord, case_length = -6,
+                           bi_direction = T, episode_unit = "months", display = F, 
+                           data_source = ds2$diag)
+
+ds2$ep3_ds <- ds2$ep3b@epid_dataset
+
+# Method 2a
+# Track diagnoses 6 months BEFORE or AFTER the HIV diag with an applicable. 
+  # There's no need for `bi_direction`.
+rng <- number_line(-6, 6)
+ds2$ep4 <- fixed_episodes(date = ds2$date, custom_sort = ds2$user_ord, case_length = rng, episode_unit = "months",
+                          display = F, data_source = ds2$diag)
+
+ds2$ep4_ds <- ds2$ep4@epid_dataset
+
+# Method 2b
+# Track diagnoses between 2 and 6 months AFTER the HIV diagnosis. 
+  #` bi_direction` then tells the function to also check between 2 and 6 months BEFORE the HIV diagnosis
+# Diagnoses before 2 months on either side are skipped as mentioned in the "cut-offs" section
+rng2 <- number_line(2, 6)
+ds2$ep5 <- fixed_episodes(date = ds2$date, custom_sort = ds2$user_ord, case_length = rng2, 
+                          bi_direction =T, episode_unit = "months", display = F)
+
+ds2
+
+## ----warning=FALSE, message=FALSE----------------------------------------
+dbf <- infections[c("date", "infection")]
+
+# 3 levels: "UTI" > "BSI" > "RTI"
+dbf$c_sort1 <- ifelse(dbf$infection == "UTI", 1, ifelse(dbf$infection == "BSI", 2, 3))
+# 2 levels: "UTI" > ("BSI" OR "RTI")
+dbf$c_sort2 <- ifelse(dbf$infection == "UTI", 1, 2)
+# 2 levels: "BSI" > ("UTI" OR "RTI")
+dbf$c_sort3 <- ifelse(dbf$infection == "BSI", 1, 2)
+
+dbf$ep_1 <- fixed_episodes(dbf$date, case_length = 15, data_source = dbf$infection, 
+                           custom_sort = dbf$c_sort1, display = F)
+
+dbf$ep_2 <- fixed_episodes(dbf$date, case_length = 15, data_source = dbf$infection, 
+                           custom_sort = dbf$c_sort2, display = F)
+
+dbf$ep_3 <- fixed_episodes(dbf$date, case_length = 15, data_source = dbf$infection, 
+                           custom_sort = dbf$c_sort3, display = F)
+
+dbf
+
+## ----warning=FALSE-------------------------------------------------------
+# 6-day (5-day difference) episodes with 11-days recurrence periods - rolling episodes
+ds$r1 <- rolling_episodes(ds$date, case_length = 5, recurrence_length = 10, display = F)
+
+ds$r1
+
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$r1, date= ds$date, case_length = 5, recurrence_length = 10)
+
+## ----warning=FALSE-------------------------------------------------------
+rng <- number_line(13, 15); rng
+ds$r2 <- rolling_episodes(ds$date, case_length = 5, recurrence_length = rng, display = F)
+
+ds$r2
+
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$r2, date= ds$date, case_length = 5, recurrence_length = rng)
+
+## ----warning=FALSE-------------------------------------------------------
+rng <- number_line(13, 15); rng
+ds$r3 <- rolling_episodes(ds$date, case_length = 5, recurrence_length = rng, 
+                          skip_if_b4_lengths = F, display = F)
+
+ds$r3
+
+## ----echo=FALSE, fig.height=4, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = ds$r3, date= ds$date, case_length = 5, recurrence_length = rng)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df <- c("01/04/2019", "11/04/2019", "16/04/2019","21/04/2019", "07/05/2019")
+df <- data.frame(date= as.Date(df, "%d/%m/%Y"))
+
+# 15-day fixed episodes
+df$f1 <- fixed_episodes(df$date, case_length = 14, display = F)
+
+# 15-day rolling episodes with 15-day recurrence periods
+  # Since the first event is the reference event for the next recurrence window and,
+  # the recurrence_length is the same the case_length (14-day difference), 
+  # the result will be the same as the 15-day fixed-episode (above) 
+df$r1 <- rolling_episodes(df$date, case_length = 14, recurrence_from_last = F, 
+                          to_s4 = T, display = F)
+
+df
+
+# Identical
+all(df$f1==df$r1)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df$r2 <- rolling_episodes(df$date, case_length = 14, recurrence_length = 16, display = F)
+
+df$r2
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = df$r2, date = df$date, case_length =14, recurrence_length = 16)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df$r3 <- rolling_episodes(df$date, case_length = 14, recurrence_length = 16, 
+                          recurrence_from_last = F, display = F)
+
+df$r3
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = df$r3, date = df$date, case_length =14, recurrence_length = 16)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df <- c("01/04/2019", "11/04/2019", "16/04/2019","21/04/2019","25/04/2019", "07/05/2019")
+df <- data.frame(date= as.Date(df, "%d/%m/%Y"))
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df$r4 <- rolling_episodes(df$date, case_length = 10, display = F)
+
+df$r4
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = df$r4, date = df$date, case_length =10, recurrence_length = 10)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df$r5 <- rolling_episodes(df$date, case_length = 10, case_for_recurrence = T, 
+                          to_s4 = T, display = F)
+
+df$r5
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = df$r5, date = df$date, case_length =10, recurrence_length = 10)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+date <-  seq.Date(as.Date("01/04/2019", "%d/%m/%Y"), 
+                  as.Date("21/04/2019","%d/%m/%Y"), 
+                  by="3 day")
+# Example 2
+df2 <- data.frame(date = date, sn = 1:length(date))
+# dates
+df2$date
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df2$r1 <- rolling_episodes(df2$date, case_length = 6, recurrence_length = 4, display = F, sn=df2$sn)
+
+df2$r1
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = df2$r1, date = df2$date, case_length =6, recurrence_length = 4)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+df2$r2 <- rolling_episodes(df2$date, case_length = 6, recurrence_length = 4, 
+                           case_for_recurrence = T, display = F, sn=df2$sn)
+
+df2$r1
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = df2$r2, date = df2$date, case_length =6, recurrence_length = 4)
 
 ## ----warning=FALSE, message=FALSE----------------------------------------
 data("infections_3");
-dbs <- infections_3[c("pid","date")]; dbs
-
-# Maximum of one fixed episode grouping per strata
-dbs$eps_1 <- fixed_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 1, to_s4 = TRUE)
-
-# Maximum of one rolling episode grouping per strata
-dbs$eps_2 <- rolling_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 1, to_s4 = TRUE)
-
-# Maximum of two fixed episode grouping per strata
-dbs$eps_3 <- fixed_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 2, to_s4 = TRUE)
-
-dbs
-
-
-## ----warning=FALSE, message=FALSE----------------------------------------
-# Infinite recurrence periods per episode (Default)
-dbs$eps_4 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, to_s4 = TRUE)
-
-# Maximum of one recurrence period per episode
-dbs$eps_5 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, 
-                              rolls_max = 1, to_s4 = TRUE)
-
-# Maximum of two recurrence periods per episode
-dbs$eps_6 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = FALSE, 
-                              rolls_max = 2, to_s4 = TRUE)
-
-dbs
+dbs <- infections_3[c("pid","date")]; 
+# dates
+dbs$date
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
-dbs <- infections_2[c("date")]; dbs
+dbs$eps_1 <- fixed_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = F, 
+                            episodes_max = 1)
 
-# Episode grouping in chronological order
-dbs$forward <- fixed_episodes(date=dbs$date, case_length= 14,
-                              group_stats = TRUE, display = FALSE, to_s4=TRUE)
+dbs$eps_1
 
-# Episode grouping in reverse chronological order
-dbs$backward <- fixed_episodes(date=dbs$date, case_length= 14, group_stats = TRUE, display = FALSE,
-                               from_last=TRUE, to_s4=TRUE)
-
-dbs[c("forward","backward")]
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = dbs$eps_1, date = dbs$date, case_length =3)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
-dates <- c("01/04/2019", "05/04/2019", "07/04/2019")
-dates <- as.Date(dates,"%d/%m/%Y")
-user_sort <- c(2,1,2)
+dbs$eps_2 <- fixed_episodes(strata = dbs$pid, date = dbs$date, case_length = 3, display = FALSE, episodes_max = 2)
 
-# preference determined by from_last 
-fixed_episodes(date=dates, case_length=6, to_s4=TRUE, display=FALSE, group_stats = TRUE)
+dbs$eps_2
 
-# user defined preference via custom sort is prioritised before from_last 
-fixed_episodes(date=dates, case_length=6, to_s4=TRUE, custom_sort = user_sort, display=FALSE, group_stats = TRUE)
-
-# user defined preference via custom sort is prioritised before from_last. 
-# Duplicates are flagged from both directions
-fixed_episodes(date=dates, case_length=6, to_s4=TRUE, custom_sort = user_sort, display=FALSE, 
-               bi_direction = TRUE, group_stats = TRUE)
-
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = dbs$eps_2, date = dbs$date, case_length =3)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
-dbs <- infections_2[c("date","infx")]; dbs
-dbs$infx <- gsub("E. coli ","",dbs$infx)
-dbs$infx[c(2,5)] <- "UTI"
+dbs$eps_4 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = F)
 
-dbs$epids_1 <- fixed_episodes(date=dbs$date, case_length=14, 
-                custom_sort = dbs$infx, display = FALSE, to_s4 = TRUE)
+dbs$eps_4
 
-dbs$infx_f <- factor(dbs$infx, levels = c("UTI","BSI"))
-
-dbs$epids_2 <- fixed_episodes(date=dbs$date, case_length=14, 
-                custom_sort = dbs$infx_f, display = FALSE, to_s4 = TRUE)
-
-dbs$epids_3 <- fixed_episodes(date=dbs$date, case_length=14, 
-                custom_sort = dbs$infx_f, display = FALSE, to_s4 = TRUE, bi_direction = TRUE)
-
-dbs
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = dbs$eps_4, date = dbs$date, case_length =2, recurrence_length = 2)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
-dbs <- tibble(date=c("01/04/2019", "05/04/2019"))
+dbs$eps_6 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = F, 
+                              rolls_max = 1)
 
-dbs$date <- as.Date(dbs$date, "%d/%M/%Y")
+dbs$eps_6
 
-# 10-day periods beginning with the `date`
-dbs$period <- number_line(dbs$date, dbs$date + 10)
-
-dbs
-
-# Grouping events
-fixed_episodes(date=dbs$date, case_length=30, to_s4=TRUE, display=FALSE, group_stat=TRUE)
-
-# Grouping the 10-day periods
-fixed_episodes(date=dbs$period, case_length=30, to_s4=TRUE, display=FALSE, group_stat=TRUE)
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = dbs$eps_6, date = dbs$date, case_length =2, recurrence_length = 2)
 
 ## ----message=FALSE, warning=FALSE----------------------------------------
-hos_admin <- diyar::hospital_admissions; hos_admin
+dbs$eps_7 <- rolling_episodes(strata = dbs$pid, date =dbs$date, case_length = 2,display = F, 
+                              rolls_max = 1, case_for_recurrence = T)
 
+dbs$eps_7
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = dbs$eps_7, date = dbs$date, case_length =2, recurrence_length = 2)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+# Dates
+dates <- seq(as.Date("01/04/2019", "%d/%M/%Y"), as.Date("20/04/2019", "%d/%M/%Y"), "4 days")
+case_len <- 4
+
+# Periods 
+periods <- number_line(dates, dates + 4)
+
+dates
+periods
+
+# Track fixed episodes from events with a 5 day cut-off 
+mth1 <- fixed_episodes(date = dates, case_length = 4, display = F)
+
+# Track fixed episode from periods that are 5 days long 
+mth2 <- fixed_episodes(date = periods, case_length =0, display = F)
+
+# Same results
+mth1; mth2
+
+# Track rolling episodes from events using a 5 day cut-off 
+mth3 <- rolling_episodes(date = dates, case_length = 4, display = F)
+
+# Track rolling episode from periods that are 5 days long 
+mth4 <- rolling_episodes(date = periods, case_length =0, display = F)
+
+# Same results
+mth3; mth4
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+hos_admin <- diyar::hospital_admissions
 hos_admin$admin_period <- number_line(hos_admin$admin_dt, hos_admin$discharge_dt)
 
-# Grouping the actual admissions into episodes
-fixed_episodes(date=hos_admin$admin_dt, sn=hos_admin$rd_id, case_length=0, 
-                display=FALSE, to_s4=TRUE, group_stats=TRUE)
+# Hospital stay
+hos_admin$admin_period
 
-# Grouping the periods of stay (admission -> discharge)
-fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
-                display=FALSE, to_s4=TRUE, group_stats=TRUE)
+## ----message=FALSE, warning=FALSE----------------------------------------
+hs_epids_a <- fixed_episodes(date=hos_admin$admin_period, case_length = 0, 
+                display=F, group_stats=T)
 
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = hs_epids_a, date = hos_admin$admin_period, case_length = 0)
 
-## ----warning=FALSE-------------------------------------------------------
-# Overlapping intervals
-across <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
-               overlap_method = "across", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
+## ----message=FALSE, warning=FALSE----------------------------------------
+hs_epids_b <- fixed_episodes(date=hos_admin$admin_period, case_length = 20, 
+                display=F, group_stats=T)
 
-across
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = hs_epids_b, date = hos_admin$admin_period, case_length = 20)
 
-# Chained intervals
-chain <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
-               overlap_method = "chain", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
+## ----message=FALSE, warning=FALSE----------------------------------------
+hs_epids_c <- rolling_episodes(date=hos_admin$admin_period, case_length = 0, 
+                recurrence_length=15, display=F, group_stats=T)
 
-chain
-
-# Intervals with aligned end points
-aligns_end <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
-               overlap_method = "aligns_end", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-aligns_end
-
-# Intervals with aligned start points
-aligns_start <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length=0, 
-               overlap_method = "aligns_start", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-aligns_start
-
-# Intervals occurring completely within others
-inbetween <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
-               overlap_method = "inbetween", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-inbetween
-
-# Chained intervals and those occurring completely within others
-chain_inbetween <- fixed_episodes(date=hos_admin$admin_period, sn=hos_admin$rd_id, case_length = 0, 
-               overlap_method = c("chain","inbetween"), display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-chain_inbetween
-
-
-## ----echo=FALSE, fig.height=5, fig.width=8, message=FALSE, warning=FALSE----
-across <- cbind(hos_admin, to_df(across))
-chain <- cbind(hos_admin, to_df(chain))
-aligns_start <- cbind(hos_admin, to_df(aligns_start))
-chain_inbetween <- cbind(hos_admin, to_df(chain_inbetween))
-inbetween <- cbind(hos_admin, to_df(inbetween))
-aligns_end <- cbind(hos_admin, to_df(aligns_end))
-
-plot <- rbind(
-  mutate(across, method="across"),
-  mutate(chain, method="chain"),
-  mutate(aligns_start, method="aligns_start"),
-  mutate(aligns_end, method="aligns_end"),
-  mutate(inbetween, method="inbetween"), 
-  mutate(chain_inbetween, method="chain and inbetween")
-  )
-
-plot <- mutate(plot,
-  mrk=paste(epid, method,sep="_"),
-  admin_dt = dmy(format(left_point(admin_period), "%d/%m/%Y")),
-  discharge_dt = dmy(format(right_point(admin_period), "%d/%m/%Y"))
-  ) %>% select(-admin_period)
-
-plot <- dplyr::arrange(plot, .data$mrk)
-plot$N <- rep(rle(plot$mrk)$lengths, rle(plot$mrk)$lengths)
-
-plot <- plot %>%
-  mutate(epid_2 = paste(method, ": epid ",epid, sep="" )) %>% 
-  select(rd_id, epid, epid_2, admin_dt, discharge_dt, method, N, epid, case_nm) %>%
-  filter(N>1) %>%
-  select(rd_id, admin_dt, discharge_dt, method, epid, epid_2, case_nm) %>%
-  gather(var, val, -c(rd_id, method, epid, epid_2, case_nm)) %>%
-  mutate(
-    rd_id = as.character(rd_id), 
-    lab =ifelse(case_nm=="Case" & var=="admin_dt", case_nm, ""), 
-    method = factor(method, levels = c("across","aligns_start","aligns_end","chain", "inbetween", "chain and inbetween"))
-    )
-
-ggplot(plot, aes(x=val, y=rd_id, group=rd_id, label=lab, colour=epid_2)) +
-  geom_line(aes(colour=epid_2)) +
-  geom_point() +
-  geom_text(aes(hjust="right"), nudge_x = -2, nudge_y = .05, show.legend = FALSE) +
-  scale_y_discrete("Record ID") +
-  scale_x_date("Admitted period", limits = c(dmy("15/12/2018"), dmy("10/02/2019")), date_breaks = "20 days", date_labels = "%d %b") +
-  guides(col = guide_legend(nrow = 2)) +
-  facet_wrap(~method, scales = "free_y") +
-  theme(
-    strip.background = element_rect(fill="transparent"),
-    axis.line = element_line(colour = "black"),
-    panel.grid = element_blank(),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-
-
-## ----warning=FALSE, include=FALSE----------------------------------------
-
-# Overlapping intervals
-ha2 <- hos_admin
-ha2$epi_len <- 30
-ha2$shift <- ifelse(ha2$rd_id %in% c(2,8,5,7), 0, 30)
-ha2$admin_period <- shift_number_line(ha2$admin_period, duration(ha2$shift, "days"))
-
-# Overlapping intervals
-across <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = "across", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-# Chained intervals
-chain <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = "chain", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-# Intervals with aligned end points
-aligns_end <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = "aligns_end", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-# Intervals with aligned start points
-aligns_start <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = "aligns_start", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-# Intervals occurring completely within others
-inbetween <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = "inbetween", display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-# Chained intervals and those occurring completely within others
-chain_inbetween <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = c("chain","inbetween"), display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-# Chained intervals and those with aligned end points
-chain_aligns_end <- fixed_episodes(date=ha2$admin_period, sn=ha2$rd_id, case_length = 30, 
-               overlap_method = c("chain","aligns_end"), display = FALSE, to_s4 = TRUE, group_stats = TRUE)
-
-
-## ----echo=FALSE, fig.height=5.5, fig.width=8, message=FALSE, warning=FALSE----
-across <- cbind(ha2, to_df(across))
-chain <- cbind(ha2, to_df(chain))
-aligns_start <- cbind(ha2, to_df(aligns_start))
-chain_inbetween <- cbind(ha2, to_df(chain_inbetween))
-chain_aligns_end <- cbind(ha2, to_df(chain_aligns_end))
-inbetween <- cbind(ha2, to_df(inbetween))
-aligns_end <- cbind(ha2, to_df(aligns_end))
-
-plot <- rbind(
-  mutate(across, method="across"),
-  mutate(chain, method="chain"),
-  mutate(aligns_start, method="aligns_start"),
-  mutate(aligns_end, method="aligns_end"),
-  mutate(inbetween, method="inbetween"), 
-  mutate(chain_inbetween, method="chain and inbetween"), 
-  mutate(chain_aligns_end, method="chain and aligns_end")
-  )
-
-plot <- mutate(plot,
-  mrk=paste(epid, method,sep="_"),
-  admin_dt = dmy(format(left_point(admin_period), "%d/%m/%Y")),
-  discharge_dt = dmy(format(right_point(admin_period), "%d/%m/%Y"))
-  ) %>% select(-admin_period)
-
-plot <- dplyr::arrange(plot, .data$mrk)
-plot$N <- rep(rle(plot$mrk)$lengths, rle(plot$mrk)$lengths)
-
-plot <- plot %>%
-  mutate(epid_2 = paste(method, ": epid ",epid, sep="" )) %>% 
-  select(rd_id, epid, epid_2, admin_dt, discharge_dt, method, N, epid, case_nm, epi_len) %>%
-  filter(N>1) %>%
-  select(rd_id, admin_dt, discharge_dt, method, epid, epid_2, case_nm, epi_len) %>%
-  gather(var, val, -c(rd_id, method, epid, epid_2, case_nm, epi_len)) %>%
-  mutate(
-    rd_id = as.character(rd_id), 
-    lab =ifelse(case_nm=="Case" & var=="admin_dt", case_nm, ""), 
-    method = factor(method, levels = c("across","aligns_start","aligns_end","chain", "inbetween",
-                                       "chain and inbetween", "chain and aligns_end","aligns_start and aligns_end"))
-    )
-
-ep_plot <- filter(plot, var=="discharge_dt" & case_nm == "Case") %>% 
-  mutate(var="start")
-
-#ep_plot$k <- ifelse(ep_plot$case_nm=="Case", ep_plot$epi_len, ep_plot$recur_len)
-
-ep_plot <- mutate(ep_plot, val= val + duration(epi_len,"days"), var="end") %>% 
-  bind_rows(ep_plot)
-
-ep_plot$lab <- ifelse(ep_plot$var=="start", paste(ep_plot$epi_len, "days"),"")
-                      
-ggplot(plot, aes(x=val, y=rd_id, group=rd_id, label=lab, colour=epid_2)) +
-  geom_line() +
-  geom_point() +
-  geom_text(aes(hjust="right"), nudge_x = -2, nudge_y = .05, show.legend = FALSE) +
-  geom_line(data=ep_plot, aes(x=val, y=rd_id, group=rd_id, colour=epid_2), linetype=2) +
-  #geom_text(data=ep_plot, aes(hjust="left", label=lab), nudge_x = 2, nudge_y = .18, show.legend = FALSE, size =2.5) +
-  scale_y_discrete("Record ID") +
-  scale_x_date("Admitted period", limits = c(dmy("15/12/2018"), dmy("01/04/2019")), date_breaks = "35 days", date_labels = "%d %b") +
-  guides(col = guide_legend(nrow = 4)) +
-  facet_wrap(~method, scales = "free_y") +
-  theme(
-    strip.background = element_rect(fill="transparent"),
-    axis.line = element_line(colour = "black"),
-    panel.grid = element_blank(),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = hs_epids_c, date = hos_admin$admin_period, case_length = 0, recurrence_length=15)
 
 ## ----warning=FALSE-------------------------------------------------------
-data(infections)
-dbs <- infections[c("date","infection")]
+# wrapper function to use with lapply
+epi_grp_func <- function(x){
+  epids <- fixed_episodes(date=hos_admin$admin_period, 
+                 sn=hos_admin$rd_id, 
+                 case_length = 0, 
+                 overlap_methods = x, 
+                 display = FALSE, 
+                 to_s4 = TRUE, 
+                 group_stats = TRUE)
+  
+  # for the prurpose of this demonstration, limit to overlapped periods    
+  epids[epids@epid_total>1]
+}
+
+# Methods 
+methods <- list(
+  # Identical intervals
+  exact = "exact",
+  # Overlapping intervals
+  across= "across",
+  # Intervals with aligned start points
+  aligns_start = "aligns_start",
+  # Intervals with aligned end points
+  aligns_end = "aligns_end",
+  # Chained intervals
+  chain = "chain",
+  # Intervals occurring completely within others
+  inbetween = "inbetween",
+  # Chained intervals and those occurring completely within others
+  cb1 = "chain|inbetween",
+  # Chained intervals, identical intervals and those occurring completely within others
+  cb2 = "exact|chain|inbetween",
+  # Chained intervals, overlapping intervals and those with aligned end point
+  cb3 = "across|chain|aligns_end"
+)
+
+epids <- lapply(methods, epi_grp_func)
+names(epids) <- names(methods)
+
+# Results
+epids["chain"]
+
+epids["cb2"]
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+eps <- epids[["exact"]]
+plot_epid(epid = eps, date = hos_admin$admin_period[eps@sn] , case_length = 0)
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+eps <- epids[["chain"]]
+plot_epid(epid = eps, date = hos_admin$admin_period[eps@sn] , case_length = 0)
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+eps <- epids[["cb1"]]
+plot_epid(epid = eps, date = hos_admin$admin_period[eps@sn] , case_length = 0)
+
+## ----warning=FALSE-------------------------------------------------------
+pa <- c("28/03/2019", "01/04/2019", "03/04/2019", "07/04/2019","12/04/2019")
+pz <- c("31/03/2019", "10/04/2019", "05/04/2019", "09/04/2019","13/04/2019")
+
+pa <- as.Date(pa, "%d/%m/%Y")
+pz <- as.Date(pz, "%d/%m/%Y")
+
+periods <- number_line(pa, pz)
+periods
+
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+eps_a <- fixed_episodes(periods, case_length =6, group_stats = T, display = F)
+
+eps_a
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = eps_a, date = periods, case_length = 6)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+eps_b <- fixed_episodes(periods, case_length =-2, group_stats = T, display = F)
+
+eps_b
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = eps_b, date = periods, case_length = -2)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+eps_c <- fixed_episodes(periods, case_length =-2, group_stats = T, display = F,
+                        include_index_period = F)
+
+eps_c
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = eps_c, date = periods, case_length = -2)
+
+## ----message=FALSE, warning=FALSE----------------------------------------
+eps_d <- fixed_episodes(periods, case_length =-6, group_stats = T, display = F)
+
+eps_d
+
+## ----echo=FALSE, fig.height=5, fig.width=8.5, message=FALSE, warning=FALSE----
+plot_epid(epid = eps_d, date = periods, case_length = -6)
+
+## ----warning=FALSE-------------------------------------------------------
+dbs <- diyar::infections[c("date","infection")]
 dbs <- dbs[dbs$infection%in% c("UTI","BSI"),]
 dbs$epi <- ifelse(dbs$infection=="UTI", 7, 14)
 dbs$recur <- ifelse(dbs$infection=="UTI", 30, 0)
 
-dbs$epids <- rolling_episodes(date=dbs$date, case_length =dbs$epi, to_s4 =TRUE,
-                            recurrence_length = dbs$recur, display = FALSE, group_stats = TRUE)
+dbs$epids <- rolling_episodes(date=dbs$date, case_length =dbs$epi, to_s4 =TRUE, 
+                              strata = dbs$infection, recurrence_length = dbs$recur, 
+                              display = FALSE, group_stats = TRUE)
 
 dbs
 
 ## ----warning=FALSE-------------------------------------------------------
-data("infections_4"); 
-dbs <- infections_4
+dbs <- diyar::infections_4
 
-dbs$epids <- episode_group(infections_4, sn=rid, strata=c(pid, organism, source), date=date, 
+dbs$epids <- episode_group(dbs, sn=rid, strata=c(pid, organism, source), date=date, 
                 case_length =epi, episode_type = "rolling", recurrence_length = recur,
-                display = FALSE, to_s4 = TRUE)
+                display = FALSE)
 
 dbs
-
-## ----warning=FALSE, message=FALSE----------------------------------------
-data("hourly_data"); dbs <- hourly_data
-
-dbs[c("datetime", "category")]
-
-rolling_episodes(strata = dbs$category, date = dbs$datetime, case_length = 5,
-                 episode_unit = "hours", recurrence_length = 9, group_stats = TRUE, to_s4 = TRUE, display = FALSE)
 
 ## ----warning=FALSE, message=FALSE----------------------------------------
 dbs <- head(hourly_data[c("datetime","category")], 10)
 dbs$subset <- ifelse(dbs$category!="GP3", NA, "group")
 
-dbs$epids <- rolling_episodes(strata= dbs$subset, date = dbs$datetime, case_length = 5, episode_unit = "hours", 
-                        recurrence_length = 9, display = TRUE, group_stats = TRUE, to_s4 = TRUE)
+# To skip OR
+dbs$epids_a <- rolling_episodes(strata= dbs$subset, date = dbs$datetime, case_length = 5, 
+                                episode_unit = "hours", recurrence_length = 9, display = TRUE)
+
+#   OR
+
+# Not to skip
+dbs$epids_b <- rolling_episodes(strata= dbs$category, date = dbs$datetime, case_length = 5, 
+                                episode_unit = "hours", recurrence_length = 9, display = TRUE)
 
 dbs
 
 ## ----warning=FALSE, message=FALSE----------------------------------------
-data(infections) 
+dbf <- dbf[c("date", "infection")]
+dbf$c_sort <- ifelse(dbf$infection == "UTI", 1, ifelse(dbf$infection == "BSI", 2, 3))
 
-dbs <- infections[c("date","infection")]; dbs
+# Skip episodes that would begin with BSI/UTI records
+dbf$ep_a <- fixed_episodes(dbf$date, case_length = 15, data_source = dbf$infection, 
+                           custom_sort = dbf$c_sort, skip_order = 1)
+dbf$ep_a_d <- dbf$ep_a@epid_dataset
 
-# familiar unique record ids for reference
-rd_id <- c(640,17,58,21,130,79,45,300,40,13,31)
+# Don't skip any episodes
+dbf$ep_b <- fixed_episodes(dbf$date, case_length = 15, data_source = dbf$infection, 
+                           custom_sort = dbf$c_sort)
+dbf$ep_b_d <- dbf$ep_b@epid_dataset
+
+dbf
+
+## ----warning=FALSE, message=FALSE----------------------------------------
+dttm <- function(x) as.POSIXct(x, "UTC",format="%d/%m/%Y %H:%M:%S")
+dbg <- data.frame(date = seq.POSIXt(dttm("01/04/2018 00:00:00"), dttm("31/05/2018 00:00:00"),
+                                    by="3 days"))
+dbg <- head(dbg, 11)
+dbg$recurrence <- 2
+dbg$case_len <- 6
+dbg$dataset <- paste("DS",c(1:3, rep(c(1:2),2), rep(3,4)), sep="")
+
+# Don't skip any
+dbg$ep_a <- episode_group(dbg, date = date, case_length = case_len, episode_type ="rolling", 
+                          recurrence_length = recurrence, data_source = dataset, to_s4 = T,
+                          display = F)
+
+# Breakup episodes without events from the `DS3` `data_source` 
+  # The `DS3` event MUST BE linked to events from other `data_sources`  
+dbg$ep_b <- episode_group(dbg, date = date, case_length = case_len, episode_type ="rolling", 
+                          recurrence_length = recurrence, data_source = dataset, to_s4 = T,
+                          data_links = "DS3", display = F)
+
+# Breakup episodes without events from the `DS3` `data_source` 
+  # The `DS3` event DOESN'T HAVE to be linked to events from other `data_sources`   
+dbg$ep_c <- episode_group(dbg, date = date, case_length = case_len, episode_type ="rolling", 
+                          recurrence_length = recurrence, data_source = dataset, to_s4 = T,
+                          data_links = list(g="DS3"), display = F)
+
+# Breakup episodes without events from the `DS3` `data_source` 
+  # The `DS3` event MUST BE linkned to events from the `DS1` `data_source`
+dbg$ep_d <- episode_group(dbg, date = date, case_length = case_len, episode_type ="rolling", 
+                          recurrence_length = recurrence, data_source = dataset, to_s4 = T,
+                          data_links = list(l=c("DS3","DS1")), display = F)
+
+dbg[c("date", "dataset", "ep_a", "ep_b", "ep_c", "ep_d")]
+
+## ----warning=FALSE, message=FALSE----------------------------------------
+dbs <- diyar::hourly_data
+
+# Each unit is relative to a set number of seconds. 
+diyar::episode_unit
+
+# 1-day fixed episodes
+fixed_episodes(date = dbs$datetime, case_length = 1, episode_unit = "days", 
+               group_stats = TRUE, display = FALSE)
+
+# 5-hr fixed episodes
+fixed_episodes(date = dbs$datetime, case_length = 5, episode_unit = "hours", 
+               group_stats = TRUE, display = FALSE)
+
+# 5-hr rolling episodes
+rolling_episodes(date = dbs$datetime, case_length = 5, episode_unit = "hours", 
+                 group_stats = TRUE, display = FALSE)
+
+## ----warning=FALSE, message=FALSE----------------------------------------
+dbs <- diyar::infections[c("date","infection")]; dbs
+
+# familiar unique record ids for reference - optional
+dbs$rd_id <- c(640,17,58,21,130,79,45,300,40,13,31)
 
 # strata based on matching sources of infection
-dbs$pids <- record_group(dbs, criteria = infection, to_s4 = TRUE, display = FALSE)
+dbs$pids <- record_group(dbs, sn = rd_id,  criteria = infection, display = FALSE)
 
 # stratified grouping 
-dbs$epids <- fixed_episodes(sn = rd_id, date = dbs$date, strata = dbs$pids, 
-                             to_s4 = TRUE, display = FALSE, group_stats = TRUE, case_length = 10)
+dbs$epids <- fixed_episodes(sn = dbs$rd_id, date = dbs$date, strata = dbs$pids, 
+                             to_s4 = TRUE, display = FALSE, case_length = 10)
 
 dbs
 
@@ -455,9 +590,9 @@ vals <- c(8.1,6,12,8.5,12,3,8,15,5,7)
 
 vals
 
-fixed_episodes(vals, case_length = .5, group_stats = T, to_s4 = T, display = F)
+fixed_episodes(vals, case_length = .5, group_stats = T, display = F)
 
-fixed_episodes(vals, case_length = 5, group_stats = T, to_s4 = T, display = F)
+fixed_episodes(vals, case_length = 5, group_stats = T, display = F)
 
-fixed_episodes(vals, case_length = 100, group_stats = T, to_s4 = T, display = F)
+fixed_episodes(vals, case_length = 100, group_stats = T, display = F)
 

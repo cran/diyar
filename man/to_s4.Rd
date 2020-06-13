@@ -3,14 +3,14 @@
 \name{to_s4}
 \alias{to_s4}
 \alias{to_df}
-\title{Change the returned outputs of \code{diyar} functions from \code{data.frames} to S4 objects, and vice versa}
+\title{Change the returned outputs of \code{diyar} functions}
 \usage{
 to_s4(df)
 
 to_df(s4)
 }
 \arguments{
-\item{df}{\code{data.frame}. Returned output of \code{\link{record_group}}, \code{\link{episode_group}}, \code{\link{fixed_episodes}} and \code{\link{rolling_episodes}}}
+\item{df}{\code{data.frame}}
 
 \item{s4}{\link[=pid-class]{pid} or \link[=epid-class]{epid} objects}
 }
@@ -20,8 +20,8 @@ to_s4 - \link[=pid-class]{pid} or \link[=epid-class]{epid} objects
 to_df - \code{data.frame} object
 }
 \description{
-Convert the returned output of \code{\link{record_group}}, \code{\link{episode_group}}, \code{\link{fixed_episodes}} and \code{\link{rolling_episodes}}
-from the current default (\code{data.frame}) to \link[=pid-class]{pid} or \link[=epid-class]{epid} objects, and vice versa.
+Convert the returned output of \code{\link{number_line}}, \code{\link{record_group}}, \code{\link{episode_group}}, \code{\link{fixed_episodes}} and \code{\link{rolling_episodes}}
+from a \code{data.frame} to \link[=number_line-class]{number_line}, \link[=pid-class]{pid} or \link[=epid-class]{epid} objects, and vice versa.
 }
 \examples{
 data(infections)
@@ -29,12 +29,14 @@ dates <- infections$date
 output <- fixed_episodes(dates, case_length=30)
 output
 
-# from a data.frame to pid/epid object
-output_2 <- to_s4(output)
-output_2
-
 # from the a pid/epid object to a data.frame
-output_3 <- to_df(output_2)
-output_3
+df_output <- to_df(output)
+df_output
+
+# from a data.frame to pid/epid object
+s4_output <- to_s4(df_output)
+s4_output
+
+all(s4_output == output)
 
 }
