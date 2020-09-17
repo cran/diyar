@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+<meta name="date" content="2020-09-16" />
+
+<title>Multistage deterministic linkage in R</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Multistage deterministic linkage in R</h1>
+<h4 class="date">16 September 2020</h4>
+
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Linking datasets to consolidate information is a common task in research, particularly in those using “big data”. Deterministic record linkage is the simplest and most common method of doing this. However, its accuracy relies on data quality. <code>links()</code> provides a convenient and flexible approach of doing this while handing missing or incorrect data.</p>
+</div>
+<div id="uses" class="section level1">
+<h1>Uses</h1>
+<p><code>links()</code> can be used to link datasets in a variety of ways. Examples include;</p>
+<ul>
+<li>Linking datasets on one (or more) matching <code>criteria</code></li>
+<li>Linking datasets on one (or more) matching <code>criteria</code> and one (or more) matching <code>sub_criteria</code>. See <a href="#record_matching">record matching</a></li>
+<li>Linking datasets in stages. Each stage is considered more relevant than the subsequent one. See <a href="#record_expansion">group expansion</a></li>
+<li>Linking datasets with missing group identifiers. See <a href="#missing_values">handling missing values</a></li>
+</ul>
+</div>
+<div id="implementation" class="section level1">
+<h1>Implementation</h1>
+<p>Data matching is done in ordered stages. A match at each stage is considered more relevant than those at subsequent stages. Matched records are assigned a record group identifier. This is the record identifier (<code>sn</code>) of one of the matching records therefore, a familiar <code>sn</code> can prove useful.</p>
+<p>Each matching stage has an attribute or characteristic to match (<code>criteria</code>). These must be passed as a <code>list</code> of <code>atomic</code> vectors.</p>
+<p>Additional matching conditions (<code>sub_criteria</code>) can also be specified at each stage. This is done by supplying a <code>list</code> of <code>sub_crieria()</code>. Each <code>sub_criteria()</code> must be paired to a stage (<code>criteria</code>). This is done by naming each element in the list, using the syntax - <code>&quot;cr[n]&quot;</code>. Where <code>n</code> is the corresponding stage (<code>criteria</code>) of interest (<a href="#sub_cri_example">See examples</a>). Any unpaired <code>sub_criteria</code> will be ignored. Records will only be assigned to the same group if they have the same <code>criteria</code>, and at least one matching attribute in each <code>sub_criteria()</code>. See examples below.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(diyar);</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">data</span>(patient_list); </span>
+<span id="cb1-3"><a href="#cb1-3"></a>dbs &lt;-<span class="st"> </span>patient_list[<span class="kw">c</span>(<span class="st">&quot;forename&quot;</span>,<span class="st">&quot;surname&quot;</span>,<span class="st">&quot;sex&quot;</span>)]; dbs</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co">#&gt;   forename surname sex</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="co">#&gt; 1    James   Green   M</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="co">#&gt; 2   ESTHER  Kulmar   F</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co">#&gt; 3     &lt;NA&gt;     OBI   F</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="co">#&gt; 4    Jamey   Green   M</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="co">#&gt; 5   Daniel  Kulmar   M</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="co">#&gt; 6    Henry     OBI   M</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a></span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="co"># 1 stage &lt;- Matching surname only</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a>dbs<span class="op">$</span>pids_a &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> dbs<span class="op">$</span>surname, <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>, <span class="dt">group_stats =</span> T)</span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a></span>
+<span id="cb1-16"><a href="#cb1-16"></a><span class="co"># 2 stage - Matching surname, then matching sex</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>dbs<span class="op">$</span>pids_b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(dbs<span class="op">$</span>surname, dbs<span class="op">$</span>sex), <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb1-18"><a href="#cb1-18"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a></span>
+<span id="cb1-20"><a href="#cb1-20"></a>dbs</span>
+<span id="cb1-21"><a href="#cb1-21"></a><span class="co">#&gt;   forename surname sex        pids_a        pids_b</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a><span class="co">#&gt; 1    James   Green   M P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="co">#&gt; 2   ESTHER  Kulmar   F P.2 (CRI 001) P.2 (CRI 001)</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a><span class="co">#&gt; 3     &lt;NA&gt;     OBI   F P.3 (CRI 001) P.3 (CRI 001)</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a><span class="co">#&gt; 4    Jamey   Green   M P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb1-26"><a href="#cb1-26"></a><span class="co">#&gt; 5   Daniel  Kulmar   M P.2 (CRI 001) P.2 (CRI 001)</span></span>
+<span id="cb1-27"><a href="#cb1-27"></a><span class="co">#&gt; 6    Henry     OBI   M P.3 (CRI 001) P.3 (CRI 001)</span></span></code></pre></div>
+<p>Matched records are assigned to record groups. These are stored as <code>pid</code> objects (<code>S4</code> object class). A <code>pid</code> object is a group identifier with <code>slots</code> for additional information about each group.</p>
+<p>For a <code>pid</code> object created in multiple stages (<code>criteria</code>), the following information will be displayed (<code>format.pid</code>);</p>
+<ul>
+<li><code>P.1</code> - group identifier</li>
+<li><code>CRI 001</code> - stage when that record was linked</li>
+</ul>
+<p><em>See <code>?links</code> for further details.</em></p>
+<p><em>to_df() transforms <code>pid</code> objects to <code>data.frames</code>.</em></p>
+<pre><code>#&gt; to_df(`pid`)
+#&gt;   pid sn pid_cri link_id pid_total iteration
+#&gt; 1   1  1       1       1         2         1
+#&gt; 2   2  2       1       2         2         1
+#&gt; 3   3  3       1       3         2         1
+#&gt; 4   1  4       1       1         2         1
+#&gt; 5   2  5       1       2         2         1
+#&gt; 6   3  6       1       3         2         1</code></pre>
+<p><a id="record_matching"></a></p>
+<div id="record-matching" class="section level2">
+<h2>Record matching</h2>
+<p>Attributes are checked for a case sensitive exact match. Those supplied via a <code>sub_criteria()</code> can also be compared by any <code>logical</code> test applicable to two <code>atomic</code> vectors. The logical test must be supplied as a <code>function</code>. This function must have two named arguments - <code>x</code> and <code>y</code>. Where <code>y</code> is the value for one observation to be compared against all other observations (<code>x</code>). See some examples below.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>dbs2 &lt;-<span class="st"> </span>patient_list[<span class="kw">c</span>(<span class="st">&quot;forename&quot;</span>,<span class="st">&quot;surname&quot;</span>,<span class="st">&quot;sex&quot;</span>)]; dbs2</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="co">#&gt;   forename surname sex</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="co">#&gt; 1    James   Green   M</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co">#&gt; 2   ESTHER  Kulmar   F</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="co">#&gt; 3     &lt;NA&gt;     OBI   F</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co">#&gt; 4    Jamey   Green   M</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="co">#&gt; 5   Daniel  Kulmar   M</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="co">#&gt; 6    Henry     OBI   M</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="co"># Matching `sex`, and `forename` initials</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>lgl_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">substr</span>(x, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">==</span><span class="st"> </span><span class="kw">substr</span>(y, <span class="dv">1</span>, <span class="dv">1</span>) </span>
+<span id="cb3-12"><a href="#cb3-12"></a>dbs2<span class="op">$</span>pids_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span>  <span class="kw">list</span>(dbs2<span class="op">$</span>sex), </span>
+<span id="cb3-13"><a href="#cb3-13"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb3-14"><a href="#cb3-14"></a>                       <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(dbs2<span class="op">$</span>forename, <span class="dt">funcs =</span> lgl_<span class="dv">1</span>)),</span>
+<span id="cb3-15"><a href="#cb3-15"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb3-16"><a href="#cb3-16"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a></span>
+<span id="cb3-18"><a href="#cb3-18"></a><span class="co"># Matching `sex`, and `forename` with character length of 5</span></span>
+<span id="cb3-19"><a href="#cb3-19"></a>lgl_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">nchar</span>(x) <span class="op">==</span><span class="st"> </span><span class="kw">nchar</span>(y) <span class="op">&amp;</span><span class="st"> </span><span class="kw">nchar</span>(x) <span class="op">==</span><span class="st"> </span><span class="dv">5</span></span>
+<span id="cb3-20"><a href="#cb3-20"></a>dbs2<span class="op">$</span>pids_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span>  <span class="kw">list</span>(dbs2<span class="op">$</span>sex), </span>
+<span id="cb3-21"><a href="#cb3-21"></a>                    <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb3-22"><a href="#cb3-22"></a>                      <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(dbs2<span class="op">$</span>forename, <span class="dt">funcs =</span> lgl_<span class="dv">2</span>)),</span>
+<span id="cb3-23"><a href="#cb3-23"></a>                    <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb3-24"><a href="#cb3-24"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb3-25"><a href="#cb3-25"></a></span>
+<span id="cb3-26"><a href="#cb3-26"></a><span class="co"># Matching `sex`, and `forename` that ends with &quot;y&quot;</span></span>
+<span id="cb3-27"><a href="#cb3-27"></a>lgl_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">substr</span>(x, <span class="kw">length</span>(x) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="kw">length</span>(x)) <span class="op">==</span><span class="st"> &quot;y&quot;</span></span>
+<span id="cb3-28"><a href="#cb3-28"></a>dbs2<span class="op">$</span>pids_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span>  <span class="kw">list</span>(dbs2<span class="op">$</span>sex), </span>
+<span id="cb3-29"><a href="#cb3-29"></a>                    <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb3-30"><a href="#cb3-30"></a>                      <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(dbs2<span class="op">$</span>forename, <span class="dt">funcs =</span> lgl_<span class="dv">3</span>)),</span>
+<span id="cb3-31"><a href="#cb3-31"></a>                    <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb3-32"><a href="#cb3-32"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb3-33"><a href="#cb3-33"></a></span>
+<span id="cb3-34"><a href="#cb3-34"></a><span class="co"># Matching `sex` and at least one `forename` that ends with &quot;y&quot;</span></span>
+<span id="cb3-35"><a href="#cb3-35"></a>lgl_<span class="dv">4</span> &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">substr</span>(y, <span class="kw">length</span>(y) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="kw">length</span>(y)) <span class="op">==</span><span class="st"> &quot;y&quot;</span></span>
+<span id="cb3-36"><a href="#cb3-36"></a>dbs2<span class="op">$</span>pids_<span class="dv">4</span> &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span>  <span class="kw">list</span>(dbs2<span class="op">$</span>sex), </span>
+<span id="cb3-37"><a href="#cb3-37"></a>                    <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb3-38"><a href="#cb3-38"></a>                      <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(dbs2<span class="op">$</span>forename, <span class="dt">funcs =</span> lgl_<span class="dv">4</span>)),</span>
+<span id="cb3-39"><a href="#cb3-39"></a>                    <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb3-40"><a href="#cb3-40"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span></code></pre></div>
+<p>User-defined logical tests can be very useful for implementing complex matching conditions. For example, you can match observations if they are within a range or list of values. See the example below.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>Opes_c &lt;-<span class="st"> </span>Opes[<span class="kw">c</span>(<span class="st">&quot;date_of_birth&quot;</span>, <span class="st">&quot;name&quot;</span>, <span class="st">&quot;hair_colour&quot;</span>)]</span>
+<span id="cb4-2"><a href="#cb4-2"></a>Opes_c &lt;-<span class="st"> </span>Opes[<span class="st">&quot;date_of_birth&quot;</span>]</span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="co"># approximate age</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>Opes_c<span class="op">$</span>age &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">round</span>((<span class="kw">Sys.Date</span>() <span class="op">-</span><span class="st"> </span><span class="kw">as.Date</span>(Opes_c<span class="op">$</span>date_of_birth, <span class="st">&quot;%d/%m/%Y&quot;</span>))<span class="op">/</span><span class="fl">365.5</span>))</span>
+<span id="cb4-5"><a href="#cb4-5"></a></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="co"># Match individuals between ages 35 and 55 </span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>rng1 &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) x <span class="op">%in%</span><span class="st"> </span><span class="dv">35</span><span class="op">:</span><span class="dv">55</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>Opes_c<span class="op">$</span>pids_a &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="st">&quot;place_holder&quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9"></a>                       <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes_c<span class="op">$</span>age, <span class="dt">funcs =</span> rng1)),</span>
+<span id="cb4-10"><a href="#cb4-10"></a>                       <span class="dt">display =</span><span class="st">&quot;none&quot;</span>)</span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a></span>
+<span id="cb4-13"><a href="#cb4-13"></a><span class="co"># Match individuals with a 5-year age gap between themselves</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a>rng2 &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">abs</span>(y <span class="op">-</span><span class="st"> </span>x) <span class="op">%in%</span><span class="st"> </span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span></span>
+<span id="cb4-15"><a href="#cb4-15"></a>Opes_c<span class="op">$</span>pids_b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="st">&quot;place_holder&quot;</span>,</span>
+<span id="cb4-16"><a href="#cb4-16"></a>                       <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes_c<span class="op">$</span>age, <span class="dt">funcs =</span> rng2)),</span>
+<span id="cb4-17"><a href="#cb4-17"></a>                       <span class="dt">display =</span><span class="st">&quot;none&quot;</span>)</span>
+<span id="cb4-18"><a href="#cb4-18"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a></span>
+<span id="cb4-20"><a href="#cb4-20"></a><span class="co"># Match individuals with more than a 5-year age gap between each other </span></span>
+<span id="cb4-21"><a href="#cb4-21"></a>rng3 &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) (y <span class="op">-</span><span class="st"> </span>x) <span class="op">&gt;</span><span class="st"> </span><span class="dv">5</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a>Opes_c<span class="op">$</span>pids_c &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="st">&quot;place_holder&quot;</span>,</span>
+<span id="cb4-23"><a href="#cb4-23"></a>                       <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes_c<span class="op">$</span>age, <span class="dt">funcs =</span> rng3)),</span>
+<span id="cb4-24"><a href="#cb4-24"></a>                       <span class="dt">display =</span><span class="st">&quot;none&quot;</span>)</span>
+<span id="cb4-25"><a href="#cb4-25"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb4-26"><a href="#cb4-26"></a></span>
+<span id="cb4-27"><a href="#cb4-27"></a>Opes_c[<span class="kw">c</span>(<span class="st">&quot;age&quot;</span>,<span class="st">&quot;pids_a&quot;</span>, <span class="st">&quot;pids_b&quot;</span>, <span class="st">&quot;pids_c&quot;</span>)]</span>
+<span id="cb4-28"><a href="#cb4-28"></a><span class="co">#&gt;   age        pids_a        pids_b        pids_c</span></span>
+<span id="cb4-29"><a href="#cb4-29"></a><span class="co">#&gt; 1  34 P.1 (No Hits) P.1 (CRI 001) P.7 (CRI 001)</span></span>
+<span id="cb4-30"><a href="#cb4-30"></a><span class="co">#&gt; 2  34 P.2 (No Hits) P.1 (CRI 001) P.7 (CRI 001)</span></span>
+<span id="cb4-31"><a href="#cb4-31"></a><span class="co">#&gt; 3  52 P.7 (CRI 001) P.3 (CRI 001) P.3 (No Hits)</span></span>
+<span id="cb4-32"><a href="#cb4-32"></a><span class="co">#&gt; 4  36 P.7 (CRI 001) P.1 (CRI 001) P.7 (CRI 001)</span></span>
+<span id="cb4-33"><a href="#cb4-33"></a><span class="co">#&gt; 5  36 P.7 (CRI 001) P.1 (CRI 001) P.7 (CRI 001)</span></span>
+<span id="cb4-34"><a href="#cb4-34"></a><span class="co">#&gt; 6  56 P.6 (No Hits) P.3 (CRI 001) P.6 (No Hits)</span></span>
+<span id="cb4-35"><a href="#cb4-35"></a><span class="co">#&gt; 7  56 P.7 (CRI 001) P.3 (CRI 001) P.7 (CRI 001)</span></span>
+<span id="cb4-36"><a href="#cb4-36"></a><span class="co">#&gt; 8  35 P.7 (CRI 001) P.1 (CRI 001) P.7 (CRI 001)</span></span></code></pre></div>
+<p><code>links()</code> goes through repeated checks for matches based on the logical test specified. At each iteration, one observation (<code>y</code>) is compared with every other observation (<code>x</code>). As a result, two observations (i.e. <code>x[2]</code> and <code>x[3]</code>) can pass the same logical test compared with a third observation (i.e. <code>y</code>). But not pass the same test when compared with each other. As an example, in <code>Opes_c$pids_c</code> above, records 1, 2, 4, 5 and 8 are within a 5-year gap of each other. This has happened because there’s more than a 5-year gap between themselves and record 7.</p>
+<p>Always aim for the combination of conditions that’ll give more true positive matches. Linking records on matching surnames and then sex (<code>pid_b</code>) led to a different result. Compared to linking on sex before surnames (<code>pid_c</code> below) (See <a href="#record_expansion">group expansion</a>). In <code>pid_b</code>, a match on the individual’s surname was considered more relevant than a match on their sex. The opposite was the case for <code>pid_c</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>dbs<span class="op">$</span>pids_c &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span>  <span class="kw">list</span>(dbs<span class="op">$</span>sex, dbs<span class="op">$</span>surname), <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a>dbs</span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="co">#&gt;   forename surname sex        pids_a        pids_b        pids_c</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="co">#&gt; 1    James   Green   M P.1 (CRI 001) P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co">#&gt; 2   ESTHER  Kulmar   F P.2 (CRI 001) P.2 (CRI 001) P.2 (CRI 001)</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a><span class="co">#&gt; 3     &lt;NA&gt;     OBI   F P.3 (CRI 001) P.3 (CRI 001) P.2 (CRI 001)</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a><span class="co">#&gt; 4    Jamey   Green   M P.1 (CRI 001) P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a><span class="co">#&gt; 5   Daniel  Kulmar   M P.2 (CRI 001) P.2 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="co">#&gt; 6    Henry     OBI   M P.3 (CRI 001) P.3 (CRI 001) P.1 (CRI 001)</span></span></code></pre></div>
+<p>Both results are logically correct but <code>pids_b</code> is not the most practical option. For instance, records 3 and 6 which were linked but could be cousins and not the same individual. A better combination would be forename at stage 1, followed by surname and sex at stage 2. See <code>pid_d</code> below;</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>dbs_<span class="dv">2</span> &lt;-<span class="st"> </span>patient_list; dbs_<span class="dv">2</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="co">#&gt;   rd_id forename surname sex</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="co">#&gt; 1     1    James   Green   M</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="co">#&gt; 2     2   ESTHER  Kulmar   F</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="co">#&gt; 3     3     &lt;NA&gt;     OBI   F</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a><span class="co">#&gt; 4     4    Jamey   Green   M</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="co">#&gt; 5     5   Daniel  Kulmar   M</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="co">#&gt; 6     6    Henry     OBI   M</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a></span>
+<span id="cb6-10"><a href="#cb6-10"></a>dbs_<span class="dv">2</span><span class="op">$</span>cri_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">paste</span>(dbs_<span class="dv">2</span><span class="op">$</span>surname, dbs_<span class="dv">2</span><span class="op">$</span>sex,<span class="dt">sep=</span><span class="st">&quot;-&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11"></a>dbs_<span class="dv">2</span><span class="op">$</span>pid_d &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">sn =</span> dbs_<span class="dv">2</span><span class="op">$</span>rd_id, <span class="kw">list</span>(dbs_<span class="dv">2</span><span class="op">$</span>forename, dbs_<span class="dv">2</span><span class="op">$</span>cri_<span class="dv">2</span>), <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb6-12"><a href="#cb6-12"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a></span>
+<span id="cb6-14"><a href="#cb6-14"></a>dbs_<span class="dv">2</span></span>
+<span id="cb6-15"><a href="#cb6-15"></a><span class="co">#&gt;   rd_id forename surname sex    cri_2         pid_d</span></span>
+<span id="cb6-16"><a href="#cb6-16"></a><span class="co">#&gt; 1     1    James   Green   M  Green-M P.1 (CRI 002)</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a><span class="co">#&gt; 2     2   ESTHER  Kulmar   F Kulmar-F P.2 (No Hits)</span></span>
+<span id="cb6-18"><a href="#cb6-18"></a><span class="co">#&gt; 3     3     &lt;NA&gt;     OBI   F    OBI-F P.3 (No Hits)</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a><span class="co">#&gt; 4     4    Jamey   Green   M  Green-M P.1 (CRI 002)</span></span>
+<span id="cb6-20"><a href="#cb6-20"></a><span class="co">#&gt; 5     5   Daniel  Kulmar   M Kulmar-M P.5 (No Hits)</span></span>
+<span id="cb6-21"><a href="#cb6-21"></a><span class="co">#&gt; 6     6    Henry     OBI   M    OBI-M P.6 (No Hits)</span></span></code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAAGACAMAAABFg3d1AAAB9VBMVEUAAAAAABAAABwAACgAAC4AADUAADoAAEgAAFQAAF8AAGYAFygAHYYAJzMAMi4AMmUAMnUANKoAOgAAOpAAWYAAWpQAZgAAZrYOAAAOMnUOfrMZAAAZn7MZn9AlMgAlMi4ln7MlwbMlwdAuWgAu4NA1AAA1HYY1Sc04AAA4MmU4fZo4fi44n1Q4n3U4wXU44JQ44LM44NA6AAA6Fyg6OD06OgA6kAA6kNtA4NBBn1RBwbNB4JRB4LNfAABfXc1fXe5iAABinppinrNmAABmADpmAGZmOpBmRz1mR0dmZrZmtgBmtv+GHQCGHTWGXc2GcM2GcO6KMgCKMiiKnpqKv5qKv7OQFwCQFxCQOgCQRz2QVT2QVUeQkNuQtgCQ2wCQ27aQ29uQ2/+qNACqgqqqgu6vWQCv3oCv3pqv3rO2JwC2OCi2Y0e2ZgC2kJC2tgC22/+2/wC2/9u2///NSTXNXV/NXYbNcIbNgqrNgs3Ngu7SfSjSnkjSnmXSv2XS3oDS3prS3rPbOBDbRxzbRyjbVSjbYzPbYz3bY0fbkADbkDrbkGbbtgDbtmbb2wDb27bb/wDb/7bb/9vb///uXV/ugqrugs3ugu71nkj13oD13pr13rP/Rxz/VSj/YzP/Yz3/Y0f/tgD/tmb/25D//wD//7b//9v///+29dSeAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAJ2ElEQVR4nO3cjZtUVR0H8GsqJC+BrIhB2AsVhb25GawZQUwWCb1YaVsWhWVFbYXQK71SlpgZiLbamm04MH9n987sCsvlzszdOd6598zn8zzusHfX387hd77POefOsEkCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIxq6mKnc2npjxda139x5ZXse+cqel5QR9sut5I1xy8tf5rPzDXWnZpLtl2ZreJpQS1lGUhj8vxyCvoGZttr02m4LDFMrmyB6Zr6588uf+bCg6c66Qqy7lQnvdy70kq2dV7fsyXLCYPJlC0aXVMX57LlJVthskVk32vTS1eu24ftW/4fYAJdDUy6K1sKTPbfuidnl65kX0w/W/r+fZf7bNkgdle3ZL2kdB8uppuwK7PL2ck+XV5h9jnyM9F6R5L047WB6S0ry1fShWZ5hbG+MOmyNWPN8fTEcjUe2RnmanayNehIb2G5ejMNJtXSTbCleKw53pnL7pJdmb3mSufvvXvJRzoZd8kAAAAAAAAAAAAAAAAAAAAAJlYnfuP+KyYm8U+n+EdIheKfTvGPkArFP53iHyEVin86xT9CKhT/dIp/hFQo/ukU/wipUPzTKf4RUqH4p1P8I6RC8U+n+EdIheKfTvGPkArFP53iHyEVin86xT9CKhT/dIp/hFQo/ukU/wip0JDTqR1A8ILtgie7qhHCMIYNzOg/qd3nsxAViwgMAQkMlCAwUILAQAkCAyUIDJQgMFCCwEAJAgMlCAyUIDBQgsBACQIDJYwemDvb7fZcsuX8bJIcmx26RL/JvrqKRQSGgEYOzJbzrWxubzn/v1CBWWXFIgJDQKMH5rnp3sO3ZkMFZnUViwgMAY2+JXuo3W5l0/tjz4bakq2uYhGBIaAgh/6T7Va6LDw0Gygwq6tYRGAIKMxdsr3n0um95dlwgVlFxSICQ0AjB+bObPt0bC47eDzULhGY4n+Rv8qKRQSGgEZfYfamc/9c96TevRE8ZIl2n8ysrmIRgSGg8b5wOexvfhmmYhGBIaA3OjChflnS6p+UwBDQmN8aY4WhWcYamJHiIjCMwRgDM2JcBIYxGFtgRo6LwDAGoQJzslWuxODJvvdcuYpFBIaAAgXmZDt0YLacFxjqJ0xgjrWCrzDHfiow1E9dt2R7z9mSUUM1DcyW56YFhhqqaWCyt5O1ByVGYKhcTQOTuEtGLQkMlODXLEEJAgMlCAyUIDBQgsBACQIDJQgMlCAwUILAQAkCAyUMG5gAghcUGCoX/3SKf4RUKP7pFP8IqVD80yn+EVKh+KdT/COkQvFPp/hHSIXin07xj5AKxT+d4h8hFYp/OsU/QioU/3SKf4RUKP7pFP8IqVD80yn+EVKh+KdT/COkQvFPp/hHSIXin07xj5AKdeI37r9iAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgv6mLz2QfL7Suvdb7bOVFIAvM5VZBYBKZgetMXfjmMwIDQ5q68Olvt7rBmLrYuTK7dO1znc5c+vDgqeVLQCaNyrZL2cd1p+aSbZd7h5eLl7I/phetMLBCGok135ldysa6J7vrydTzs0nvisDACt3N2D+ydea16WTN8bnXrwkM5HUjceQnK1cYgYEb60Yiu7d87RnmamCed+aHa/TWkH2XV94lWw7MmuOdufE+PwAAAAAAAAAAAAAAAAAAAACAN1KHOhj3NGBYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYWlUHutAYw7VqIYQVFecDWPkcZwJYWXExgJBdoAaGDEyAn3RdYEYveH1gRq94fWBGrygwsRGY4hICQ47AFJcQGHIEpriEwJAjMMUlBIYcgSkuITDkCExxCYEhR2CKSwgMOQJTXEJgyBGY4hICQ47AFJcQGHIEpriEwJAzemDuWFhYeCLZ9MeHk5u/+vDQNfoF5vb5+fnHkw2/Pprc+sWjxd9WIjBbZ2ZmdiWbP3J3css77y7+tuEDs3FxcfFEsv5vjyY3fePRPj9YYGIzcmA2/eFglpZNf3opVGA2/Gp/lpYNv3khVGA2f3hHlpbN994fKDDr/9rK0rL+6VcEZsKMHpjfv6/38JWHQwXml+/pPXzhaKjAfOiu3sM77g4UmKemew9ff1RgJsvoW7JDCy8fzALz/t+G2pIdmH9xfxaY9/481JZs58wDO7LAvPUDgbZkhxdfbWWB+eifBWayhDj0r/3hywfTheZTXw4UmCS57Xsv7k8Xmk9+PlBgkuTN735gR7rQvO3tYQKTJG/68autdKH57NcEZqKEuUu250wamE2/CxaYJNl9Og3Mhl8EC0ySbL8nDczmD4YKTJLcdzYNzPq/CMxEGTkwd6QbspsfeSI7yhz6d5DA3J5uyG790uPZUebAv4IEZmu6IbvlXbuyo8zOT4QIzMZ0Q3bTYyeyo8zh/wrMJBl9hdmzsLBwpnv2z24tD1uj3wqze35+/nT37J/dWi5UYoXZPjMzc0/37J/dWi40/Apz3+Li4tnu2T+7tVxMYGLjhcviEl64JEdgiksIDDkCU1xCYMgRmOISAkOOwBSXEBhyBKa4hMCQEyQwNz+ysPBSuRqDAnMge8NyfyUDs3Om+/6Yfkq+cLm4+MqAnykw0QkSmD0vZa9dlqoxIDC3v5Dc9t39/b+nXGD6vonsxiX6z/b1T03f9NiJARUFJjbBtmR7zpSqMXhLFjgw2Vv8BykVmPvODqwnMPEJFZi13z9YqsbAwOwOvCXb+vF7Z+4fULFUYA7/6GlbsskTKDBrf9DvXTE3qDHEof/AgMSUPMO85a5k+67+31IuMP+ZTg7bkk2aMIHp/y6yG9UYIjC7T/f/evm7ZNvv6f/1coE5McS2TGBiEyQw2T9TLllj8KE/8AqzNd2PBV1hNr6SWGEmT5DAHFrovmO5TI0hbisPWGBWcVt5wAJT/rbywHO/wMTGC5fFJbxwSY7AFJcQGHIEpriEwJAjMMUlBIYcgSkuITDkCExxCYEhR2CKSwgMOQJTXEJgyBGY4hICQ47AFJcQGHIEpriEwJAzZGBCWFFxPoCVz3EmgJUVFwMI2QVqQKvqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcaQ6vqQBcao0MdjHsaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMTi/wuZaplYwTYNAAAAAElFTkSuQmCC" /><!-- --></p>
+<p><a id="sub_cri_example"></a></p>
+<p>Below are additional examples using different combinations of the same <code>criteria</code> and <code>sub_criteria</code></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">data</span>(Opes); Opes</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt;   rd_id name  department hair_colour date_of_birth db_pt1  db_pt2  db_pt3</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co">#&gt; 1     1  Ope Procurement       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="co">#&gt; 2     2  Ope    Security       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="co">#&gt; 3     3  Ope    Security       Brown    23/03/1968  23/03 23/1968 03/1968</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt; 4     4  Ope  Publishing       Green    01/02/1985  01/02 01/1985 02/1985</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt; 5     5  Ope  Publishing        Teal    02/01/1985  02/01 02/1985 01/1985</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt; 6     6  Ope  Publishing        Grey    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; 7     7  Ope  Publishing       White    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt; 8     8  Ope Procurement       Black    11/10/1985  11/10 11/1985 10/1985</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="co"># 1 stage linkage</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="co"># stage 1 - name AND (department OR hair_colour OR date_of_birth)</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a>Opes<span class="op">$</span>pids_a &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> Opes<span class="op">$</span>name,</span>
+<span id="cb7-15"><a href="#cb7-15"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, </span>
+<span id="cb7-16"><a href="#cb7-16"></a>                                                            Opes<span class="op">$</span>hair_colour, </span>
+<span id="cb7-17"><a href="#cb7-17"></a>                                                            Opes<span class="op">$</span>date_of_birth)),</span>
+<span id="cb7-18"><a href="#cb7-18"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>                     )</span>
+<span id="cb7-20"><a href="#cb7-20"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb7-21"><a href="#cb7-21"></a></span>
+<span id="cb7-22"><a href="#cb7-22"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>,<span class="st">&quot;date_of_birth&quot;</span>,<span class="st">&quot;pids_a&quot;</span>)]</span>
+<span id="cb7-23"><a href="#cb7-23"></a><span class="co">#&gt;   name  department hair_colour date_of_birth        pids_a</span></span>
+<span id="cb7-24"><a href="#cb7-24"></a><span class="co">#&gt; 1  Ope Procurement       Brown    23/03/1986 P.1 (CRI 001)</span></span>
+<span id="cb7-25"><a href="#cb7-25"></a><span class="co">#&gt; 2  Ope    Security       Brown    23/03/1986 P.1 (CRI 001)</span></span>
+<span id="cb7-26"><a href="#cb7-26"></a><span class="co">#&gt; 3  Ope    Security       Brown    23/03/1968 P.1 (CRI 001)</span></span>
+<span id="cb7-27"><a href="#cb7-27"></a><span class="co">#&gt; 4  Ope  Publishing       Green    01/02/1985 P.4 (CRI 001)</span></span>
+<span id="cb7-28"><a href="#cb7-28"></a><span class="co">#&gt; 5  Ope  Publishing        Teal    02/01/1985 P.4 (CRI 001)</span></span>
+<span id="cb7-29"><a href="#cb7-29"></a><span class="co">#&gt; 6  Ope  Publishing        Grey    11/03/1964 P.4 (CRI 001)</span></span>
+<span id="cb7-30"><a href="#cb7-30"></a><span class="co">#&gt; 7  Ope  Publishing       White    11/03/1964 P.4 (CRI 001)</span></span>
+<span id="cb7-31"><a href="#cb7-31"></a><span class="co">#&gt; 8  Ope Procurement       Black    11/10/1985 P.1 (CRI 001)</span></span>
+<span id="cb7-32"><a href="#cb7-32"></a>  </span>
+<span id="cb7-33"><a href="#cb7-33"></a><span class="co"># 1 stage linkage </span></span>
+<span id="cb7-34"><a href="#cb7-34"></a>  <span class="co"># stage 1 - name AND ((department OR hair_colour) AND (date_of_birth)) </span></span>
+<span id="cb7-35"><a href="#cb7-35"></a>Opes<span class="op">$</span>pids_b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> Opes<span class="op">$</span>name, </span>
+<span id="cb7-36"><a href="#cb7-36"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, </span>
+<span id="cb7-37"><a href="#cb7-37"></a>                                                            Opes<span class="op">$</span>hair_colour),</span>
+<span id="cb7-38"><a href="#cb7-38"></a>                                         <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>date_of_birth)),</span>
+<span id="cb7-39"><a href="#cb7-39"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb7-40"><a href="#cb7-40"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb7-41"><a href="#cb7-41"></a></span>
+<span id="cb7-42"><a href="#cb7-42"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>,<span class="st">&quot;date_of_birth&quot;</span>,<span class="st">&quot;pids_b&quot;</span>)]</span>
+<span id="cb7-43"><a href="#cb7-43"></a><span class="co">#&gt;   name  department hair_colour date_of_birth        pids_b</span></span>
+<span id="cb7-44"><a href="#cb7-44"></a><span class="co">#&gt; 1  Ope Procurement       Brown    23/03/1986 P.1 (CRI 001)</span></span>
+<span id="cb7-45"><a href="#cb7-45"></a><span class="co">#&gt; 2  Ope    Security       Brown    23/03/1986 P.1 (CRI 001)</span></span>
+<span id="cb7-46"><a href="#cb7-46"></a><span class="co">#&gt; 3  Ope    Security       Brown    23/03/1968 P.3 (No Hits)</span></span>
+<span id="cb7-47"><a href="#cb7-47"></a><span class="co">#&gt; 4  Ope  Publishing       Green    01/02/1985 P.4 (No Hits)</span></span>
+<span id="cb7-48"><a href="#cb7-48"></a><span class="co">#&gt; 5  Ope  Publishing        Teal    02/01/1985 P.5 (No Hits)</span></span>
+<span id="cb7-49"><a href="#cb7-49"></a><span class="co">#&gt; 6  Ope  Publishing        Grey    11/03/1964 P.6 (CRI 001)</span></span>
+<span id="cb7-50"><a href="#cb7-50"></a><span class="co">#&gt; 7  Ope  Publishing       White    11/03/1964 P.6 (CRI 001)</span></span>
+<span id="cb7-51"><a href="#cb7-51"></a><span class="co">#&gt; 8  Ope Procurement       Black    11/10/1985 P.8 (No Hits)</span></span>
+<span id="cb7-52"><a href="#cb7-52"></a></span>
+<span id="cb7-53"><a href="#cb7-53"></a><span class="co"># 1 stage linkage </span></span>
+<span id="cb7-54"><a href="#cb7-54"></a>  <span class="co"># stage 1 - name AND ((department OR hair_colour) AND (dd-mm OR dd-yyyy OR mm-yyyy))</span></span>
+<span id="cb7-55"><a href="#cb7-55"></a>Opes<span class="op">$</span>pids_c &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> Opes<span class="op">$</span>name, </span>
+<span id="cb7-56"><a href="#cb7-56"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, </span>
+<span id="cb7-57"><a href="#cb7-57"></a>                                                            Opes<span class="op">$</span>hair_colour),</span>
+<span id="cb7-58"><a href="#cb7-58"></a>                                         <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>db_pt1, Opes<span class="op">$</span>db_pt2, Opes<span class="op">$</span>db_pt3)),</span>
+<span id="cb7-59"><a href="#cb7-59"></a>                            <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb7-60"><a href="#cb7-60"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb7-61"><a href="#cb7-61"></a></span>
+<span id="cb7-62"><a href="#cb7-62"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>,<span class="st">&quot;date_of_birth&quot;</span>,<span class="st">&quot;pids_c&quot;</span>)]</span>
+<span id="cb7-63"><a href="#cb7-63"></a><span class="co">#&gt;   name  department hair_colour date_of_birth        pids_c</span></span>
+<span id="cb7-64"><a href="#cb7-64"></a><span class="co">#&gt; 1  Ope Procurement       Brown    23/03/1986 P.1 (CRI 001)</span></span>
+<span id="cb7-65"><a href="#cb7-65"></a><span class="co">#&gt; 2  Ope    Security       Brown    23/03/1986 P.1 (CRI 001)</span></span>
+<span id="cb7-66"><a href="#cb7-66"></a><span class="co">#&gt; 3  Ope    Security       Brown    23/03/1968 P.1 (CRI 001)</span></span>
+<span id="cb7-67"><a href="#cb7-67"></a><span class="co">#&gt; 4  Ope  Publishing       Green    01/02/1985 P.4 (No Hits)</span></span>
+<span id="cb7-68"><a href="#cb7-68"></a><span class="co">#&gt; 5  Ope  Publishing        Teal    02/01/1985 P.5 (No Hits)</span></span>
+<span id="cb7-69"><a href="#cb7-69"></a><span class="co">#&gt; 6  Ope  Publishing        Grey    11/03/1964 P.6 (CRI 001)</span></span>
+<span id="cb7-70"><a href="#cb7-70"></a><span class="co">#&gt; 7  Ope  Publishing       White    11/03/1964 P.6 (CRI 001)</span></span>
+<span id="cb7-71"><a href="#cb7-71"></a><span class="co">#&gt; 8  Ope Procurement       Black    11/10/1985 P.8 (No Hits)</span></span>
+<span id="cb7-72"><a href="#cb7-72"></a></span>
+<span id="cb7-73"><a href="#cb7-73"></a><span class="co"># 1 stage linkage </span></span>
+<span id="cb7-74"><a href="#cb7-74"></a>  <span class="co"># stage 1 - name AND ((department)  AND (hair_colour) AND (dd-mm OR dd-yyyy OR mm-yyyy))</span></span>
+<span id="cb7-75"><a href="#cb7-75"></a>Opes<span class="op">$</span>pids_d &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> Opes<span class="op">$</span>name, </span>
+<span id="cb7-76"><a href="#cb7-76"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department),</span>
+<span id="cb7-77"><a href="#cb7-77"></a>                                         <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour),</span>
+<span id="cb7-78"><a href="#cb7-78"></a>                                         <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>db_pt1, Opes<span class="op">$</span>db_pt2, Opes<span class="op">$</span>db_pt3)),</span>
+<span id="cb7-79"><a href="#cb7-79"></a>                            <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb7-80"><a href="#cb7-80"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb7-81"><a href="#cb7-81"></a></span>
+<span id="cb7-82"><a href="#cb7-82"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>,<span class="st">&quot;date_of_birth&quot;</span>,<span class="st">&quot;pids_d&quot;</span>)]</span>
+<span id="cb7-83"><a href="#cb7-83"></a><span class="co">#&gt;   name  department hair_colour date_of_birth        pids_d</span></span>
+<span id="cb7-84"><a href="#cb7-84"></a><span class="co">#&gt; 1  Ope Procurement       Brown    23/03/1986 P.1 (No Hits)</span></span>
+<span id="cb7-85"><a href="#cb7-85"></a><span class="co">#&gt; 2  Ope    Security       Brown    23/03/1986 P.2 (CRI 001)</span></span>
+<span id="cb7-86"><a href="#cb7-86"></a><span class="co">#&gt; 3  Ope    Security       Brown    23/03/1968 P.2 (CRI 001)</span></span>
+<span id="cb7-87"><a href="#cb7-87"></a><span class="co">#&gt; 4  Ope  Publishing       Green    01/02/1985 P.4 (No Hits)</span></span>
+<span id="cb7-88"><a href="#cb7-88"></a><span class="co">#&gt; 5  Ope  Publishing        Teal    02/01/1985 P.5 (No Hits)</span></span>
+<span id="cb7-89"><a href="#cb7-89"></a><span class="co">#&gt; 6  Ope  Publishing        Grey    11/03/1964 P.6 (No Hits)</span></span>
+<span id="cb7-90"><a href="#cb7-90"></a><span class="co">#&gt; 7  Ope  Publishing       White    11/03/1964 P.7 (No Hits)</span></span>
+<span id="cb7-91"><a href="#cb7-91"></a><span class="co">#&gt; 8  Ope Procurement       Black    11/10/1985 P.8 (No Hits)</span></span></code></pre></div>
+</div>
+<div id="multistage-linkage" class="section level2">
+<h2>Multistage linkage</h2>
+<p><a id="record_expansion"></a></p>
+<div id="group-expansion" class="section level3">
+<h3>Group expansion</h3>
+<p>By default, matches at different stages are linked together. The more stages (<code>criteria</code>) there are in an instance of <code>links()</code>, the larger a record group becomes. Priority is always given to matches that occurred at earlier stages. As a result, it’s important that <code>criteria</code> are listed in decreasing order of certainty. You can disable the link between stages by changing the <code>expand</code> argument to <code>FALSE</code>. See a simple example below.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">data</span>(Opes); Opes</span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="co">#&gt;   rd_id name  department hair_colour date_of_birth db_pt1  db_pt2  db_pt3</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="co">#&gt; 1     1  Ope Procurement       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt; 2     2  Ope    Security       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt; 3     3  Ope    Security       Brown    23/03/1968  23/03 23/1968 03/1968</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#&gt; 4     4  Ope  Publishing       Green    01/02/1985  01/02 01/1985 02/1985</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt; 5     5  Ope  Publishing        Teal    02/01/1985  02/01 02/1985 01/1985</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co">#&gt; 6     6  Ope  Publishing        Grey    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="co">#&gt; 7     7  Ope  Publishing       White    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt; 8     8  Ope Procurement       Black    11/10/1985  11/10 11/1985 10/1985</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="co"># 2 stage linkage</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a>  <span class="co"># stage 1 - link &quot;Opes&quot; in departments that start with the letter &quot;P&quot; THEN </span></span>
+<span id="cb8-14"><a href="#cb8-14"></a>  <span class="co"># stage 2 - bridge these to &quot;Opes&quot; whose hair colour starts with the letter &quot;B&quot;</span></span>
+<span id="cb8-15"><a href="#cb8-15"></a>dept_func &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">substr</span>(x, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">==</span><span class="st"> </span><span class="kw">substr</span>(y, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">&amp;</span><span class="st"> </span><span class="kw">substr</span>(y, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">==</span><span class="st"> &quot;P&quot;</span> </span>
+<span id="cb8-16"><a href="#cb8-16"></a>hair_func &lt;-<span class="st"> </span><span class="cf">function</span>(x, y) <span class="kw">substr</span>(x, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">==</span><span class="st"> </span><span class="kw">substr</span>(y, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">&amp;</span><span class="st"> </span><span class="kw">substr</span>(y, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">==</span><span class="st"> &quot;B&quot;</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a></span>
+<span id="cb8-18"><a href="#cb8-18"></a>Opes<span class="op">$</span>p_exp_a &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>name),</span>
+<span id="cb8-19"><a href="#cb8-19"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb8-20"><a href="#cb8-20"></a>                       <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, <span class="dt">funcs =</span> dept_func),</span>
+<span id="cb8-21"><a href="#cb8-21"></a>                       <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour, <span class="dt">funcs =</span> hair_func)),</span>
+<span id="cb8-22"><a href="#cb8-22"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb8-23"><a href="#cb8-23"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb8-24"><a href="#cb8-24"></a></span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="co"># 2 stage linkage</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a>  <span class="co"># stage 1 - link &quot;Opes&quot; in departments that start with the letter &quot;P&quot; THEN </span></span>
+<span id="cb8-27"><a href="#cb8-27"></a>  <span class="co"># stage 2 - link &quot;Opes&quot; whose hair colour starts with the letter &quot;B&quot;</span></span>
+<span id="cb8-28"><a href="#cb8-28"></a>Opes<span class="op">$</span>p_nexp_a &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>name),</span>
+<span id="cb8-29"><a href="#cb8-29"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb8-30"><a href="#cb8-30"></a>                       <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, <span class="dt">funcs =</span> dept_func),</span>
+<span id="cb8-31"><a href="#cb8-31"></a>                       <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour, <span class="dt">funcs =</span> hair_func)),</span>
+<span id="cb8-32"><a href="#cb8-32"></a>                     <span class="dt">expand =</span> F,</span>
+<span id="cb8-33"><a href="#cb8-33"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb8-34"><a href="#cb8-34"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb8-35"><a href="#cb8-35"></a></span>
+<span id="cb8-36"><a href="#cb8-36"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>, <span class="st">&quot;p_exp_a&quot;</span>, <span class="st">&quot;p_nexp_a&quot;</span>)]</span>
+<span id="cb8-37"><a href="#cb8-37"></a><span class="co">#&gt;   name  department hair_colour       p_exp_a      p_nexp_a</span></span>
+<span id="cb8-38"><a href="#cb8-38"></a><span class="co">#&gt; 1  Ope Procurement       Brown P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb8-39"><a href="#cb8-39"></a><span class="co">#&gt; 2  Ope    Security       Brown P.1 (CRI 002) P.2 (CRI 002)</span></span>
+<span id="cb8-40"><a href="#cb8-40"></a><span class="co">#&gt; 3  Ope    Security       Brown P.1 (CRI 002) P.2 (CRI 002)</span></span>
+<span id="cb8-41"><a href="#cb8-41"></a><span class="co">#&gt; 4  Ope  Publishing       Green P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb8-42"><a href="#cb8-42"></a><span class="co">#&gt; 5  Ope  Publishing        Teal P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb8-43"><a href="#cb8-43"></a><span class="co">#&gt; 6  Ope  Publishing        Grey P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb8-44"><a href="#cb8-44"></a><span class="co">#&gt; 7  Ope  Publishing       White P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb8-45"><a href="#cb8-45"></a><span class="co">#&gt; 8  Ope Procurement       Black P.1 (CRI 001) P.1 (CRI 001)</span></span></code></pre></div>
+<p>Note that changing <code>expand</code> to <code>TRUE</code> is not the same as reversing the relevance of your matching conditions. See below.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># The same as `p_exp_a` </span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>Opes<span class="op">$</span>p_exp_b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>name),</span>
+<span id="cb9-3"><a href="#cb9-3"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb9-4"><a href="#cb9-4"></a>                       <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, <span class="dt">funcs =</span> dept_func),</span>
+<span id="cb9-5"><a href="#cb9-5"></a>                       <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour, <span class="dt">funcs =</span> hair_func)),</span>
+<span id="cb9-6"><a href="#cb9-6"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="co"># Not the same as `p_nexp_a`</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a>Opes<span class="op">$</span>p_nexp_b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>name),</span>
+<span id="cb9-11"><a href="#cb9-11"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb9-12"><a href="#cb9-12"></a>                       <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, <span class="dt">funcs =</span> dept_func),</span>
+<span id="cb9-13"><a href="#cb9-13"></a>                       <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour, <span class="dt">funcs =</span> hair_func)),</span>
+<span id="cb9-14"><a href="#cb9-14"></a>                     <span class="dt">expand =</span> F,</span>
+<span id="cb9-15"><a href="#cb9-15"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb9-16"><a href="#cb9-16"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a></span>
+<span id="cb9-18"><a href="#cb9-18"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>, <span class="st">&quot;p_exp_a&quot;</span>, <span class="st">&quot;p_exp_b&quot;</span>, <span class="st">&quot;p_nexp_a&quot;</span>, <span class="st">&quot;p_nexp_b&quot;</span>)]</span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="co">#&gt;   name  department hair_colour       p_exp_a       p_exp_b      p_nexp_a</span></span>
+<span id="cb9-20"><a href="#cb9-20"></a><span class="co">#&gt; 1  Ope Procurement       Brown P.1 (CRI 001) P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a><span class="co">#&gt; 2  Ope    Security       Brown P.1 (CRI 002) P.1 (CRI 001) P.2 (CRI 002)</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a><span class="co">#&gt; 3  Ope    Security       Brown P.1 (CRI 002) P.1 (CRI 001) P.2 (CRI 002)</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="co">#&gt; 4  Ope  Publishing       Green P.1 (CRI 001) P.1 (CRI 002) P.1 (CRI 001)</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a><span class="co">#&gt; 5  Ope  Publishing        Teal P.1 (CRI 001) P.1 (CRI 002) P.1 (CRI 001)</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a><span class="co">#&gt; 6  Ope  Publishing        Grey P.1 (CRI 001) P.1 (CRI 002) P.1 (CRI 001)</span></span>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="co">#&gt; 7  Ope  Publishing       White P.1 (CRI 001) P.1 (CRI 002) P.1 (CRI 001)</span></span>
+<span id="cb9-27"><a href="#cb9-27"></a><span class="co">#&gt; 8  Ope Procurement       Black P.1 (CRI 001) P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb9-28"><a href="#cb9-28"></a><span class="co">#&gt;        p_nexp_b</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a><span class="co">#&gt; 1 P.1 (CRI 001)</span></span>
+<span id="cb9-30"><a href="#cb9-30"></a><span class="co">#&gt; 2 P.1 (CRI 001)</span></span>
+<span id="cb9-31"><a href="#cb9-31"></a><span class="co">#&gt; 3 P.1 (CRI 001)</span></span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="co">#&gt; 4 P.7 (CRI 002)</span></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="co">#&gt; 5 P.7 (CRI 002)</span></span>
+<span id="cb9-34"><a href="#cb9-34"></a><span class="co">#&gt; 6 P.7 (CRI 002)</span></span>
+<span id="cb9-35"><a href="#cb9-35"></a><span class="co">#&gt; 7 P.7 (CRI 002)</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a><span class="co">#&gt; 8 P.1 (CRI 001)</span></span></code></pre></div>
+<p><strong><em>Example 1 of group expansion</em></strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">data</span>(patient_list_<span class="dv">2</span>); patient_list_<span class="dv">2</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="co">#&gt;   rd_id forename     surname    sex</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="co">#&gt; 1     1     &lt;NA&gt;   Jefferson   Male</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="co">#&gt; 2     2     &lt;NA&gt;   Jefferson Female</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="co">#&gt; 3     3     Tomi       Abdul   Male</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="co">#&gt; 4     4     Tomi Abdulkareem Female</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="co">#&gt; 5     5     &lt;NA&gt;        &lt;NA&gt;   Male</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a></span>
+<span id="cb10-9"><a href="#cb10-9"></a>patient_list_<span class="dv">2</span><span class="op">$</span>pids_a &lt;-<span class="st"> </span><span class="kw">links</span>(</span>
+<span id="cb10-10"><a href="#cb10-10"></a>  <span class="dt">sn =</span> patient_list_<span class="dv">2</span><span class="op">$</span>rd_id,</span>
+<span id="cb10-11"><a href="#cb10-11"></a>  <span class="dt">criteria =</span> <span class="kw">list</span>(patient_list_<span class="dv">2</span><span class="op">$</span>forename, </span>
+<span id="cb10-12"><a href="#cb10-12"></a>                  patient_list_<span class="dv">2</span><span class="op">$</span>surname,</span>
+<span id="cb10-13"><a href="#cb10-13"></a>                  patient_list_<span class="dv">2</span><span class="op">$</span>sex), </span>
+<span id="cb10-14"><a href="#cb10-14"></a>  <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb10-16"><a href="#cb10-16"></a></span>
+<span id="cb10-17"><a href="#cb10-17"></a>patient_list_<span class="dv">2</span></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="co">#&gt;   rd_id forename     surname    sex        pids_a</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a><span class="co">#&gt; 1     1     &lt;NA&gt;   Jefferson   Male P.1 (CRI 002)</span></span>
+<span id="cb10-20"><a href="#cb10-20"></a><span class="co">#&gt; 2     2     &lt;NA&gt;   Jefferson Female P.1 (CRI 002)</span></span>
+<span id="cb10-21"><a href="#cb10-21"></a><span class="co">#&gt; 3     3     Tomi       Abdul   Male P.3 (CRI 001)</span></span>
+<span id="cb10-22"><a href="#cb10-22"></a><span class="co">#&gt; 4     4     Tomi Abdulkareem Female P.3 (CRI 001)</span></span>
+<span id="cb10-23"><a href="#cb10-23"></a><span class="co">#&gt; 5     5     &lt;NA&gt;        &lt;NA&gt;   Male P.3 (CRI 003)</span></span></code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAAGACAMAAABFg3d1AAAA4VBMVEUAAAAAACgAADoAAEgAAGYAMigAMmUAOgAAOpAAWYAAZgAAZrY4AAA4MmU4fZo6AAA6OgA6ZmY6kAA6kNtiAABinppinrNmAABmAGZmOpBmtgBmtv+KMgCKMiiKnpqKv5qKv7OQOgCQtgCQ2wCQ2/+vWQCv3oCv3rO2ZgC22/+2/wC2/9u2///SfSjSnkjSnmXSv2XS3oDS3prS3rPbkADbkGbbtgDbtrbb2wDb25Db27bb/wDb/7bb/9vb///1nkj1v5r13oD13pr13rP/tgD/tmb/25D//wD//7b//9v////CQilUAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAKnklEQVR4nO3dC3fTRhoGYJNmQ2hosttQ0gK9eAlbl4beaLu7LQ1LXXCi//+DVhcbm8RW9JGLRtbznEMSyxpp4Mx7vpmJQgYDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACBR28dZ9nr65YuDs2++e6Q4d3RD/YIU7ZwcDDYOX89ens/Mgs2j0WDndHgT3YIkFRnIY/LHLAW1gdl5s5eHS4mhv4oCU9r+7ZuTz158epTlFWTzKMsPV0cOBjvZ2znbYJYw6KeiaJS2j0dFeSkqTFFE9t/sTY+cmYftzxpAD80Dk8/KpoEp/mx+O5weKd7MX03P3z+pmbLBuptPyaqklJ+O80nY6XCWneLlrMLsW/LTa9WSJP+4GJiqrMyO5IVmVmHUF/quqBkbh/mKZR6PYg0zz05Rgx5WhWW+mQZ9Nd0Em8Zj4zAbFbtkp8OFI9kv1V7yw6xglwwAAAAAAAAAAABYH1mK2v5HgVVSHJwp9glKKQ7OFPsEpRQHZ4p9glKKgzPFPkEpxcGZYp+glOLgTLFPUEpxcKbYJyilODhT7BOUUhycKfYJSikOzhT7BKWVg3MS8l6twn2Ctq0OTOQqk3NfRBqdJTAkS2AgQGAgQGAgQGAgQGAgoHFgPpxMJqPB7d+Hg8Hjc7/1ZWVg6loJDN3TNDC3fz8oxv3t3/+KBKa2lcDQPY0D85+96tM/h5HA1LUSGLqn8ZTswWRyUAz9v/8amZLVtRIYuiey6H86OchLxoNhIDB1rQSG7gntkn38cz70b/8aC8zKVgJD9zQNzIfF1OrxqFiUPJisCMxkEmolMHRP4wrz8WQy+blcxZebxMtPPvcIcl0rgaF7rvwblzWP7Te9g8CQrEsGJviTLs3uIDAkS4WBgKsNTPO01N1BYEjWVQbm/C5Zg0ZLCAzJCgbm6UH9yctaPZ5M/mp+h7o+QdtigXk6iQfm4+LBy1HTO9T2CdoWCszjg/epMIPim/0N71DfJ2jbDUzJVjUTGLrnRgLz9NyjAavPresTtO0GArPkUZqaO9T1Cdp2/YEpfuoycIe6PkHbrj8wDyblA5hN71DXJ2ib/zUGAgQGAgQGAgQGAvx+GAhIcXCm2CcopTg4U+wTlFIcnCn2CUopDs4U+wSlFAdnin2CUoqDM8U+QSnFwZlin6CU4uBMsU9QSnFwptgnKGUpavsfBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALiM7eMsez398sXB2TfPHjl/CvTJzsnBYOPw9ezlBYHYPDoRGHps82iUf9z+Yzh9XR+Y/ezfKgx9tjOrGNu/fXPy2YtPj7LTYZ6iLD9cHTkY7GRv52z/2DMlo9d23uxVX2wfj4ryUgRi43A02H+zNz1S1KCd02YVCNbcPDD5rGwamOLP5rfD6ZHizfzV9HyBodfmU7IqKeWn43wSdjqcZad4qcJAoVr05x8XA1OFYnYkLzQqDFT28+KxcfhmbyEexRpmnp2iBj1UYaAy3QSbxmPjMBsVu2Snw4Uj2S+Ho+nZAgMAAAAAAAAAAACslSxFbf+jwCopDs4U+wSlFAdnin2CUoqDM8U+QSnFwZlin6CU4uBMsU9QSnFwptgnKKU4OFPsE5RSHJwp9glKKQ7OFPsEpdWDcxxxqUbN+wQtqwlM4Crjc19EGp0lMCRLYCBAYCBAYCBAYCBAYCCgeWDujMfjJ4Otnx4Nbn35aNW579WoeZ+gZY0Ds/XjvWLgbz1/GQhMs0bN+wQtax6YH+5Wn754FAhMo0bN+wQtaz4luz9+da8Y+x99F5iSNWrUvE/Qssii/4OvX93La8YnnzcPTKNGzfsELYvtku0+y8f+1veRwDRo1LxP0LLGgbmTz61uffWkWJXc/3P52B+P36NRqE/QsuYVZnc8Hj8rl/HFLvHyc889gtykUaBP0LIr/8ZlzWP7TW8gMCTrkoEJ/qRLsxsIDMm6fIV5JyLjciXTsGG8T9Cyq5qSTVPTfEImMHTRla5hAvOxuhsIDMm6ysBMt5WbxkZg6J5YYO4Xzx7XnTtvtJia3WdNb3BBn6BlocDceTn44F/36s4906gqNlvPBYY1EZ2SxQJTurViiiYwdE8wMLuNp2QLbZ4VU7LzKxuBoXvCi/77yxJTF5itH+7O1zCLsREYuiccmKUL+LrAFI+Tjd9tVKVGYOie6KI/XmEGq0K2cvdZYEhWeFu5fsMrEJjq3GWpERiSlcR/s3Sm2AgMyUoiMNPXs9gIDMlKKDDTo+NxFrkK3KQ0fz9M/fvQmhSnP7M+SQ3JSTkwJcWGlCQfmIrYkIaOBKYiNbStU4EpKTa0qHuBqUgNrehqYEqKDTet04GpiA03Zw0CU5EabsLaBKak2HDNshRd8u8kNRCl2ECY2ECY1ECUYgNhUgNRig2EiQ2ESQ1EKTYQJjUQpdhAmNhAmNRAlGIDYVIDUYoNhIkNhEkNRCk2ECY1EKXYQJjYQJjUQJRiA2FSA1GKDYSJDYRJDUQpNhAmNRCl2MxtH2fZ6+mXLw7OvvnukZ0sOx3eUL9Ijtjkdk4OBhuHr2cvz2dmwfYfw/J8+qzfqdk8Gg2qJFRqA1M2+FaJob/F5m3B2P7tm5PPXnx6VMy5No+y/HB15KCYh2VvK9Bg/81eS10lOT1Mzc5s/G8fj4ryUlSYjcNRkYvpkaIG7cxWLtvH1jC8q1/FZh6YfFY2DUzxJ595TY8Uby7Mw6xhWKYvsZlPyaqklJ+Os2I3bJad4uW8rljDsNr6p6Za9OcfFwNTlZXZkbzQLKREYLjAeheb/bx4bBzmK5Z5PIo1zDw7RQ16WFWY4svt/1r008Dapma6CTaNx8ZhNip2yU6HC0eyXw5H5bn7WWYJQ3PrXWzgWogNhEkNRCk2ECY1EKXYQJjYQJjUQJRiA2FSA1GKDYSJDYS1lprsmrXxd6In2ig21zyiBYbrdrOpERjWwY0VG4FhfdxAbASGdXOtqREY1tJ1FRuBYY1dfWoEhnV3pcVGYOiHK4qNwNAnl06NwNA7lyk2K0f0OCJ+eWjZ+6VmdWAit45fHlIQLjYCA4HYCAxUGqVGYGDBRcVGYOCc1akRGFhuabFpHJg7edsng62fHg1uffnognMbXB664UxsmgZm68d7RVq2nr8UGPrnbWoaB+aHu9WnLx4JDP1UhCZbNdjPHr8/fnWvCMxH3wkM/ZUt3xAYLwnBB1+/upcXmk8+Fxh6azqiz20ILN1U232WB2bre4Ght94Z0YuxOVN27uQTsltfPSmWMvf/FBj6asmIrlIzPlNldvODz8q1f7G1fKZF5PLQYatG9IUP7r9zcvjy0E3128oNEyMw9EX9D5A1vIjA0BfLR3Twh2oEhr7w8CUEhAJzf1x+u7/RuRdcHjopEpjzz8SsPveiy0MnRQJTPLHc9NyLLg+dFAnMnf89H79seO5Fl4dOCq1h/nZ3sPuk4bkXXB46KbpLtvus+bl1l4dOCk3J8vmYCkOvRbeVlxUYgaE3fOMSAgQGAgQGAgQGAvx+GAjwG8ggQGAgQGAgQGAgQGAgQGAgQGAgQGAgQGAgQGAgILtmbf/9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgGvzf9eyfjjHA294AAAAAElFTkSuQmCC" /><!-- --></p>
+<p><strong><em>Example 2 of group expansion</em></strong></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="dt">forename =</span> <span class="kw">c</span>(<span class="st">&quot;John&quot;</span>, <span class="st">&quot;John&quot;</span>, <span class="st">&quot;Jon&quot;</span>, </span>
+<span id="cb11-3"><a href="#cb11-3"></a>               <span class="ot">NA_character_</span>, <span class="st">&quot;Mary&quot;</span>, <span class="st">&quot;Mary&quot;</span>,</span>
+<span id="cb11-4"><a href="#cb11-4"></a>               <span class="st">&quot;Mariam&quot;</span>, <span class="st">&quot;John&quot;</span>, <span class="st">&quot;Henry&quot;</span>,</span>
+<span id="cb11-5"><a href="#cb11-5"></a>               <span class="st">&quot;Obinna&quot;</span>, <span class="st">&quot;Tomi&quot;</span>),</span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="dt">surname =</span> <span class="kw">c</span>(<span class="st">&quot;Swan&quot;</span>, <span class="st">&quot;Swanley&quot;</span>, <span class="st">&quot;Swanley&quot;</span>,</span>
+<span id="cb11-7"><a href="#cb11-7"></a>              <span class="ot">NA_character_</span>, <span class="st">&quot;Jane&quot;</span>, <span class="st">&quot;Jan&quot;</span>,</span>
+<span id="cb11-8"><a href="#cb11-8"></a>              <span class="st">&quot;Janet&quot;</span>, <span class="st">&quot;Swan&quot;</span>, <span class="st">&quot;Henderson&quot;</span>, </span>
+<span id="cb11-9"><a href="#cb11-9"></a>              <span class="st">&quot;Nelson&quot;</span>, <span class="st">&quot;Abdulkareem&quot;</span>), </span>
+<span id="cb11-10"><a href="#cb11-10"></a>  <span class="dt">age =</span> <span class="kw">c</span>(<span class="dv">12</span>, <span class="dv">11</span>, <span class="dv">10</span>, <span class="dv">10</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">6</span>, <span class="dv">12</span>, <span class="dv">30</span>, <span class="dv">31</span>, <span class="dv">2500</span>)</span>
+<span id="cb11-11"><a href="#cb11-11"></a>)</span>
+<span id="cb11-12"><a href="#cb11-12"></a></span>
+<span id="cb11-13"><a href="#cb11-13"></a>df<span class="op">$</span>pids_a &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(df<span class="op">$</span>forename, df<span class="op">$</span>surname, df<span class="op">$</span>age), <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a> </span>
+<span id="cb11-16"><a href="#cb11-16"></a>df</span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="co">#&gt;    forename     surname  age         pids_a</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="co">#&gt; 1      John        Swan   12 P.01 (CRI 001)</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a><span class="co">#&gt; 2      John     Swanley   11 P.01 (CRI 001)</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="co">#&gt; 3       Jon     Swanley   10 P.01 (CRI 002)</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="co">#&gt; 4      &lt;NA&gt;        &lt;NA&gt;   10 P.01 (CRI 003)</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="co">#&gt; 5      Mary        Jane    5 P.05 (CRI 001)</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="co">#&gt; 6      Mary         Jan    6 P.05 (CRI 001)</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="co">#&gt; 7    Mariam       Janet    6 P.05 (CRI 003)</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="co">#&gt; 8      John        Swan   12 P.01 (CRI 001)</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a><span class="co">#&gt; 9     Henry   Henderson   30 P.09 (No Hits)</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a><span class="co">#&gt; 10   Obinna      Nelson   31 P.10 (No Hits)</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a><span class="co">#&gt; 11     Tomi Abdulkareem 2500 P.11 (No Hits)</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="group-shrinkage" class="section level3">
+<h3>Group shrinkage</h3>
+<p>You can also specify the opposite behaviour. Where a record group becomes smaller with each subsequent stage. If there is no <code>sub_criteria</code>, the easiest way of doing this is to concatenate the attributes in each stage. See the example below.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">data</span>(Opes); Opes</span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="co">#&gt;   rd_id name  department hair_colour date_of_birth db_pt1  db_pt2  db_pt3</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="co">#&gt; 1     1  Ope Procurement       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="co">#&gt; 2     2  Ope    Security       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="co">#&gt; 3     3  Ope    Security       Brown    23/03/1968  23/03 23/1968 03/1968</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="co">#&gt; 4     4  Ope  Publishing       Green    01/02/1985  01/02 01/1985 02/1985</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="co">#&gt; 5     5  Ope  Publishing        Teal    02/01/1985  02/01 02/1985 01/1985</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="co">#&gt; 6     6  Ope  Publishing        Grey    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="co">#&gt; 7     7  Ope  Publishing       White    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="co">#&gt; 8     8  Ope Procurement       Black    11/10/1985  11/10 11/1985 10/1985</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a></span>
+<span id="cb12-12"><a href="#cb12-12"></a><span class="co"># 1 stage linkage</span></span>
+<span id="cb12-13"><a href="#cb12-13"></a>  <span class="co"># stage 1 - link &quot;Opes&quot; that are in the same department AND have the same day and month of birth </span></span>
+<span id="cb12-14"><a href="#cb12-14"></a>Opes<span class="op">$</span>cri &lt;-<span class="st"> </span><span class="kw">paste</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>department, Opes<span class="op">$</span>db_pt1, <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>)</span>
+<span id="cb12-15"><a href="#cb12-15"></a>Opes<span class="op">$</span>p_shk_c &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>cri),</span>
+<span id="cb12-16"><a href="#cb12-16"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb12-17"><a href="#cb12-17"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a></span>
+<span id="cb12-19"><a href="#cb12-19"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;db_pt3&quot;</span>, <span class="st">&quot;p_shk_c&quot;</span>)]</span>
+<span id="cb12-20"><a href="#cb12-20"></a><span class="co">#&gt;   name  department  db_pt3       p_shk_c</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a><span class="co">#&gt; 1  Ope Procurement 03/1986 P.1 (No Hits)</span></span>
+<span id="cb12-22"><a href="#cb12-22"></a><span class="co">#&gt; 2  Ope    Security 03/1986 P.2 (CRI 001)</span></span>
+<span id="cb12-23"><a href="#cb12-23"></a><span class="co">#&gt; 3  Ope    Security 03/1968 P.2 (CRI 001)</span></span>
+<span id="cb12-24"><a href="#cb12-24"></a><span class="co">#&gt; 4  Ope  Publishing 02/1985 P.4 (No Hits)</span></span>
+<span id="cb12-25"><a href="#cb12-25"></a><span class="co">#&gt; 5  Ope  Publishing 01/1985 P.5 (No Hits)</span></span>
+<span id="cb12-26"><a href="#cb12-26"></a><span class="co">#&gt; 6  Ope  Publishing 03/1964 P.6 (CRI 001)</span></span>
+<span id="cb12-27"><a href="#cb12-27"></a><span class="co">#&gt; 7  Ope  Publishing 03/1964 P.6 (CRI 001)</span></span>
+<span id="cb12-28"><a href="#cb12-28"></a><span class="co">#&gt; 8  Ope Procurement 10/1985 P.8 (No Hits)</span></span></code></pre></div>
+<p>If there’s a <code>sub_criteria</code>, you’ll need to use the <code>shrink</code> argument. See the example below. The same analysis is repeated using <code>sub_criteria</code>.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="co"># 3 stage linkage</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>  <span class="co"># stage 1 - link &quot;Opes&quot; that have the same name, THEN WITHIN THESE</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="co"># stage 2 - link &quot;Opes&quot; that are in the same department, THEN WITHIN THESE</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  <span class="co"># stage 3 - link &quot;Opes&quot; have the same day and month of birth </span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>Opes<span class="op">$</span>p_shk_d &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>department, Opes<span class="op">$</span>db_pt1),</span>
+<span id="cb13-6"><a href="#cb13-6"></a>                      <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb13-7"><a href="#cb13-7"></a>                        <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="dt">funcs =</span> diyar<span class="op">::</span>exact_match),</span>
+<span id="cb13-8"><a href="#cb13-8"></a>                        <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="dt">funcs =</span> diyar<span class="op">::</span>exact_match),</span>
+<span id="cb13-9"><a href="#cb13-9"></a>                        <span class="dt">cr3 =</span> <span class="kw">sub_criteria</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="dt">funcs =</span> diyar<span class="op">::</span>exact_match)</span>
+<span id="cb13-10"><a href="#cb13-10"></a>                      ),</span>
+<span id="cb13-11"><a href="#cb13-11"></a>                      <span class="dt">shrink =</span> T,</span>
+<span id="cb13-12"><a href="#cb13-12"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb13-13"><a href="#cb13-13"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb13-14"><a href="#cb13-14"></a></span>
+<span id="cb13-15"><a href="#cb13-15"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;db_pt3&quot;</span>, <span class="st">&quot;p_shk_c&quot;</span>, <span class="st">&quot;p_shk_d&quot;</span>)]</span>
+<span id="cb13-16"><a href="#cb13-16"></a><span class="co">#&gt;   name  department  db_pt3       p_shk_c       p_shk_d</span></span>
+<span id="cb13-17"><a href="#cb13-17"></a><span class="co">#&gt; 1  Ope Procurement 03/1986 P.1 (No Hits) P.1 (CRI 002)</span></span>
+<span id="cb13-18"><a href="#cb13-18"></a><span class="co">#&gt; 2  Ope    Security 03/1986 P.2 (CRI 001) P.2 (CRI 003)</span></span>
+<span id="cb13-19"><a href="#cb13-19"></a><span class="co">#&gt; 3  Ope    Security 03/1968 P.2 (CRI 001) P.2 (CRI 003)</span></span>
+<span id="cb13-20"><a href="#cb13-20"></a><span class="co">#&gt; 4  Ope  Publishing 02/1985 P.4 (No Hits) P.4 (CRI 002)</span></span>
+<span id="cb13-21"><a href="#cb13-21"></a><span class="co">#&gt; 5  Ope  Publishing 01/1985 P.5 (No Hits) P.5 (CRI 002)</span></span>
+<span id="cb13-22"><a href="#cb13-22"></a><span class="co">#&gt; 6  Ope  Publishing 03/1964 P.6 (CRI 001) P.6 (CRI 003)</span></span>
+<span id="cb13-23"><a href="#cb13-23"></a><span class="co">#&gt; 7  Ope  Publishing 03/1964 P.6 (CRI 001) P.6 (CRI 003)</span></span>
+<span id="cb13-24"><a href="#cb13-24"></a><span class="co">#&gt; 8  Ope Procurement 10/1985 P.8 (No Hits) P.8 (CRI 002)</span></span></code></pre></div>
+<p>Although <code>p_shk_c</code> and <code>p_shk_d</code> are identical, the <code>pid_cri</code> slot for both are different. This reflects the different ways they were created. <code>p_shk_d</code> is the equivalent of three compounding (using <code>strata</code>) instances of <code>links()</code>. See below.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="co"># 1 stage linkage</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="co"># stage 1 - link &quot;Opes&quot; that have the same name</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a>Opes<span class="op">$</span>p_shk_e1 &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>name),</span>
+<span id="cb14-4"><a href="#cb14-4"></a>                      <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb14-5"><a href="#cb14-5"></a>                        <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="dt">funcs =</span> diyar<span class="op">::</span>exact_match)),</span>
+<span id="cb14-6"><a href="#cb14-6"></a>                      <span class="dt">shrink =</span> T,</span>
+<span id="cb14-7"><a href="#cb14-7"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb14-8"><a href="#cb14-8"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb14-9"><a href="#cb14-9"></a></span>
+<span id="cb14-10"><a href="#cb14-10"></a><span class="co"># Another attempt is made always made at the next for records with no links </span></span>
+<span id="cb14-11"><a href="#cb14-11"></a>Opes<span class="op">$</span>e1 &lt;-<span class="st"> </span><span class="kw">ifelse</span>(Opes<span class="op">$</span>p_shk_e1<span class="op">@</span>pid_cri <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="st">&quot;No Hits&quot;</span>, <span class="kw">as.character</span>(Opes<span class="op">$</span>p_shk_e1))</span>
+<span id="cb14-12"><a href="#cb14-12"></a></span>
+<span id="cb14-13"><a href="#cb14-13"></a><span class="co"># 1 stage linkage</span></span>
+<span id="cb14-14"><a href="#cb14-14"></a>  <span class="co"># stage 1 - link &quot;Opes&quot; that are in the same department</span></span>
+<span id="cb14-15"><a href="#cb14-15"></a>Opes<span class="op">$</span>p_shk_e2 &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>department),</span>
+<span id="cb14-16"><a href="#cb14-16"></a>                      <span class="dt">strata =</span> Opes<span class="op">$</span>e1,</span>
+<span id="cb14-17"><a href="#cb14-17"></a>                       <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb14-18"><a href="#cb14-18"></a>                        <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="dt">funcs =</span> diyar<span class="op">::</span>exact_match)),</span>
+<span id="cb14-19"><a href="#cb14-19"></a>                      <span class="dt">shrink =</span> T,</span>
+<span id="cb14-20"><a href="#cb14-20"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb14-21"><a href="#cb14-21"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb14-22"><a href="#cb14-22"></a></span>
+<span id="cb14-23"><a href="#cb14-23"></a><span class="co"># Another attempt is made always made at the next for records with no links</span></span>
+<span id="cb14-24"><a href="#cb14-24"></a>Opes<span class="op">$</span>e2 &lt;-<span class="st"> </span><span class="kw">ifelse</span>(Opes<span class="op">$</span>p_shk_e1<span class="op">@</span>pid_cri <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="st">&quot;No Hits&quot;</span>, <span class="kw">as.character</span>(Opes<span class="op">$</span>p_shk_e1))</span>
+<span id="cb14-25"><a href="#cb14-25"></a></span>
+<span id="cb14-26"><a href="#cb14-26"></a><span class="co"># 1 stage linkage</span></span>
+<span id="cb14-27"><a href="#cb14-27"></a>  <span class="co"># stage 3 - link &quot;Opes&quot; have the same day and month of birth </span></span>
+<span id="cb14-28"><a href="#cb14-28"></a>Opes<span class="op">$</span>p_shk_e3 &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(Opes<span class="op">$</span>db_pt1),</span>
+<span id="cb14-29"><a href="#cb14-29"></a>                      <span class="dt">strata =</span> Opes<span class="op">$</span>e2,</span>
+<span id="cb14-30"><a href="#cb14-30"></a>                       <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb14-31"><a href="#cb14-31"></a>                        <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="dt">funcs =</span> diyar<span class="op">::</span>exact_match)),</span>
+<span id="cb14-32"><a href="#cb14-32"></a>                      <span class="dt">shrink =</span> T,</span>
+<span id="cb14-33"><a href="#cb14-33"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb14-34"><a href="#cb14-34"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb14-35"><a href="#cb14-35"></a></span>
+<span id="cb14-36"><a href="#cb14-36"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;db_pt3&quot;</span>, <span class="st">&quot;p_shk_e1&quot;</span>, <span class="st">&quot;p_shk_e2&quot;</span>, <span class="st">&quot;p_shk_e3&quot;</span>, <span class="st">&quot;p_shk_c&quot;</span>, <span class="st">&quot;p_shk_d&quot;</span>)]</span>
+<span id="cb14-37"><a href="#cb14-37"></a><span class="co">#&gt;   name  department  db_pt3      p_shk_e1      p_shk_e2      p_shk_e3</span></span>
+<span id="cb14-38"><a href="#cb14-38"></a><span class="co">#&gt; 1  Ope Procurement 03/1986 P.1 (CRI 001) P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb14-39"><a href="#cb14-39"></a><span class="co">#&gt; 2  Ope    Security 03/1986 P.1 (CRI 001) P.2 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb14-40"><a href="#cb14-40"></a><span class="co">#&gt; 3  Ope    Security 03/1968 P.1 (CRI 001) P.2 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb14-41"><a href="#cb14-41"></a><span class="co">#&gt; 4  Ope  Publishing 02/1985 P.1 (CRI 001) P.4 (CRI 001) P.4 (No Hits)</span></span>
+<span id="cb14-42"><a href="#cb14-42"></a><span class="co">#&gt; 5  Ope  Publishing 01/1985 P.1 (CRI 001) P.4 (CRI 001) P.5 (No Hits)</span></span>
+<span id="cb14-43"><a href="#cb14-43"></a><span class="co">#&gt; 6  Ope  Publishing 03/1964 P.1 (CRI 001) P.4 (CRI 001) P.6 (CRI 001)</span></span>
+<span id="cb14-44"><a href="#cb14-44"></a><span class="co">#&gt; 7  Ope  Publishing 03/1964 P.1 (CRI 001) P.4 (CRI 001) P.6 (CRI 001)</span></span>
+<span id="cb14-45"><a href="#cb14-45"></a><span class="co">#&gt; 8  Ope Procurement 10/1985 P.1 (CRI 001) P.1 (CRI 001) P.8 (No Hits)</span></span>
+<span id="cb14-46"><a href="#cb14-46"></a><span class="co">#&gt;         p_shk_c       p_shk_d</span></span>
+<span id="cb14-47"><a href="#cb14-47"></a><span class="co">#&gt; 1 P.1 (No Hits) P.1 (CRI 002)</span></span>
+<span id="cb14-48"><a href="#cb14-48"></a><span class="co">#&gt; 2 P.2 (CRI 001) P.2 (CRI 003)</span></span>
+<span id="cb14-49"><a href="#cb14-49"></a><span class="co">#&gt; 3 P.2 (CRI 001) P.2 (CRI 003)</span></span>
+<span id="cb14-50"><a href="#cb14-50"></a><span class="co">#&gt; 4 P.4 (No Hits) P.4 (CRI 002)</span></span>
+<span id="cb14-51"><a href="#cb14-51"></a><span class="co">#&gt; 5 P.5 (No Hits) P.5 (CRI 002)</span></span>
+<span id="cb14-52"><a href="#cb14-52"></a><span class="co">#&gt; 6 P.6 (CRI 001) P.6 (CRI 003)</span></span>
+<span id="cb14-53"><a href="#cb14-53"></a><span class="co">#&gt; 7 P.6 (CRI 001) P.6 (CRI 003)</span></span>
+<span id="cb14-54"><a href="#cb14-54"></a><span class="co">#&gt; 8 P.8 (No Hits) P.8 (CRI 002)</span></span></code></pre></div>
+<p>Note that the <code>expand</code> functionality is not always interchangeable with that of <code>shrink</code>. See an example of the difference below.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">data</span>(Opes); Opes</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#&gt;   rd_id name  department hair_colour date_of_birth db_pt1  db_pt2  db_pt3</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="co">#&gt; 1     1  Ope Procurement       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="co">#&gt; 2     2  Ope    Security       Brown    23/03/1986  23/03 23/1986 03/1986</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="co">#&gt; 3     3  Ope    Security       Brown    23/03/1968  23/03 23/1968 03/1968</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a><span class="co">#&gt; 4     4  Ope  Publishing       Green    01/02/1985  01/02 01/1985 02/1985</span></span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="co">#&gt; 5     5  Ope  Publishing        Teal    02/01/1985  02/01 02/1985 01/1985</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="co">#&gt; 6     6  Ope  Publishing        Grey    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb15-9"><a href="#cb15-9"></a><span class="co">#&gt; 7     7  Ope  Publishing       White    11/03/1964  11/03 11/1964 03/1964</span></span>
+<span id="cb15-10"><a href="#cb15-10"></a><span class="co">#&gt; 8     8  Ope Procurement       Black    11/10/1985  11/10 11/1985 10/1985</span></span>
+<span id="cb15-11"><a href="#cb15-11"></a></span>
+<span id="cb15-12"><a href="#cb15-12"></a>Opes<span class="op">$</span>p_cmp1 &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="st">&quot;place_holder&quot;</span>),</span>
+<span id="cb15-13"><a href="#cb15-13"></a>                      <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb15-14"><a href="#cb15-14"></a>                        <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, <span class="dt">funcs =</span> dept_func),</span>
+<span id="cb15-15"><a href="#cb15-15"></a>                        <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour, <span class="dt">funcs =</span> hair_func)),</span>
+<span id="cb15-16"><a href="#cb15-16"></a>                     <span class="dt">expand =</span> T,</span>
+<span id="cb15-17"><a href="#cb15-17"></a>                     <span class="dt">shrink =</span> F,</span>
+<span id="cb15-18"><a href="#cb15-18"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb15-19"><a href="#cb15-19"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb15-20"><a href="#cb15-20"></a></span>
+<span id="cb15-21"><a href="#cb15-21"></a>Opes<span class="op">$</span>p_cmp2 &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(<span class="st">&quot;place_holder&quot;</span>, <span class="st">&quot;place_holder&quot;</span>),</span>
+<span id="cb15-22"><a href="#cb15-22"></a>                      <span class="dt">sub_criteria =</span> <span class="kw">list</span>(</span>
+<span id="cb15-23"><a href="#cb15-23"></a>                        <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department, <span class="dt">funcs =</span> dept_func),</span>
+<span id="cb15-24"><a href="#cb15-24"></a>                        <span class="dt">cr2 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour, <span class="dt">funcs =</span> hair_func)),</span>
+<span id="cb15-25"><a href="#cb15-25"></a>                     <span class="dt">expand =</span> F,</span>
+<span id="cb15-26"><a href="#cb15-26"></a>                     <span class="dt">shrink =</span> T,</span>
+<span id="cb15-27"><a href="#cb15-27"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb15-28"><a href="#cb15-28"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb15-29"><a href="#cb15-29"></a></span>
+<span id="cb15-30"><a href="#cb15-30"></a><span class="co"># `p_cmp1` is not the same as `p_cmp2`</span></span>
+<span id="cb15-31"><a href="#cb15-31"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>, <span class="st">&quot;department&quot;</span>, <span class="st">&quot;hair_colour&quot;</span>, <span class="st">&quot;p_cmp1&quot;</span>, <span class="st">&quot;p_cmp2&quot;</span>)]</span>
+<span id="cb15-32"><a href="#cb15-32"></a><span class="co">#&gt;   name  department hair_colour        p_cmp1        p_cmp2</span></span>
+<span id="cb15-33"><a href="#cb15-33"></a><span class="co">#&gt; 1  Ope Procurement       Brown P.1 (CRI 001) P.1 (CRI 002)</span></span>
+<span id="cb15-34"><a href="#cb15-34"></a><span class="co">#&gt; 2  Ope    Security       Brown P.1 (CRI 002) P.2 (CRI 002)</span></span>
+<span id="cb15-35"><a href="#cb15-35"></a><span class="co">#&gt; 3  Ope    Security       Brown P.1 (CRI 002) P.2 (CRI 002)</span></span>
+<span id="cb15-36"><a href="#cb15-36"></a><span class="co">#&gt; 4  Ope  Publishing       Green P.1 (CRI 001) P.4 (CRI 001)</span></span>
+<span id="cb15-37"><a href="#cb15-37"></a><span class="co">#&gt; 5  Ope  Publishing        Teal P.1 (CRI 001) P.5 (CRI 001)</span></span>
+<span id="cb15-38"><a href="#cb15-38"></a><span class="co">#&gt; 6  Ope  Publishing        Grey P.1 (CRI 001) P.6 (CRI 001)</span></span>
+<span id="cb15-39"><a href="#cb15-39"></a><span class="co">#&gt; 7  Ope  Publishing       White P.1 (CRI 001) P.7 (CRI 001)</span></span>
+<span id="cb15-40"><a href="#cb15-40"></a><span class="co">#&gt; 8  Ope Procurement       Black P.1 (CRI 001) P.1 (CRI 002)</span></span></code></pre></div>
+<p><a id="missing_values"></a></p>
+</div>
+</div>
+<div id="handling-missing-values" class="section level2">
+<h2>Handling missing values</h2>
+<p>Records with missing values are excluded from particular stages of the linkage process. If a record has missing values at every stage, it’s assigned to a unique group where it’s the only member.</p>
+<p>It’s common for databases to use specific characters or numbers to represent missing or unknown data e.g. <code>N/A</code>, <code>Nil</code>, <code>01/01/1100</code>, <code>111111</code> e.t.c. These pseudo-missing values must need to be re-coded to <code>NA</code>, so that <code>links()</code> recognises them as missing values. If this is not done, it can lead to a cascade of false matches as seen below.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>patient_list_<span class="dv">2</span><span class="op">$</span>forename &lt;-<span class="st"> </span><span class="kw">ifelse</span>(patient_list_<span class="dv">2</span><span class="op">$</span>rd_id <span class="op">%in%</span><span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="st">&quot;Nil&quot;</span>, patient_list_<span class="dv">2</span><span class="op">$</span>forename)</span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="co"># 2 stage linkage</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>    <span class="co"># Stage 1 - forename</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a>    <span class="co"># Stage 2 - surname</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a>patient_list_<span class="dv">2</span><span class="op">$</span>pids_b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> <span class="kw">list</span>(patient_list_<span class="dv">2</span><span class="op">$</span>forename, </span>
+<span id="cb16-7"><a href="#cb16-7"></a>                                               patient_list_<span class="dv">2</span><span class="op">$</span>surname), </span>
+<span id="cb16-8"><a href="#cb16-8"></a>                               <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb16-9"><a href="#cb16-9"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb16-10"><a href="#cb16-10"></a></span>
+<span id="cb16-11"><a href="#cb16-11"></a>patient_list_<span class="dv">2</span>[<span class="kw">c</span>(<span class="st">&quot;forename&quot;</span>,<span class="st">&quot;surname&quot;</span>,<span class="st">&quot;pids_b&quot;</span>)]</span>
+<span id="cb16-12"><a href="#cb16-12"></a><span class="co">#&gt;   forename     surname        pids_b</span></span>
+<span id="cb16-13"><a href="#cb16-13"></a><span class="co">#&gt; 1      Nil   Jefferson P.1 (CRI 001)</span></span>
+<span id="cb16-14"><a href="#cb16-14"></a><span class="co">#&gt; 2      Nil   Jefferson P.1 (CRI 001)</span></span>
+<span id="cb16-15"><a href="#cb16-15"></a><span class="co">#&gt; 3      Nil       Abdul P.1 (CRI 001)</span></span>
+<span id="cb16-16"><a href="#cb16-16"></a><span class="co">#&gt; 4     Tomi Abdulkareem P.4 (No Hits)</span></span>
+<span id="cb16-17"><a href="#cb16-17"></a><span class="co">#&gt; 5     &lt;NA&gt;        &lt;NA&gt; P.5 (No Hits)</span></span></code></pre></div>
+<p>In the example above, records 1-3 are assigned to the same record group even though record 3 seems to be a different person. However, changing <code>&quot;Nil&quot;</code> to <code>NA</code> let <code>links()</code> know that <code>&quot;Nil&quot;</code> is not a valid <code>forename</code>, and it is skipped. See below.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># `NA` as the proxy for missing value</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>patient_list_<span class="dv">2</span><span class="op">$</span>forename &lt;-<span class="st"> </span><span class="kw">ifelse</span>(patient_list_<span class="dv">2</span><span class="op">$</span>forename <span class="op">==</span><span class="st"> &quot;Nil&quot;</span>, <span class="ot">NA</span>, patient_list_<span class="dv">2</span><span class="op">$</span>forename)</span>
+<span id="cb17-3"><a href="#cb17-3"></a></span>
+<span id="cb17-4"><a href="#cb17-4"></a>patient_list_<span class="dv">2</span><span class="op">$</span>pids_d &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">sn =</span> patient_list_<span class="dv">2</span><span class="op">$</span>rd_id, </span>
+<span id="cb17-5"><a href="#cb17-5"></a>                               <span class="dt">criteria =</span> <span class="kw">list</span>(patient_list_<span class="dv">2</span><span class="op">$</span>forename, </span>
+<span id="cb17-6"><a href="#cb17-6"></a>                                               patient_list_<span class="dv">2</span><span class="op">$</span>surname), </span>
+<span id="cb17-7"><a href="#cb17-7"></a>                               <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb17-8"><a href="#cb17-8"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a></span>
+<span id="cb17-10"><a href="#cb17-10"></a>patient_list_<span class="dv">2</span>[<span class="kw">c</span>(<span class="st">&quot;forename&quot;</span>,<span class="st">&quot;surname&quot;</span>, <span class="st">&quot;pids_b&quot;</span>, <span class="st">&quot;pids_d&quot;</span>)]</span>
+<span id="cb17-11"><a href="#cb17-11"></a><span class="co">#&gt;   forename     surname        pids_b        pids_d</span></span>
+<span id="cb17-12"><a href="#cb17-12"></a><span class="co">#&gt; 1     &lt;NA&gt;   Jefferson P.1 (CRI 001) P.1 (CRI 002)</span></span>
+<span id="cb17-13"><a href="#cb17-13"></a><span class="co">#&gt; 2     &lt;NA&gt;   Jefferson P.1 (CRI 001) P.1 (CRI 002)</span></span>
+<span id="cb17-14"><a href="#cb17-14"></a><span class="co">#&gt; 3     &lt;NA&gt;       Abdul P.1 (CRI 001) P.3 (No Hits)</span></span>
+<span id="cb17-15"><a href="#cb17-15"></a><span class="co">#&gt; 4     Tomi Abdulkareem P.4 (No Hits) P.4 (No Hits)</span></span>
+<span id="cb17-16"><a href="#cb17-16"></a><span class="co">#&gt; 5     &lt;NA&gt;        &lt;NA&gt; P.5 (No Hits) P.5 (No Hits)</span></span></code></pre></div>
+<p><a id="tips"></a></p>
+</div>
+<div id="tips" class="section level2">
+<h2>Tips</h2>
+</div>
+<div id="criteria-over-sub_criteria" class="section level2">
+<h2><code>criteria</code> over <code>sub_criteria</code></h2>
+<p><code>sub_criteria</code> are required for user-defined logical tests. However, it takes more time to compare <code>sub_criteria</code> than it does <code>criteria</code>. You can save some time by only using a <code>sub_criteria</code> when the matching conditions can not be specified as a <code>criteria</code>. For example, the logical test <code>lgl_1</code> (above) was supplied as a <code>sub_criteria</code>. <code>links()</code> will create that group identifier faster, if it’s supplied as a <code>criteria</code>. See below.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Matching `sex`, and `forename` initials</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>dbs2</span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="co">#&gt;   forename surname sex        pids_1        pids_2        pids_3        pids_4</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="co">#&gt; 1    James   Green   M P.1 (CRI 001) P.1 (CRI 001) P.1 (No Hits) P.4 (CRI 001)</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="co">#&gt; 2   ESTHER  Kulmar   F P.2 (No Hits) P.2 (No Hits) P.2 (No Hits) P.2 (No Hits)</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="co">#&gt; 3     &lt;NA&gt;     OBI   F P.3 (No Hits) P.3 (No Hits) P.3 (No Hits) P.3 (No Hits)</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="co">#&gt; 4    Jamey   Green   M P.1 (CRI 001) P.1 (CRI 001) P.5 (CRI 001) P.4 (CRI 001)</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="co">#&gt; 5   Daniel  Kulmar   M P.5 (No Hits) P.5 (No Hits) P.5 (CRI 001) P.4 (CRI 001)</span></span>
+<span id="cb18-9"><a href="#cb18-9"></a><span class="co">#&gt; 6    Henry     OBI   M P.6 (No Hits) P.1 (CRI 001) P.5 (CRI 001) P.4 (CRI 001)</span></span>
+<span id="cb18-10"><a href="#cb18-10"></a>dbs2<span class="op">$</span>initials &lt;-<span class="st"> </span><span class="kw">substr</span>(dbs2<span class="op">$</span>forename, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb18-11"><a href="#cb18-11"></a>dbs2<span class="op">$</span>pids_1b &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> dbs2<span class="op">$</span>initials,</span>
+<span id="cb18-12"><a href="#cb18-12"></a>                     <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb18-13"><a href="#cb18-13"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb18-14"><a href="#cb18-14"></a></span>
+<span id="cb18-15"><a href="#cb18-15"></a>dbs2[<span class="kw">c</span>(<span class="st">&quot;forename&quot;</span>, <span class="st">&quot;initials&quot;</span>, <span class="st">&quot;pids_1&quot;</span>, <span class="st">&quot;pids_1b&quot;</span>)]</span>
+<span id="cb18-16"><a href="#cb18-16"></a><span class="co">#&gt;   forename initials        pids_1       pids_1b</span></span>
+<span id="cb18-17"><a href="#cb18-17"></a><span class="co">#&gt; 1    James        J P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb18-18"><a href="#cb18-18"></a><span class="co">#&gt; 2   ESTHER        E P.2 (No Hits) P.2 (No Hits)</span></span>
+<span id="cb18-19"><a href="#cb18-19"></a><span class="co">#&gt; 3     &lt;NA&gt;     &lt;NA&gt; P.3 (No Hits) P.3 (No Hits)</span></span>
+<span id="cb18-20"><a href="#cb18-20"></a><span class="co">#&gt; 4    Jamey        J P.1 (CRI 001) P.1 (CRI 001)</span></span>
+<span id="cb18-21"><a href="#cb18-21"></a><span class="co">#&gt; 5   Daniel        D P.5 (No Hits) P.5 (No Hits)</span></span>
+<span id="cb18-22"><a href="#cb18-22"></a><span class="co">#&gt; 6    Henry        H P.6 (No Hits) P.6 (No Hits)</span></span></code></pre></div>
+<p>Similarly, avoid using single-attribute <code>sub_criteria</code> that are paired to the same <code>criteria</code>. Instead, concatenate these together as one <code>criteria</code>. For example, the two implementations below (<code>pids_e</code> and <code>pids_f</code>) will have the same result. But <code>pids_f</code> will take less time.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="co"># 1 stage linkage </span></span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="co"># stage 1 - name AND ((department)  AND (hair_colour) AND (year_of_birth))</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a>Opes<span class="op">$</span>month_of_birth &lt;-<span class="st"> </span><span class="kw">substr</span>(Opes<span class="op">$</span>date_of_birth, <span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb19-4"><a href="#cb19-4"></a>Opes<span class="op">$</span>pids_e &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> Opes<span class="op">$</span>name, </span>
+<span id="cb19-5"><a href="#cb19-5"></a>                     <span class="dt">sub_criteria =</span> <span class="kw">list</span>(<span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>department),</span>
+<span id="cb19-6"><a href="#cb19-6"></a>                                         <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>hair_colour),</span>
+<span id="cb19-7"><a href="#cb19-7"></a>                                         <span class="dt">cr1 =</span> <span class="kw">sub_criteria</span>(Opes<span class="op">$</span>month_of_birth)),</span>
+<span id="cb19-8"><a href="#cb19-8"></a>                            <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb19-9"><a href="#cb19-9"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb19-10"><a href="#cb19-10"></a></span>
+<span id="cb19-11"><a href="#cb19-11"></a>Opes<span class="op">$</span>cri &lt;-<span class="st"> </span><span class="kw">paste</span>(Opes<span class="op">$</span>name, Opes<span class="op">$</span>month_of_birth, Opes<span class="op">$</span>department, Opes<span class="op">$</span>hair_colour, <span class="dt">sep=</span><span class="st">&quot;-&quot;</span>)</span>
+<span id="cb19-12"><a href="#cb19-12"></a></span>
+<span id="cb19-13"><a href="#cb19-13"></a><span class="co"># 1 stage linkage </span></span>
+<span id="cb19-14"><a href="#cb19-14"></a>  <span class="co"># stage 1 - name AND department AND hair_colour AND date_of_birth</span></span>
+<span id="cb19-15"><a href="#cb19-15"></a>Opes<span class="op">$</span>pids_f &lt;-<span class="st"> </span><span class="kw">links</span>(<span class="dt">criteria =</span> Opes<span class="op">$</span>cri,  <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb19-16"><a href="#cb19-16"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb19-17"><a href="#cb19-17"></a></span>
+<span id="cb19-18"><a href="#cb19-18"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;name&quot;</span>,<span class="st">&quot;department&quot;</span>,<span class="st">&quot;hair_colour&quot;</span>,<span class="st">&quot;month_of_birth&quot;</span>,<span class="st">&quot;pids_e&quot;</span>,<span class="st">&quot;pids_f&quot;</span>)]</span>
+<span id="cb19-19"><a href="#cb19-19"></a><span class="co">#&gt;   name  department hair_colour month_of_birth        pids_e        pids_f</span></span>
+<span id="cb19-20"><a href="#cb19-20"></a><span class="co">#&gt; 1  Ope Procurement       Brown             03 P.1 (No Hits) P.1 (No Hits)</span></span>
+<span id="cb19-21"><a href="#cb19-21"></a><span class="co">#&gt; 2  Ope    Security       Brown             03 P.2 (CRI 001) P.2 (CRI 001)</span></span>
+<span id="cb19-22"><a href="#cb19-22"></a><span class="co">#&gt; 3  Ope    Security       Brown             03 P.2 (CRI 001) P.2 (CRI 001)</span></span>
+<span id="cb19-23"><a href="#cb19-23"></a><span class="co">#&gt; 4  Ope  Publishing       Green             02 P.4 (No Hits) P.4 (No Hits)</span></span>
+<span id="cb19-24"><a href="#cb19-24"></a><span class="co">#&gt; 5  Ope  Publishing        Teal             01 P.5 (No Hits) P.5 (No Hits)</span></span>
+<span id="cb19-25"><a href="#cb19-25"></a><span class="co">#&gt; 6  Ope  Publishing        Grey             03 P.6 (No Hits) P.6 (No Hits)</span></span>
+<span id="cb19-26"><a href="#cb19-26"></a><span class="co">#&gt; 7  Ope  Publishing       White             03 P.7 (No Hits) P.7 (No Hits)</span></span>
+<span id="cb19-27"><a href="#cb19-27"></a><span class="co">#&gt; 8  Ope Procurement       Black             10 P.8 (No Hits) P.8 (No Hits)</span></span></code></pre></div>
+<p>This time difference could become more noticeable with larger datasets.</p>
+</div>
+<div id="convenience-vs-efficiency" class="section level2">
+<h2>Convenience vs efficiency</h2>
+<p><code>links()</code> is a convenient tool for routine data linkage. But it’s more useful in handling complex matching conditions, missing data and multistage linkage. The more complex the scenario, the more likely its convenience outweighs the complexity of scripting them. Simple matching conditions or one-stage linkages are possible with <code>links()</code>. But this takes slightly more time than base <code>R</code> alternatives. See the example below.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;department&quot;</span>)]</span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="co">#&gt;    department</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="co">#&gt; 1 Procurement</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="co">#&gt; 2    Security</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="co">#&gt; 3    Security</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="co">#&gt; 4  Publishing</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a><span class="co">#&gt; 5  Publishing</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a><span class="co">#&gt; 6  Publishing</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="co">#&gt; 7  Publishing</span></span>
+<span id="cb20-10"><a href="#cb20-10"></a><span class="co">#&gt; 8 Procurement</span></span>
+<span id="cb20-11"><a href="#cb20-11"></a></span>
+<span id="cb20-12"><a href="#cb20-12"></a>Opes<span class="op">$</span>links_a &lt;-<span class="st"> </span><span class="kw">links</span>(Opes<span class="op">$</span>department, <span class="dt">display =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb20-13"><a href="#cb20-13"></a><span class="co">#&gt; Data linkage completed in &lt; 0.01 secs!</span></span>
+<span id="cb20-14"><a href="#cb20-14"></a></span>
+<span id="cb20-15"><a href="#cb20-15"></a>Opes<span class="op">$</span>links_b &lt;-<span class="st"> </span><span class="kw">match</span>(Opes<span class="op">$</span>department, Opes<span class="op">$</span>department[<span class="op">!</span><span class="kw">duplicated</span>(Opes<span class="op">$</span>department)])</span>
+<span id="cb20-16"><a href="#cb20-16"></a></span>
+<span id="cb20-17"><a href="#cb20-17"></a>Opes[<span class="kw">c</span>(<span class="st">&quot;department&quot;</span>, <span class="st">&quot;links_a&quot;</span>, <span class="st">&quot;links_b&quot;</span>)]</span>
+<span id="cb20-18"><a href="#cb20-18"></a><span class="co">#&gt;    department       links_a links_b</span></span>
+<span id="cb20-19"><a href="#cb20-19"></a><span class="co">#&gt; 1 Procurement P.1 (CRI 001)       1</span></span>
+<span id="cb20-20"><a href="#cb20-20"></a><span class="co">#&gt; 2    Security P.2 (CRI 001)       2</span></span>
+<span id="cb20-21"><a href="#cb20-21"></a><span class="co">#&gt; 3    Security P.2 (CRI 001)       2</span></span>
+<span id="cb20-22"><a href="#cb20-22"></a><span class="co">#&gt; 4  Publishing P.4 (CRI 001)       3</span></span>
+<span id="cb20-23"><a href="#cb20-23"></a><span class="co">#&gt; 5  Publishing P.4 (CRI 001)       3</span></span>
+<span id="cb20-24"><a href="#cb20-24"></a><span class="co">#&gt; 6  Publishing P.4 (CRI 001)       3</span></span>
+<span id="cb20-25"><a href="#cb20-25"></a><span class="co">#&gt; 7  Publishing P.4 (CRI 001)       3</span></span>
+<span id="cb20-26"><a href="#cb20-26"></a><span class="co">#&gt; 8 Procurement P.1 (CRI 001)       1</span></span></code></pre></div>
+<p>This time difference could become more noticeable with larger datasets.</p>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>As a general rule, the more unique the <code>criteria</code>, the earlier it should be used in the linkage process. Always use a reasonable order of relevance for each dataset. Not too strict and not too lax. <code>links()</code> will try to reduce false mismatches due to random data entry errors or missing values. Always balance the use of matching attributes with their availability and accuracy.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

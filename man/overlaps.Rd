@@ -4,6 +4,7 @@
 \alias{overlaps}
 \alias{overlap}
 \alias{exact}
+\alias{reverse}
 \alias{across}
 \alias{chain}
 \alias{aligns_start}
@@ -14,12 +15,13 @@
 \alias{exclude_overlap_method}
 \title{Overlapping number line objects}
 \usage{
-overlaps(x, y, method = c("exact", "across", "chain", "aligns_start",
-  "aligns_end", "inbetween", "overlap", "none"), methods = "overlap")
+overlaps(x, y, methods = "overlap", method = "overlap")
 
 overlap(x, y)
 
 exact(x, y)
+
+reverse(x, y)
 
 across(x, y)
 
@@ -38,13 +40,13 @@ include_overlap_method(methods)
 exclude_overlap_method(methods)
 }
 \arguments{
-\item{x}{\code{number_line} object}
+\item{x}{\code{number_line} object.}
 
-\item{y}{\code{number_line} object}
+\item{y}{\code{number_line} object.}
 
-\item{method}{Method of overlap. Check every pair of \code{number_line} objects with the same \code{method}. Deprecated. Please use \code{methods} instead.}
+\item{methods}{Methods of overlap. Check different pairs of \code{number_line} objects by different \code{methods}. Options are \code{"exact"}, \code{"reverse"}, \code{"inbetween"}, \code{"across"}, \code{"chain"}, \code{"aligns_start"} and \code{"aligns_end"}.}
 
-\item{methods}{Methods of overlap. Check different pairs of \code{number_line} objects using different \code{methods}}
+\item{method}{Deprecated. Please use \code{methods} instead. Method of overlap. Check every pair of \code{number_line} objects by the same \code{method}.}
 }
 \value{
 \code{logical}; \code{character}
@@ -53,32 +55,32 @@ exclude_overlap_method(methods)
 Identify overlapping \code{number_line} objects
 }
 \details{
-\bold{7 logical test;}
+\bold{8 logical test;}
 
-\bold{\code{exact()}} - Identical start and end points
+\bold{\code{exact()}} - Identical left and right points.
 
-\bold{\code{inbetween()}} - start and end points of one \code{number_line} object is in between the start and end points of another.
+\bold{\code{reverse()}} - Swapped left and right points.
 
-\bold{\code{across()}} - Start or end points of one \code{number_line} object is in between the start and end points of another.
+\bold{\code{inbetween()}} - start and endpoints of one \code{number_line} object is within the start and endpoints of another.
 
-\bold{\code{chain()}} - Chained i.e. end point of one \code{number_line} object is the same as the start point of another.
+\bold{\code{across()}} - start or endpoints of one \code{number_line} object is within the start and endpoints of another.
 
-\bold{\code{aligns_start()}} - Identical start points only.
+\bold{\code{chain()}} - endpoint of one \code{number_line} object is the same as the start point of another.
 
-\bold{\code{aligns_end()}} - Identical end points only.
+\bold{\code{aligns_start()}} - identical start points only.
 
-\bold{\code{overlap()}} - Any kind of overlap.
-All other methods are mutually exclusive.
-\bold{\code{overlap()}} is just a convenient \code{method} for "ANY" and "ALL" methods of overlap.
+\bold{\code{aligns_end()}} - identical endpoints only.
 
-\bold{\code{overlaps()}} - Overlap by any or all 7 methods above.
+\bold{\code{overlap()}} - any kind of overlap. A convenient \code{method} for "ANY" and "ALL" methods of overlap.
+
+\bold{\code{overlaps()}} - overlap by any set of the 7 methods above.
 
 \bold{Describe methods of overlap;}
 
-\bold{\code{overlap_method()}} - Shows if and how a pair of \code{number_line} object has overlapped.
+\bold{\code{overlap_method()}} - Shows if and how a pair of \code{number_line} object have overlapped.
 Does not show \code{"overlap"} since \bold{\code{overlap()}} is always \code{TRUE} when any other method is \code{TRUE}.
 
-\bold{\code{include_overlap_method()}} and \bold{\code{exclude_overlap_method()}} - Conveniently create the required values for \code{methods} and \code{overlap_methods} in \code{\link{episode_group}}.
+\bold{\code{include_overlap_method()}} and \bold{\code{exclude_overlap_method()}} - Conveniently create the required values for \code{methods} and \code{overlap_methods} in \code{\link{episodes}}.
 }
 \examples{
 a <- number_line(-100, 100)
@@ -86,7 +88,8 @@ b <- number_line(10, 11.2)
 c <- number_line(100, 200)
 d <- number_line(100, 120)
 e <- number_line(50, 120)
-g <- number_line(100,100)
+g <- number_line(100, 100)
+f <- number_line(120, 50)
 
 overlaps(a, g)
 overlaps(a, g, methods = "exact|chain")
@@ -96,6 +99,9 @@ overlap(a, e)
 
 exact(a, g)
 exact(a, a)
+
+reverse(e, e)
+reverse(e, f)
 
 across(a, b)
 across(a, e)

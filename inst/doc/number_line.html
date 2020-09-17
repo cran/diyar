@@ -1,59 +1,103 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2020-06-13" />
+<meta name="date" content="2020-09-16" />
 
 <title>Number lines and overlaps</title>
 
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 
 </style>
 <script>
@@ -69,7 +113,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -80,7 +124,187 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 
 
@@ -93,18 +317,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">Number lines and overlaps</h1>
-<h4 class="date">13 June 2020</h4>
+<h4 class="date">16 September 2020</h4>
 
 
 
-<div id="introduction" class="section level1">
-<h1>Introduction</h1>
-<p>A <code>number_line</code> object is a range of <code>numeric</code> values on a number line. In <code>diyar</code>, how they overlap determine successful matches (see <a href="record_group.html#range_matching">range matching</a>) in <code>record_group()</code> and overlapping windows (see <a href="episode_group.html#interval_grouping">interval grouping</a>) in <code>fixed_episodes()</code>, <code>rolling_episodes()</code> and <code>episode_group()</code>.</p>
-<p><em><code>number_line</code> objects are similar to <code>interval</code> objects in the <code>lubridate</code> package but can support any <code>numeric</code> based object class.</em>.</p>
-</div>
-<div id="overview" class="section level1">
-<h1>Overview</h1>
-<p>For a given <code>number_line</code> object e.g. <code>8 &lt;- 1</code>, its main components are;</p>
+<p>#Introduction A <code>number_line</code> object is a range of <code>numeric</code> values on a number line.</p>
+<p><em><code>interval</code> objects (<code>lubridate</code> package) are the inspiration for <code>number_line</code> objects. <code>number_line</code> objects are similar but support any <code>numeric</code> based object class.</em></p>
+<p>#Overview</p>
+<p>For a given <code>number_line</code> object e.g. <code>8 &lt;- 1</code>, its main components are;</p>
 <ul>
 <li><code>left_point()</code> - left side of the <code>number_line</code> <code>i.e.</code> <code>8</code></li>
 <li><code>right_point()</code> - right side of the <code>number_line</code> <code>i.e.</code> <code>1</code></li>
@@ -113,266 +333,283 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><code>direction</code> - <code>&quot;decreasing&quot;</code> <code>(&lt;-)</code>, <code>&quot;increasing&quot;</code> <code>(-&gt;)</code> or no direction <code>(==)</code></li>
 <li><code>number_line_width()</code> - difference between the left and right points <code>i.e.</code> <code>-7</code></li>
 </ul>
-<p>In <code>&quot;increasing&quot;</code> <code>number_line</code> objects, the <code>start_point()</code> is on the <code>left_point()</code> while in <code>&quot;decreasing&quot;</code> <code>number_line</code> objects, the <code>start_point()</code> is on the <code>right_point()</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(diyar)
-
-nl_a &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dt">l=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>), <span class="dt">r =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">1</span>))
-
-<span class="co"># `number_line` objects</span>
-nl_a
-<span class="co">#&gt; [1] &quot;3 -&gt; 4&quot; &quot;5 &lt;- 1&quot;</span>
-
-<span class="co"># lower end of the range</span>
-<span class="kw">start_point</span>(nl_a)
-<span class="co">#&gt; [1] 3 1</span>
-
-<span class="co"># left part of the range</span>
-<span class="kw">left_point</span>(nl_a)
-<span class="co">#&gt; [1] 3 5</span></code></pre></div>
+<p>In <code>&quot;increasing&quot;</code> <code>number_line</code> objects, the <code>start_point()</code> is on the <code>left_point()</code>. While in <code>&quot;decreasing&quot;</code> <code>number_line</code> objects, the <code>start_point()</code> is on the <code>right_point()</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(diyar)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a>nl_a &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dt">l=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>), <span class="dt">r =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">1</span>))</span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="co"># `number_line` objects</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>nl_a</span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co">#&gt; [1] &quot;3 -&gt; 4&quot; &quot;5 &lt;- 1&quot;</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="co"># lower end of the range</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="kw">start_point</span>(nl_a)</span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="co">#&gt; [1] 3 1</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a></span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="co"># left part of the range</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="kw">left_point</span>(nl_a)</span>
+<span id="cb1-15"><a href="#cb1-15"></a><span class="co">#&gt; [1] 3 5</span></span></code></pre></div>
 <p><strong>Figure 1: <code>number_line</code> objects </strong> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAAAaVBMVEUAAAAAADoAAGYAOpAAZrY6AAA6ZmY6kNtmAABmOpBmtv+QOgCQ27aQ29uQ2/+2ZgC225C2/7a2/9u2///bkDrbtrbb25Db2//b/7bb/9vb///13rP/tmb/25D/29v//wD//7b//9v///+t9iZlAAAACXBIWXMAAA7DAAAOwwHHb6hkAAACQUlEQVR4nO3dy3bTMBSGUedSAikQaMqtBlz8/g+JA2OIJl46f7r3E3xL0bGkUYYBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgsHEceyfAFeNYY5/WqID/G8cSEzNCkt4DcxmZ3gVwXZmBMTJEKDMvg5EhQZ15GYwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADclmmaeidcFZDICzFNCRMTMda8ANMUMjFmhgqmML3XixcuaR+GZHLTYuYlo5KblzEvEZFQg3EBAAAAAACgkhli9J6WRYWGRlJXEdRaIbVCQyOpqwhqrZBaoaGR1FUEtVZIrdDQSOoqglorpFZoaCR1FUGtFVIrNDSSuoqg1gqpFRoaSV1FUGuF1AoNjaSuIqi1QmqFhkZSVxHUWiG1QkMjqasIag1KBQAAAAAAAAAAAAAAVrP7+rp3Qpvd0zyfeke02c/zr/veEc2idsCPu84R2/NzxnJtz6dhn7ENd9/uh33Isi6OKan7770LhuEwfwr5vuyXb8vmfcgRs8z3Q8RsL/Y/Q3bAcHzsXTAMr+5iDuTh7ykT4tD97tBo8/ZNyA7YvCvxDUoamJhduHvKuDwuDo8pO2D78KXC0zBluRaHlMv2IuUNs/0Qc8e4PA23H7u3pizXMi8FPi/NUt4wx1PQDiixrDHLlXS+lPhlW2zPf/6mKOZpWGBZUwbmciCHuFzHdp9Dnls5O6DIsqYs1zHoU3iY56DjMGUHhC0rAAD/8htnPdXTFbZDrAAAAABJRU5ErkJggg==" /><!-- --></p>
 <p>You can reverse the direction of a <code>number_line</code> object with <code>reverse_number_line()</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Only reverse decreasing `number_line` objects</span>
-nl_b &lt;-<span class="st"> </span><span class="kw">reverse_number_line</span>(nl_a, <span class="dt">direction =</span> <span class="st">&quot;decreasing&quot;</span>); nl_b
-<span class="co">#&gt; [1] &quot;3 -&gt; 4&quot; &quot;1 -&gt; 5&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Only reverse decreasing `number_line` objects</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>nl_b &lt;-<span class="st"> </span><span class="kw">reverse_number_line</span>(nl_a, <span class="dt">direction =</span> <span class="st">&quot;decreasing&quot;</span>); nl_b</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="co">#&gt; [1] &quot;3 -&gt; 4&quot; &quot;1 -&gt; 5&quot;</span></span></code></pre></div>
 <p><strong>Figure 2: Direction of <code>number_line</code> objects </strong> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAAAaVBMVEUAAAAAADoAAGYAOpAAZrY6AAA6ZmY6kNtmAABmOpBmtv+QOgCQ27aQ29uQ2/+2ZgC225C2/7a2/9u2///bkDrbtrbb25Db2//b/7bb/9vb///13rP/tmb/25D/29v//wD//7b//9v///+t9iZlAAAACXBIWXMAAA7DAAAOwwHHb6hkAAACO0lEQVR4nO3dXXLTQBCFUdlWMDiAIQ5/MaCg/S8SGZ4pT1Glmr7xOSv4atytkZ48DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABWdL3pHwBVVpvR8tjFkKDGnZ0hSZGF6Z8B1JebUvpChypjaFwKYUmhmXQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/sc0Tb0TrgpI5EZMU8LGRKw1N2CaQjbGzlDBFKb3eXHjkuYwJJMXLWZfMip58TL2JSISarAuAAAAAAAAVDJDjN7bsqjQ0EjqKoJaK6RWaGgkdRVBrRVSKzQ0krqKoNYKqRUaGkldRVBrhdQKDY2kriKotUJqhYZGUlcR1FohtUJDI6mrCGqtkFqhoZHUVQS1Vkit0NBI6iqCWiukVmhoJHUVQa1BqQAAAAAAAAAAAAAAwGp2X1/3Tmize5rnY++INuM8/7rvHdEsagJ+3HWO2J6eM45rezoOY8YY7r7dD2PIsS4OKanj994Fw7CfP4U8X8bl2bJ5H3LFLPv9ELHbi/FnyAQMh8feBcPw6i7mQh7+3jIh9t3fHRpt3r4JmYDNuxLPoKSFiZnC3VPGy+Ni/5gyAduHLxU+DVOOa7FPedlepHzDbD/EvGNcPg23H7u3phzXsi8FHi/NUr5hDsegCShxrDHHlXS/lPhlW2xPf/6mKObTsMCxpizM5UIOcXkd230O+dzKmYAix5pyXIegR+F+noOuw5QJCDtWAAD+5Tf7p9XTGuACcQAAAABJRU5ErkJggg==" /><!-- --></p>
 <div id="manipulating-number_line-objects" class="section level2">
 <h2>Manipulating <code>number_line</code> objects</h2>
-<p><code>diyar</code> has convenience functions to reverse, shrink, expand <code>number_line</code> objects, or shift the along the number line.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nl_c &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="kw">as.Date</span>(<span class="st">&quot;04/04/2019&quot;</span>, <span class="st">&quot;%d/%M/%Y&quot;</span>),
-                    <span class="kw">as.Date</span>(<span class="st">&quot;07/04/2019&quot;</span>, <span class="st">&quot;%d/%M/%Y&quot;</span>))
-
-nl_c
-<span class="co">#&gt; [1] &quot;2019-06-04 -&gt; 2019-06-07&quot;</span>
-
-<span class="co"># expand the `number_line` object by 2 days from both ends </span>
-nl_d &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="dv">2</span>); nl_d
-<span class="co">#&gt; [1] &quot;2019-06-02 -&gt; 2019-06-09&quot;</span>
-
-<span class="co"># expand the `number_line` object by 2 days from the lower end</span>
-nl_e &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="dv">2</span>, <span class="st">&quot;start&quot;</span>); nl_e
-<span class="co">#&gt; [1] &quot;2019-06-02 -&gt; 2019-06-07&quot;</span>
-
-<span class="co"># shrink the `number_line` object by 2 days from the upper end</span>
-nl_f &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="op">-</span><span class="dv">2</span>, <span class="st">&quot;end&quot;</span>); nl_f
-<span class="co">#&gt; [1] &quot;2019-06-04 -&gt; 2019-06-05&quot;</span>
-
-<span class="co"># shrink the `number_line` object by 2 days from both ends</span>
-nl_g &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="op">-</span><span class="dv">2</span>); nl_g
-<span class="co">#&gt; [1] &quot;2019-06-06 &lt;- 2019-06-05&quot;</span>
-
-<span class="co"># reverse the direction of the `number_line`</span>
-nl_h &lt;-<span class="st"> </span><span class="kw">reverse_number_line</span>(nl_c); nl_h
-<span class="co">#&gt; [1] &quot;2019-06-07 &lt;- 2019-06-04&quot;</span>
-
-<span class="co"># shift the `number_line` object towards the left of the number line by 2 days </span>
-nl_i &lt;-<span class="st"> </span><span class="kw">shift_number_line</span>(nl_c, <span class="op">-</span><span class="dv">2</span>); nl_g
-<span class="co">#&gt; [1] &quot;2019-06-06 &lt;- 2019-06-05&quot;</span>
-
-<span class="co"># shift the `number_line` object towards the right of the number line by 2 days </span>
-nl_j &lt;-<span class="st"> </span><span class="kw">shift_number_line</span>(nl_c, <span class="dv">2</span>); nl_i
-<span class="co">#&gt; [1] &quot;2019-06-02 -&gt; 2019-06-05&quot;</span></code></pre></div>
-<p><strong>Figure 3: Manipulated <code>number_line</code> objects </strong> <img src="data:image/png;base64,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" /><!-- --></p>
-<p><code>invert_number_line()</code> inverts the position of each point on the number line. See below.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inv &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="op">-</span><span class="dv">3</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">3</span>), <span class="kw">c</span>(<span class="op">-</span><span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="op">-</span><span class="dv">6</span>)); inv
-<span class="co">#&gt; [1] &quot;3 &lt;- -6&quot;  &quot;-3 -&gt; 6&quot;  &quot;3 -&gt; 6&quot;   &quot;-3 &lt;- -6&quot;</span>
-
-inv
-<span class="co">#&gt; [1] &quot;3 &lt;- -6&quot;  &quot;-3 -&gt; 6&quot;  &quot;3 -&gt; 6&quot;   &quot;-3 &lt;- -6&quot;</span>
-<span class="kw">invert_number_line</span>(inv)
-<span class="co">#&gt; [1] &quot;-3 -&gt; 6&quot;  &quot;3 &lt;- -6&quot;  &quot;-3 &lt;- -6&quot; &quot;3 -&gt; 6&quot;</span>
-<span class="kw">invert_number_line</span>(inv, <span class="st">&quot;left&quot;</span>)
-<span class="co">#&gt; [1] &quot;-3 &lt;- -6&quot; &quot;3 -&gt; 6&quot;   &quot;-3 -&gt; 6&quot;  &quot;3 &lt;- -6&quot;</span>
-<span class="kw">invert_number_line</span>(inv, <span class="st">&quot;start&quot;</span>)
-<span class="co">#&gt; [1] &quot;3 -&gt; 6&quot;  &quot;3 -&gt; 6&quot;  &quot;-3 -&gt; 6&quot; &quot;-3 -&gt; 6&quot;</span>
-<span class="kw">invert_number_line</span>(inv, <span class="st">&quot;right&quot;</span>)
-<span class="co">#&gt; [1] &quot;3 -&gt; 6&quot;   &quot;-3 &lt;- -6&quot; &quot;3 &lt;- -6&quot;  &quot;-3 -&gt; 6&quot;</span>
-<span class="kw">invert_number_line</span>(inv, <span class="st">&quot;end&quot;</span>)
-<span class="co">#&gt; [1] &quot;-3 &lt;- -6&quot; &quot;-3 &lt;- -6&quot; &quot;3 &lt;- -6&quot;  &quot;3 &lt;- -6&quot;</span></code></pre></div>
-<p>You can also convert <code>number_line</code> objects to a sequence of <code>numeric</code> based values</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nls &lt;-<span class="st"> </span><span class="kw">c</span>(nl_c, nl_d, nl_e, nl_f, nl_g, nl_h, nl_i, nl_j)
-
-nls
-<span class="co">#&gt; [1] &quot;2019-06-04 -&gt; 2019-06-07&quot; &quot;2019-06-02 -&gt; 2019-06-09&quot;</span>
-<span class="co">#&gt; [3] &quot;2019-06-02 -&gt; 2019-06-07&quot; &quot;2019-06-04 -&gt; 2019-06-05&quot;</span>
-<span class="co">#&gt; [5] &quot;2019-06-06 &lt;- 2019-06-05&quot; &quot;2019-06-07 &lt;- 2019-06-04&quot;</span>
-<span class="co">#&gt; [7] &quot;2019-06-02 -&gt; 2019-06-05&quot; &quot;2019-06-06 -&gt; 2019-06-09&quot;</span>
-
-<span class="kw">number_line_sequence</span>(nls, <span class="dt">by=</span><span class="dv">2</span>)
-<span class="co">#&gt; [[1]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-04&quot; &quot;2019-06-06&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-02&quot; &quot;2019-06-04&quot; &quot;2019-06-06&quot; &quot;2019-06-08&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-02&quot; &quot;2019-06-04&quot; &quot;2019-06-06&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-04&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[5]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-06&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[6]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-07&quot; &quot;2019-06-05&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[7]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-02&quot; &quot;2019-06-04&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[8]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-06&quot; &quot;2019-06-08&quot;</span>
-
-<span class="kw">number_line_sequence</span>(nls, <span class="dt">length.out =</span> <span class="dv">3</span>)
-<span class="co">#&gt; [[1]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-04&quot; &quot;2019-06-05&quot; &quot;2019-06-07&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[2]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-02&quot; &quot;2019-06-05&quot; &quot;2019-06-09&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[3]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-02&quot; &quot;2019-06-04&quot; &quot;2019-06-07&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[4]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-04&quot; &quot;2019-06-04&quot; &quot;2019-06-05&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[5]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-06&quot; &quot;2019-06-05&quot; &quot;2019-06-05&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[6]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-07&quot; &quot;2019-06-05&quot; &quot;2019-06-04&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[7]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-02&quot; &quot;2019-06-03&quot; &quot;2019-06-05&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; [[8]]</span>
-<span class="co">#&gt; [1] &quot;2019-06-06&quot; &quot;2019-06-07&quot; &quot;2019-06-09&quot;</span></code></pre></div>
+<p><code>diyar</code> has convenience functions to reverse, shrink, expand <code>number_line</code> objects, or shift them on the number line.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>nl_c &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="kw">as.Date</span>(<span class="st">&quot;04/04/2019&quot;</span>, <span class="st">&quot;%d/%M/%Y&quot;</span>),</span>
+<span id="cb3-2"><a href="#cb3-2"></a>                    <span class="kw">as.Date</span>(<span class="st">&quot;07/04/2019&quot;</span>, <span class="st">&quot;%d/%M/%Y&quot;</span>))</span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a>nl_c</span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="co">#&gt; [1] &quot;2019-09-04 -&gt; 2019-09-07&quot;</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="co"># expand the `number_line` object by 2 days from both ends </span></span>
+<span id="cb3-8"><a href="#cb3-8"></a>nl_d &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="dv">2</span>); nl_d</span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="co">#&gt; [1] &quot;2019-09-02 -&gt; 2019-09-09&quot;</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="co"># expand the `number_line` object by 2 days from the lower end</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>nl_e &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="dv">2</span>, <span class="st">&quot;start&quot;</span>); nl_e</span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="co">#&gt; [1] &quot;2019-09-02 -&gt; 2019-09-07&quot;</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a></span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="co"># shrink the `number_line` object by 2 days from the upper end</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a>nl_f &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="dv">-2</span>, <span class="st">&quot;end&quot;</span>); nl_f</span>
+<span id="cb3-17"><a href="#cb3-17"></a><span class="co">#&gt; [1] &quot;2019-09-04 -&gt; 2019-09-05&quot;</span></span>
+<span id="cb3-18"><a href="#cb3-18"></a></span>
+<span id="cb3-19"><a href="#cb3-19"></a><span class="co"># shrink the `number_line` object by 2 days from both ends</span></span>
+<span id="cb3-20"><a href="#cb3-20"></a>nl_g &lt;-<span class="st"> </span><span class="kw">expand_number_line</span>(nl_c, <span class="dv">-2</span>); nl_g</span>
+<span id="cb3-21"><a href="#cb3-21"></a><span class="co">#&gt; [1] &quot;2019-09-06 &lt;- 2019-09-05&quot;</span></span>
+<span id="cb3-22"><a href="#cb3-22"></a></span>
+<span id="cb3-23"><a href="#cb3-23"></a><span class="co"># reverse the direction of the `number_line`</span></span>
+<span id="cb3-24"><a href="#cb3-24"></a>nl_h &lt;-<span class="st"> </span><span class="kw">reverse_number_line</span>(nl_c); nl_h</span>
+<span id="cb3-25"><a href="#cb3-25"></a><span class="co">#&gt; [1] &quot;2019-09-07 &lt;- 2019-09-04&quot;</span></span>
+<span id="cb3-26"><a href="#cb3-26"></a></span>
+<span id="cb3-27"><a href="#cb3-27"></a><span class="co"># shift the `number_line` object towards the left of the number line by 2 days </span></span>
+<span id="cb3-28"><a href="#cb3-28"></a>nl_i &lt;-<span class="st"> </span><span class="kw">shift_number_line</span>(nl_c, <span class="dv">-2</span>); nl_g</span>
+<span id="cb3-29"><a href="#cb3-29"></a><span class="co">#&gt; [1] &quot;2019-09-06 &lt;- 2019-09-05&quot;</span></span>
+<span id="cb3-30"><a href="#cb3-30"></a></span>
+<span id="cb3-31"><a href="#cb3-31"></a><span class="co"># shift the `number_line` object towards the right of the number line by 2 days </span></span>
+<span id="cb3-32"><a href="#cb3-32"></a>nl_j &lt;-<span class="st"> </span><span class="kw">shift_number_line</span>(nl_c, <span class="dv">2</span>); nl_i</span>
+<span id="cb3-33"><a href="#cb3-33"></a><span class="co">#&gt; [1] &quot;2019-09-02 -&gt; 2019-09-05&quot;</span></span></code></pre></div>
+<p><strong>Figure 3: Manipulated <code>number_line</code> objects </strong> <img src="data:image/png;base64,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" /><!-- --></p>
+<p><code>invert_number_line()</code> changes each point on the <code>number_line</code> from a positive to a negative value and vice versa. See below.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>inv &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="kw">c</span>(<span class="dv">3</span>,<span class="op">-</span><span class="dv">3</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">3</span>), <span class="kw">c</span>(<span class="op">-</span><span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="op">-</span><span class="dv">6</span>)); inv</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="co">#&gt; [1] &quot;3 &lt;- -6&quot;  &quot;-3 -&gt; 6&quot;  &quot;3 -&gt; 6&quot;   &quot;-3 &lt;- -6&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a>inv</span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="co">#&gt; [1] &quot;3 &lt;- -6&quot;  &quot;-3 -&gt; 6&quot;  &quot;3 -&gt; 6&quot;   &quot;-3 &lt;- -6&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="kw">invert_number_line</span>(inv)</span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="co">#&gt; [1] &quot;-3 -&gt; 6&quot;  &quot;3 &lt;- -6&quot;  &quot;-3 &lt;- -6&quot; &quot;3 -&gt; 6&quot;</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a><span class="kw">invert_number_line</span>(inv, <span class="st">&quot;left&quot;</span>)</span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="co">#&gt; [1] &quot;-3 &lt;- -6&quot; &quot;3 -&gt; 6&quot;   &quot;-3 -&gt; 6&quot;  &quot;3 &lt;- -6&quot;</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="kw">invert_number_line</span>(inv, <span class="st">&quot;start&quot;</span>)</span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="co">#&gt; [1] &quot;3 -&gt; 6&quot;  &quot;3 -&gt; 6&quot;  &quot;-3 -&gt; 6&quot; &quot;-3 -&gt; 6&quot;</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="kw">invert_number_line</span>(inv, <span class="st">&quot;right&quot;</span>)</span>
+<span id="cb4-13"><a href="#cb4-13"></a><span class="co">#&gt; [1] &quot;3 -&gt; 6&quot;   &quot;-3 &lt;- -6&quot; &quot;3 &lt;- -6&quot;  &quot;-3 -&gt; 6&quot;</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a><span class="kw">invert_number_line</span>(inv, <span class="st">&quot;end&quot;</span>)</span>
+<span id="cb4-15"><a href="#cb4-15"></a><span class="co">#&gt; [1] &quot;-3 &lt;- -6&quot; &quot;-3 &lt;- -6&quot; &quot;3 &lt;- -6&quot;  &quot;3 &lt;- -6&quot;</span></span></code></pre></div>
+<p>You can also convert <code>number_line</code> objects to a sequence of <code>numeric</code> based values.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>nls &lt;-<span class="st"> </span><span class="kw">c</span>(nl_c, nl_d, nl_e, nl_f, nl_g, nl_h, nl_i, nl_j)</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a>nls</span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co">#&gt; [1] &quot;2019-09-04 -&gt; 2019-09-07&quot; &quot;2019-09-02 -&gt; 2019-09-09&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="co">#&gt; [3] &quot;2019-09-02 -&gt; 2019-09-07&quot; &quot;2019-09-04 -&gt; 2019-09-05&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="co">#&gt; [5] &quot;2019-09-06 &lt;- 2019-09-05&quot; &quot;2019-09-07 &lt;- 2019-09-04&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co">#&gt; [7] &quot;2019-09-02 -&gt; 2019-09-05&quot; &quot;2019-09-06 -&gt; 2019-09-09&quot;</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a></span>
+<span id="cb5-9"><a href="#cb5-9"></a><span class="kw">number_line_sequence</span>(nls, <span class="dt">by=</span><span class="dv">2</span>)</span>
+<span id="cb5-10"><a href="#cb5-10"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="co">#&gt; [1] &quot;2019-09-04&quot; &quot;2019-09-06&quot;</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a><span class="co">#&gt; </span></span>
+<span id="cb5-13"><a href="#cb5-13"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb5-14"><a href="#cb5-14"></a><span class="co">#&gt; [1] &quot;2019-09-02&quot; &quot;2019-09-04&quot; &quot;2019-09-06&quot; &quot;2019-09-08&quot;</span></span>
+<span id="cb5-15"><a href="#cb5-15"></a><span class="co">#&gt; </span></span>
+<span id="cb5-16"><a href="#cb5-16"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb5-17"><a href="#cb5-17"></a><span class="co">#&gt; [1] &quot;2019-09-02&quot; &quot;2019-09-04&quot; &quot;2019-09-06&quot;</span></span>
+<span id="cb5-18"><a href="#cb5-18"></a><span class="co">#&gt; </span></span>
+<span id="cb5-19"><a href="#cb5-19"></a><span class="co">#&gt; [[4]]</span></span>
+<span id="cb5-20"><a href="#cb5-20"></a><span class="co">#&gt; [1] &quot;2019-09-04&quot;</span></span>
+<span id="cb5-21"><a href="#cb5-21"></a><span class="co">#&gt; </span></span>
+<span id="cb5-22"><a href="#cb5-22"></a><span class="co">#&gt; [[5]]</span></span>
+<span id="cb5-23"><a href="#cb5-23"></a><span class="co">#&gt; [1] &quot;2019-09-06&quot;</span></span>
+<span id="cb5-24"><a href="#cb5-24"></a><span class="co">#&gt; </span></span>
+<span id="cb5-25"><a href="#cb5-25"></a><span class="co">#&gt; [[6]]</span></span>
+<span id="cb5-26"><a href="#cb5-26"></a><span class="co">#&gt; [1] &quot;2019-09-07&quot; &quot;2019-09-05&quot;</span></span>
+<span id="cb5-27"><a href="#cb5-27"></a><span class="co">#&gt; </span></span>
+<span id="cb5-28"><a href="#cb5-28"></a><span class="co">#&gt; [[7]]</span></span>
+<span id="cb5-29"><a href="#cb5-29"></a><span class="co">#&gt; [1] &quot;2019-09-02&quot; &quot;2019-09-04&quot;</span></span>
+<span id="cb5-30"><a href="#cb5-30"></a><span class="co">#&gt; </span></span>
+<span id="cb5-31"><a href="#cb5-31"></a><span class="co">#&gt; [[8]]</span></span>
+<span id="cb5-32"><a href="#cb5-32"></a><span class="co">#&gt; [1] &quot;2019-09-06&quot; &quot;2019-09-08&quot;</span></span>
+<span id="cb5-33"><a href="#cb5-33"></a></span>
+<span id="cb5-34"><a href="#cb5-34"></a><span class="kw">number_line_sequence</span>(nls, <span class="dt">length.out =</span> <span class="dv">3</span>)</span>
+<span id="cb5-35"><a href="#cb5-35"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb5-36"><a href="#cb5-36"></a><span class="co">#&gt; [1] &quot;2019-09-04&quot; &quot;2019-09-05&quot; &quot;2019-09-07&quot;</span></span>
+<span id="cb5-37"><a href="#cb5-37"></a><span class="co">#&gt; </span></span>
+<span id="cb5-38"><a href="#cb5-38"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb5-39"><a href="#cb5-39"></a><span class="co">#&gt; [1] &quot;2019-09-02&quot; &quot;2019-09-05&quot; &quot;2019-09-09&quot;</span></span>
+<span id="cb5-40"><a href="#cb5-40"></a><span class="co">#&gt; </span></span>
+<span id="cb5-41"><a href="#cb5-41"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb5-42"><a href="#cb5-42"></a><span class="co">#&gt; [1] &quot;2019-09-02&quot; &quot;2019-09-04&quot; &quot;2019-09-07&quot;</span></span>
+<span id="cb5-43"><a href="#cb5-43"></a><span class="co">#&gt; </span></span>
+<span id="cb5-44"><a href="#cb5-44"></a><span class="co">#&gt; [[4]]</span></span>
+<span id="cb5-45"><a href="#cb5-45"></a><span class="co">#&gt; [1] &quot;2019-09-04&quot; &quot;2019-09-04&quot; &quot;2019-09-05&quot;</span></span>
+<span id="cb5-46"><a href="#cb5-46"></a><span class="co">#&gt; </span></span>
+<span id="cb5-47"><a href="#cb5-47"></a><span class="co">#&gt; [[5]]</span></span>
+<span id="cb5-48"><a href="#cb5-48"></a><span class="co">#&gt; [1] &quot;2019-09-06&quot; &quot;2019-09-05&quot; &quot;2019-09-05&quot;</span></span>
+<span id="cb5-49"><a href="#cb5-49"></a><span class="co">#&gt; </span></span>
+<span id="cb5-50"><a href="#cb5-50"></a><span class="co">#&gt; [[6]]</span></span>
+<span id="cb5-51"><a href="#cb5-51"></a><span class="co">#&gt; [1] &quot;2019-09-07&quot; &quot;2019-09-05&quot; &quot;2019-09-04&quot;</span></span>
+<span id="cb5-52"><a href="#cb5-52"></a><span class="co">#&gt; </span></span>
+<span id="cb5-53"><a href="#cb5-53"></a><span class="co">#&gt; [[7]]</span></span>
+<span id="cb5-54"><a href="#cb5-54"></a><span class="co">#&gt; [1] &quot;2019-09-02&quot; &quot;2019-09-03&quot; &quot;2019-09-05&quot;</span></span>
+<span id="cb5-55"><a href="#cb5-55"></a><span class="co">#&gt; </span></span>
+<span id="cb5-56"><a href="#cb5-56"></a><span class="co">#&gt; [[8]]</span></span>
+<span id="cb5-57"><a href="#cb5-57"></a><span class="co">#&gt; [1] &quot;2019-09-06&quot; &quot;2019-09-07&quot; &quot;2019-09-09&quot;</span></span></code></pre></div>
 <p><a id="overlaps"></a></p>
 </div>
 <div id="overlaps" class="section level2">
 <h2>Overlaps</h2>
-<p><code>number_line</code> objects can overlap with each other and do so in six ways - <code>&quot;exact&quot;</code>, <code>&quot;inbetween&quot;</code>, <code>&quot;across&quot;</code>, <code>&quot;chain&quot;</code>, <code>&quot;aligns_start&quot;</code> and <code>&quot;aligns_end&quot;</code>. Each pair of <code>number_line</code> objects can only overlap by one these methods. For example, a <code>number_line</code> object can not have aligned start and end points, instead that’ll be considered an <code>&quot;exact&quot;</code> overlap.</p>
-<p><em>The 6 <code>overlap_methods</code> are mutually exclusive.</em></p>
+<p><code>number_line</code> objects can overlap with each other. They do so in seven ways - <code>&quot;exact&quot;</code>, <code>&quot;reverse&quot;</code>, <code>&quot;inbetween&quot;</code>, <code>&quot;across&quot;</code>, <code>&quot;chain&quot;</code>, <code>&quot;aligns_start&quot;</code> and <code>&quot;aligns_end&quot;</code>. Each pair of <code>number_line</code> objects can only overlap by one of these methods. For example, a <code>number_line</code> object with aligned start and end points will be considered an <code>&quot;exact&quot;</code> overlap, not <code>&quot;aligns_start&quot;</code> and <code>&quot;aligns_end&quot;</code>.</p>
+<p><em>The 7 <code>overlap_methods</code> are mutually exclusive.</em></p>
 <p><em>There are 2 convenience methods - <code>&quot;none&quot;</code> and <code>&quot;overlap&quot;</code>. These are mutually inclusive with the other 6.</em></p>
 <p><strong>Figure 4a: Example of <code>exact</code> overlaps</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exact &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">2</span>),
-           <span class="co"># negative test - start_point() and end_point() </span>
-           <span class="co"># for both must be identical to be an exact mactch</span>
-           <span class="kw">number_line</span>(<span class="dv">3</span>,<span class="dv">4</span>), <span class="kw">number_line</span>(<span class="dv">4</span>,<span class="dv">3</span>), 
-           <span class="kw">number_line</span>(<span class="fl">2.5</span>,<span class="fl">2.5</span>), <span class="kw">number_line</span>(<span class="fl">2.5</span>,<span class="fl">2.5</span>))
-
-<span class="co"># positive logical test</span>
-<span class="kw">exact</span>(exact[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], exact[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1]  TRUE FALSE  TRUE</span>
-<span class="co"># negtaive logical test</span>
-<span class="kw">across</span>(exact[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], exact[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] FALSE FALSE FALSE</span>
-<span class="co"># check overlap methods as defined in `diyar`</span>
-<span class="kw">overlap_method</span>(exact[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], exact[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] &quot;exact&quot; &quot;none&quot;  &quot;exact&quot;</span></code></pre></div>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAAAz1BMVEUAAAAAABAAABwAADoAAGYAFygAJzMAOgAAOpAAZgAAZrY6AAA6OD06ZmY6kAA6kNtA4NBmAABmOpBmR0dmtgBmtv+QFwCQJyiQOgCQVUeQZgCQ2wCQ27aQ2/+2JwC2RzO2Yz22Y0e2ZgC2tgC225C2/wC2/9u2///Yv9jbOBDbOBzbYzPbYz3bY0fbkADbkDrbtrbb25Db/wDb/7bb/9vb///ugu713rP/Rxz/VSj/YzP/Yz3/Y0f/tgD/2wD/25D/29v//wD//7b//9v///9tttUBAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAEi0lEQVR4nO3dfU9cRRjG4WELW1iQXeTFg6tYVldAW9SqC7WD9eh+/8/kzIGSmJiYGJ4XnvldadLd8seZm8595jwbElICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw6KayXoQco3CXlcWF02w2M7muitnMPN7NTfDGmHTm8tKmMebbSdZsZt+Ym0bofldtCjNrhPK39Z9M9pOyEq/XvaLdCaN+SU0eChN9hhnqkrQLYzfDWG8nWQ76YjYWK3kIp12YZDXzB6+Mg74YbCY9j/cC/YxZ/YqPPGwqAAAAQFDgGeZRUzMMZFEYCRQmLAojgcKERWEkUJiwKIwECgMA1l6+PbBegrit7+NnhBIKg2dG4/l+2fcHab/vSj+u007f93e1Kn2/qF/p5K+vkHF0nn87SHvvT9LWm6s0zjnflqq8yfmsfKX8K6JQ2EzzRdr/fTcd3aWj69KeRelMV/8qx4vOCSOfceP0LO29202Ht+nwqrYnjd+fjM7P6vHCCROK/GYaSrEsB8n861KbwbLbuX8ZpTC1FKNXJ6U4X72rwXJ9Nx5e8kgWi0ZhykNYffLaKc9gD2+7/WCFKQ9fw5PXOJ/Vt8O7PQoTkNIJUy0/L69evu2CnjDV6NVn5dXWa04Y/H/zYVxJ8+s6yuyU+f/o4wzTDfUJoM4wpRgbp1d1lBmX+f/wYYZ5fVL+WC8Pz8vwWdhRPVOWd2ne99dDheqnZOXdwnp1T+L+s7DDcqaMzm83TnP+rlaofkpWyjQ8pgFAc/hZMgn8LFlYFEYChQmLwkigMGFRGAkUJiwKI4HCAAAAAFKYYSQww4RFYSRQmLAojAQKExaFkUBhwqIwEigMAAAAIIUZRgIzTFgURgKFCYvCSKAwYVEYCRQmLAojgcIAAAAAUphhJDDDRNX3cRvzGE09Ys7qjVmtVtqXVOMoWv1FFHEb8/F2oJ0wZ/XGrFaRG+PmdtD3wRtz3xnlgDmrN2a1Ct4YJ53pG6H7XbUrTHia39N/Y7KflOnH44QR4SJe+L6YpGOGeXpe0sXui1U4PiV7YqHDuRH6XtAS6gIAAAAAAAAAANCANfBsWLel8LAGaS1kbCKkh4we1iCthYxNhPSQ0cMapLWQsYmQHjJ6WIO0FjI2EdJDRg9rkNZCxiZCesjoYQ3SWsjYREgPGT2sQVoLGZsI6SGjhzVIayFjEyE9ZPSwBmktZGwipIeMHtYgrYWMTYRsISMAAAAAAAAAAAAAAAAAAAAAAPgv2z8fWC9B2Pav6/XCehHSJuv1X531IsQ52KybF3+ar0HW5sUiTaJvpu1fujSJ/j+Z0rF5xOn6R/vSypp82E0vvgx/xJQ7w7fB7wpp8of5Zv1k18EpJ6+eMuFNy50htBdffOpgszZRmPB7qU5q0R870/QHD5vVwxqkTc0ffTVEn2E2v3HxOORhDcKm4e+9g+gzzPHCxWb1sAZZbZwv4QuzeTH8RiXzYTR8YeonruHVx7Htn+IPag42q4c1iDr2cWMSNl2vGzhIw29WAACAJvwNCz3uC+VUm2UAAAAASUVORK5CYII=" /><!-- --></p>
-<p><strong>Figure 4b: Example of <code>inbetween</code> overlaps</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inbetween &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">5</span>, <span class="dv">8</span>), <span class="kw">number_line</span>(<span class="dv">6</span>, <span class="dv">7</span>), 
-               <span class="kw">number_line</span>(<span class="dv">11</span>, <span class="dv">10</span>), <span class="kw">number_line</span>(<span class="dv">9</span>, <span class="dv">12</span>), 
-               <span class="kw">number_line</span>(<span class="dv">13</span>, <span class="dv">15</span>), <span class="kw">as.number_line</span>(<span class="dv">14</span>))
-
-<span class="co"># positive logical test</span>
-<span class="kw">inbetween</span>(inbetween[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], inbetween[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] TRUE TRUE TRUE</span>
-<span class="co"># negtaive logical test</span>
-<span class="kw">across</span>(inbetween[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], inbetween[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] FALSE FALSE FALSE</span>
-<span class="co"># check overlap methods as defined in `diyar`</span>
-<span class="kw">overlap_method</span>(inbetween[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], inbetween[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] &quot;inbetween&quot; &quot;inbetween&quot; &quot;inbetween&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>exact &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">2</span>),</span>
+<span id="cb6-2"><a href="#cb6-2"></a>           <span class="kw">number_line</span>(<span class="fl">2.5</span>,<span class="fl">2.5</span>), <span class="kw">number_line</span>(<span class="fl">2.5</span>,<span class="fl">2.5</span>),</span>
+<span id="cb6-3"><a href="#cb6-3"></a>           <span class="co"># negative test - left_point() and left_point() </span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>           <span class="co"># for both must be identical to be an exact match</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a>           <span class="kw">number_line</span>(<span class="dv">3</span>,<span class="dv">4</span>), <span class="kw">number_line</span>(<span class="dv">4</span>,<span class="dv">3</span>))</span>
+<span id="cb6-6"><a href="#cb6-6"></a></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="co"># positive logical test</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="kw">exact</span>(exact[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], exact[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb6-9"><a href="#cb6-9"></a><span class="co">#&gt; [1]  TRUE  TRUE FALSE</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a><span class="co"># negative logical test</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a><span class="kw">across</span>(exact[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], exact[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb6-12"><a href="#cb6-12"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb6-14"><a href="#cb6-14"></a><span class="kw">overlap_method</span>(exact[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], exact[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb6-15"><a href="#cb6-15"></a><span class="co">#&gt; [1] &quot;exact&quot;   &quot;exact&quot;   &quot;reverse&quot;</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><strong>Figure 4b: Example of <code>reverse</code> overlaps</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>reverse &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">8</span>,<span class="dv">6</span>), <span class="kw">number_line</span>(<span class="dv">6</span>,<span class="dv">8</span>),</span>
+<span id="cb7-2"><a href="#cb7-2"></a>           <span class="kw">number_line</span>(<span class="dv">3</span>,<span class="dv">4</span>), <span class="kw">number_line</span>(<span class="dv">4</span>,<span class="dv">3</span>),</span>
+<span id="cb7-3"><a href="#cb7-3"></a>           <span class="co"># negative test - left_point() and right_point() </span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>           <span class="co"># for both must be swapped to be a reverse match</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>           <span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb7-6"><a href="#cb7-6"></a></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="co"># positive logical test</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="kw">reverse</span>(reverse[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], reverse[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; [1]  TRUE  TRUE FALSE</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co"># negative logical test</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="kw">across</span>(reverse[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], reverse[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a><span class="kw">overlap_method</span>(reverse[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], reverse[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb7-15"><a href="#cb7-15"></a><span class="co">#&gt; [1] &quot;reverse&quot; &quot;reverse&quot; &quot;exact&quot;</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><strong>Figure 4c: Example of <code>inbetween</code> overlaps</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>inbetween &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">5</span>, <span class="dv">8</span>), <span class="kw">number_line</span>(<span class="dv">6</span>, <span class="dv">7</span>), </span>
+<span id="cb8-2"><a href="#cb8-2"></a>               <span class="kw">number_line</span>(<span class="dv">11</span>, <span class="dv">10</span>), <span class="kw">number_line</span>(<span class="dv">9</span>, <span class="dv">12</span>), </span>
+<span id="cb8-3"><a href="#cb8-3"></a>               <span class="kw">number_line</span>(<span class="dv">13</span>, <span class="dv">15</span>), <span class="kw">as.number_line</span>(<span class="dv">14</span>))</span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co"># positive logical test</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="kw">inbetween</span>(inbetween[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], inbetween[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt; [1] TRUE TRUE TRUE</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co"># negative logical test</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="kw">across</span>(inbetween[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], inbetween[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="kw">overlap_method</span>(inbetween[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], inbetween[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt; [1] &quot;inbetween&quot; &quot;inbetween&quot; &quot;inbetween&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAABcVBMVEUAAAAAABAAABwAADUAADoAAF8AAGYAFygAHYYAJzMANKoAOgAAOpAAZgAAZrY1AAA1Sc06AAA6OD06ZmY6kAA6kNtA4NBfAABfAF9fXc1fXe5mAABmABxmOpBmRz1mR0dmkNtmtgBmtv+GHQCGHTWGNIaGSaqGSc2GcKqGcO6QFwCQFxCQJyiQODOQOD2QOgCQVTOQVUeQZgCQkACQ2wCQ27aQ29uQ2/+qNACqSYaqXaqqgqqqgs2qgu62JwC2OCi2RzO2YzO2Yz22Y0e2ZgC2kAC2tgC225C2/wC2/7a2/9u2///NSTXNXV/NcIbNcM3NgqrNgs3Ngu7Yv9jbOBDbRxzbVSjbVT3bYzPbYz3bY0fbkADbkDrbkGbbtgDbtrbb2wDb25Db2//b/wDb/7bb/9vb///uXV/ucIbugqrugs3ugu713rP/Rxz/VSj/YzP/Yz3/Y0f/tgD/tmb/2wD/25D/29v//wD//7b//9v///9iz4jzAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAHtklEQVR4nO3djV8URRzH8VERUPDkiAfzLBPtQa3IpLQsyqIyoTSlNLGyLFEPH9aHrvjrm5md3VvHyuI3sMPc550vJmaPaWZvvrsze7xSKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgGStGKIfD9cXsQmj7k4EENcoLhp1dyIWKyvCxMSUmYmJVBITU2YuXiQxXSuB1D0OayI1dZ9Qi8BUhZjv+sc7gbojE2iatUP0RdxIJHEhMJ4AKzL9JY7ABNrDxBCYaOKi2MN4ZHlxPxxJYMKs/OsPTExxUTYxdXchJoLJXmYtlsAEUXdgIouLltXdAQAAAKAqxP6DPcy6NBIL9jBVBMZDYHwEporAeAiMj8BUERgPgfERmCoC4yEwPgLzlKHrreJfZ+bq7AjqMXC5mABbjs3W2pNN54nAVIKE3vBkYLpBwj8gML2NwDyD3X/oYAxdP97pLOnAfG4LdabTaZkv0zpBQ9fn1K5HzbzOHSpeX7aRip7cw+hgDFx+M8sWdWA+NoXa+ml2r6W/3D96LFMDV2bVjrtNW+cOKff6ntMNzJLapYMwY4IxZ240Y4+a5g4z9kDturakxpZcXXkof33ZRip6NjBXFtWOe60tx0wwZs2NZvRu09xhRjO149KiGl10dcWh/PV193zDdQMzbVdgZkl24IFdi52ZNsXQteaBt3/U9ZU6W0yXKzYCsy6NbCATmO+PmMIuyfbfMUnZ+skRUwxkzRdf/1bXV+pMkb++7p5vuG5gWmVgxnRgOloRjpnWGf1PWVceIjDr2sgGskuyVhmY0TsDV7Isu5+HIzv61r7T+063irruIQLj7jBLLgq2OPCZvsccf6CqdXlBYNa1kQ3kBWb/oouCLbKPvmu++MYdVa3Li14MjFUNjNme2D2MW6flO5hrS8rVlYdaPERLRjUwZnti9zBunZbvYC4tKldXHCIweRy6T8l0WGY67hmZ+cbV5QWBSUk1MOVTsvtHdEay2fwZmf7G1bmipwMD4L/hd8k8PbmH+Vf8LlkVgfEQGB+BqSIwHgLjIzBVBMZDYHwEporAeAiMj8AAAAAgKuxhPOxhfOxhqgiMh8D4CEwVgfHkc33w/KT7ftvhk2ttJBEEporAePy5/mRgukH6X41sagSmisB4CIyPwOCZdDAGz7/abi/owLxvCrX9w/atSf3l9iGdoMELJ9XOm7ttnTuk3OuBHmQCc2FB7bw1ue2wCcZJc6MZubnb3GFGltXOcwtqZMHVFYfy19fdc6AGJjDfHDSFXZLtXTZJ2f7BQVMMfr37+Ze/0vWVOlPkr6+751hf7GE85VMymw0XmJHlwQvtdvu2C8eh1/ac2nNqsqjrHioCwx4mWQTG87eB2bvgomCLve/pe8wry6palxcEJnkExvN0YMz2xO5h3Dot38GcW1CurjhEYHoBgfE8HZjyKdntgzojbfeMTH/j6lxBYHoCgfHwqzE+AgMAAICosIfxsIfxpbKH6XRimeySNoIMIqRyrrfXPuvbgp8NKssCzHZJEyH++4GYv3QiwGSrOzChgh+Mnept0ZRvy348nCwLkRhZC0EyG0CnEyYx9QdGxZWZtvj+0G5HkpgsC5IYeQMxZKaTnLrPqNMOpe6BlIGJQ90nI65ZJhXVQKRzPbbA1N2NSHYyCeUlunEIp3skeQm1h5H3ou4e5FLJS5zDEM34SPISxe6h/h6kJc64GLFM+k2NuAAAAAAAAAAAAPSAVWDTqDstWpA+hGgkqY4kNZi0OiIVzUCS6khSg0mrI1LRDCSpjiQ1mLQ6IhXNQJLqSFKDSasjUtEMJKmOJDWYtDoiFc1AkupIUoNJqyNS0QwkqY4kNZi0OiIVzUCS6khSg0mrI1LRDCSpjiQ1mLQ6IhXNQJLqSFKDSasjAAAAAAAAAAAAAAAAAAAAAABgsxu+sbr6uClspO/E6upVWRMN+z82FDZiRvPntLwN2QkZ/rVlT8kfLWkjZSFow7zBc9KO6HdHcl5DDKY7GvF0FWk8DNDI1OPm8G/Siar7IppiWv/8nBoXNtI/f1WNS05K/7zpwdRD80fYSFEI2jCnpCGY7LYR8+YK3pxiFFOStyZvJMh0FZmSXtS1/rPysKh8usuYi5C0M9I2xld/ci0ILqh5I0UhaaOhr8d9J9Z8Yrs9WPs5Kdpo/C64w7hGQkxXkb53A8x12a22NB5gaThnZ4iENDDPNU0LwlbyRopC1IYSXYm6jaz93XFt9L3zgmCe5I0Ema4i/Wd/ka/6G49fkq2TLcF1sNKGeIVrl3XiVb/4XhdsD6OEV6K8keEb4j3M+FX5HibIdBUxq9P+L4U3iIberEvWya4r8vuU3X9IN0J6X/mDKLuxBUZ2RooeSDaY9mx8IbldukaCTFcx8RZEuE52RDvtXIg9jCFrI7LAjMsuZeW6TjAa08bUXIinZMKOhCHugV1digMTYD8XKjAh1g6iTX/AwEjvuIEC0z9vPzcQTJI4AmNutMM/Szfbeq6LHwmH2cLIl2Tm/ZA8EHbvrPCxcrDAiB/3m0aksyTY5zBhpqvI+KrsAzbLfHApne5BLhwhPrhsSD8as/NCX1Gj+OByKsiFXThLwn1wGWS6AgAAoFZ/AQrbdfN7IbTaAAAAAElFTkSuQmCC" /><!-- --></p>
-<p><strong>Figure 4c: Example of <code>across</code> overlaps </strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">across &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">16</span>, <span class="dv">19</span>), <span class="kw">number_line</span>(<span class="dv">18</span>, <span class="dv">21</span>), 
-            <span class="kw">number_line</span>(<span class="dv">22</span>, <span class="dv">25</span>), <span class="kw">number_line</span>(<span class="dv">23</span>, <span class="dv">26</span>),
-            <span class="kw">number_line</span>(<span class="dv">27</span>, <span class="dv">30</span>), <span class="kw">number_line</span>(<span class="dv">31</span>, <span class="dv">29</span>))
-
-<span class="co"># positive logical test</span>
-<span class="kw">across</span>(across[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], across[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] TRUE TRUE TRUE</span>
-<span class="co"># negtaive logical test</span>
-<span class="kw">inbetween</span>(across[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], across[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">5</span>)])
-<span class="co">#&gt; [1] FALSE FALSE FALSE</span>
-<span class="co"># check overlap methods as defined in `diyar`</span>
-<span class="kw">overlap_method</span>(across[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], across[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] &quot;across&quot; &quot;across&quot; &quot;across&quot;</span></code></pre></div>
+<p><strong>Figure 4d: Example of <code>across</code> overlaps </strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>across &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">16</span>, <span class="dv">19</span>), <span class="kw">number_line</span>(<span class="dv">18</span>, <span class="dv">21</span>), </span>
+<span id="cb9-2"><a href="#cb9-2"></a>            <span class="kw">number_line</span>(<span class="dv">22</span>, <span class="dv">25</span>), <span class="kw">number_line</span>(<span class="dv">23</span>, <span class="dv">26</span>),</span>
+<span id="cb9-3"><a href="#cb9-3"></a>            <span class="kw">number_line</span>(<span class="dv">27</span>, <span class="dv">30</span>), <span class="kw">number_line</span>(<span class="dv">31</span>, <span class="dv">29</span>))</span>
+<span id="cb9-4"><a href="#cb9-4"></a></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="co"># positive logical test</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="kw">across</span>(across[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], across[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co">#&gt; [1] TRUE TRUE TRUE</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="co"># negative logical test</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="kw">inbetween</span>(across[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], across[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">5</span>)])</span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="kw">overlap_method</span>(across[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], across[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="co">#&gt; [1] &quot;across&quot; &quot;across&quot; &quot;across&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<p><strong>Figure 4d: Example of <code>chain</code> overlaps</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">chain &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">32</span>, <span class="dv">34</span>), <span class="kw">number_line</span>(<span class="dv">34</span>, <span class="dv">36</span>), 
-            <span class="kw">number_line</span>(<span class="dv">39</span>, <span class="dv">37</span>), <span class="kw">number_line</span>(<span class="dv">41</span>, <span class="dv">39</span>), 
-           <span class="co"># negative test - end_point() of one must lead to the start_point() </span>
-           <span class="co"># to be considered a chain overlap</span>
-           <span class="kw">number_line</span>(<span class="dv">42</span>, <span class="dv">44</span>), <span class="kw">number_line</span>(<span class="dv">47</span>, <span class="dv">44</span>))
-
-<span class="co"># positive logical test</span>
-<span class="kw">chain</span>(chain[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], chain[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1]  TRUE  TRUE FALSE</span>
-<span class="co"># negtaive logical test</span>
-<span class="kw">across</span>(chain[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], chain[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] FALSE FALSE FALSE</span>
-<span class="co"># check overlap methods as defined in `diyar`</span>
-<span class="kw">overlap_method</span>(chain[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], chain[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] &quot;chain&quot;      &quot;chain&quot;      &quot;aligns_end&quot;</span></code></pre></div>
+<p><strong>Figure 4e: Example of <code>chain</code> overlaps</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>chain &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">32</span>, <span class="dv">34</span>), <span class="kw">number_line</span>(<span class="dv">34</span>, <span class="dv">36</span>), </span>
+<span id="cb10-2"><a href="#cb10-2"></a>            <span class="kw">number_line</span>(<span class="dv">39</span>, <span class="dv">37</span>), <span class="kw">number_line</span>(<span class="dv">41</span>, <span class="dv">39</span>), </span>
+<span id="cb10-3"><a href="#cb10-3"></a>           <span class="co"># negative test - end_point() of one must lead to the start_point() </span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>           <span class="co"># to be considered a chain overlap</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a>           <span class="kw">number_line</span>(<span class="dv">42</span>, <span class="dv">44</span>), <span class="kw">number_line</span>(<span class="dv">47</span>, <span class="dv">44</span>))</span>
+<span id="cb10-6"><a href="#cb10-6"></a></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="co"># positive logical test</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="kw">chain</span>(chain[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], chain[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="co">#&gt; [1]  TRUE  TRUE FALSE</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="co"># negative logical test</span></span>
+<span id="cb10-11"><a href="#cb10-11"></a><span class="kw">across</span>(chain[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], chain[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb10-12"><a href="#cb10-12"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb10-13"><a href="#cb10-13"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="kw">overlap_method</span>(chain[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], chain[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="co">#&gt; [1] &quot;chain&quot;      &quot;chain&quot;      &quot;aligns_end&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<p><strong>Figure 4e: Example of <code>aligns_start</code> overlaps</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">aligns_start &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">45</span>, <span class="dv">46</span>), <span class="kw">number_line</span>(<span class="dv">45</span>, <span class="dv">47</span>), 
-            <span class="kw">number_line</span>(<span class="dv">48</span>, <span class="fl">49.5</span>), <span class="kw">number_line</span>(<span class="dv">48</span>, <span class="dv">48</span>),
-            <span class="kw">number_line</span>(<span class="dv">51</span>, <span class="dv">50</span>), <span class="kw">number_line</span>(<span class="dv">51</span>, <span class="dv">52</span>))
-
-<span class="co"># positive logical test</span>
-<span class="kw">aligns_start</span>(aligns_start[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_start[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] TRUE TRUE TRUE</span>
-<span class="co"># negtaive logical test</span>
-<span class="kw">across</span>(aligns_start[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_start[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] FALSE FALSE FALSE</span>
-<span class="co"># check overlap methods as defined in `diyar`</span>
-<span class="kw">overlap_method</span>(aligns_start[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_start[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] &quot;aligns_start&quot; &quot;aligns_start&quot; &quot;aligns_start&quot;</span></code></pre></div>
+<p><strong>Figure 4f: Example of <code>aligns_start</code> overlaps</strong></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>aligns_start &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">45</span>, <span class="dv">46</span>), <span class="kw">number_line</span>(<span class="dv">45</span>, <span class="dv">47</span>), </span>
+<span id="cb11-2"><a href="#cb11-2"></a>            <span class="kw">number_line</span>(<span class="dv">48</span>, <span class="fl">49.5</span>), <span class="kw">number_line</span>(<span class="dv">48</span>, <span class="dv">48</span>),</span>
+<span id="cb11-3"><a href="#cb11-3"></a>            <span class="kw">number_line</span>(<span class="dv">51</span>, <span class="dv">50</span>), <span class="kw">number_line</span>(<span class="dv">51</span>, <span class="dv">52</span>))</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="co"># positive logical test</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="kw">aligns_start</span>(aligns_start[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_start[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co">#&gt; [1] TRUE TRUE TRUE</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co"># negative logical test</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a><span class="kw">across</span>(aligns_start[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_start[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a><span class="kw">overlap_method</span>(aligns_start[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_start[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="co">#&gt; [1] &quot;aligns_start&quot; &quot;aligns_start&quot; &quot;aligns_start&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<p><strong>Figure 4f: Example of <code>aligns_end</code> overlaps</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">aligns_end &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">54</span>, <span class="dv">55</span>), <span class="kw">number_line</span>(<span class="dv">53</span>, <span class="dv">55</span>), 
-            <span class="kw">number_line</span>(<span class="dv">56</span>, <span class="fl">57.5</span>), <span class="kw">number_line</span>(<span class="fl">57.5</span>, <span class="fl">57.5</span>), 
-            <span class="kw">number_line</span>(<span class="dv">58</span>, <span class="dv">59</span>), <span class="kw">number_line</span>(<span class="dv">60</span>, <span class="dv">59</span>))
-
-<span class="co"># positive logical test</span>
-<span class="kw">aligns_end</span>(aligns_end[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_end[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] TRUE TRUE TRUE</span>
-<span class="co"># negtaive logical test</span>
-<span class="kw">across</span>(aligns_end[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_end[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] FALSE FALSE FALSE</span>
-<span class="co"># check overlap methods as defined in `diyar`</span>
-<span class="kw">overlap_method</span>(aligns_end[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_end[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])
-<span class="co">#&gt; [1] &quot;aligns_end&quot; &quot;aligns_end&quot; &quot;aligns_end&quot;</span></code></pre></div>
+<p><strong>Figure 4g: Example of <code>aligns_end</code> overlaps</strong></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>aligns_end &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">number_line</span>(<span class="dv">54</span>, <span class="dv">55</span>), <span class="kw">number_line</span>(<span class="dv">53</span>, <span class="dv">55</span>), </span>
+<span id="cb12-2"><a href="#cb12-2"></a>            <span class="kw">number_line</span>(<span class="dv">56</span>, <span class="fl">57.5</span>), <span class="kw">number_line</span>(<span class="fl">57.5</span>, <span class="fl">57.5</span>), </span>
+<span id="cb12-3"><a href="#cb12-3"></a>            <span class="kw">number_line</span>(<span class="dv">58</span>, <span class="dv">59</span>), <span class="kw">number_line</span>(<span class="dv">60</span>, <span class="dv">59</span>))</span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="co"># positive logical test</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">aligns_end</span>(aligns_end[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_end[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="co">#&gt; [1] TRUE TRUE TRUE</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="co"># negative logical test</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="kw">across</span>(aligns_end[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_end[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="co">#&gt; [1] FALSE FALSE FALSE</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a><span class="co"># check overlap methods as defined in `diyar`</span></span>
+<span id="cb12-12"><a href="#cb12-12"></a><span class="kw">overlap_method</span>(aligns_end[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">5</span>)], aligns_end[<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>)])</span>
+<span id="cb12-13"><a href="#cb12-13"></a><span class="co">#&gt; [1] &quot;aligns_end&quot; &quot;aligns_end&quot; &quot;aligns_end&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAABI1BMVEUAAAAAABAAABwAADUAADoAAF8AAGYAFygAHYYAJzMANKoAOgAAOpAAZgAAZrY1AAA1HYY1Sc06AAA6Fyg6OD06OgA6kAA6kNtA4NBfAABfXe5mAABmOpBmR0dmkNtmtgBmtv+GHQCGcM2GcO6QFwCQOgCQOmaQVT2QVUeQ2wCQ27aQ29uQ2/+qNACqgqqqgs2qgu62JwC2YzO2Yz22Y0e2ZgC225C2/wC2/7a2/9u2///NSTXNgqrNgs3Ngu7Yv9jbOBDbYzPbYz3bY0fbkADbkDrbkGbb25Db2//b/wDb/7bb/9vb///uXV/ucIbugqrugs3ugu713rP/Rxz/VSj/YzP/Yz3/Y0f/tgD/tmb/2wD/25D/29v//wD//7b//9v///+KS/RHAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAHoUlEQVR4nO3cCVcbVRTA8UnDvqQSEdpiLQhRosUW24jdpKuKttRQaroYne//KZy3zBDSIFBz593J/H+nJ8PJ6Zn7Zrl5791ZoggAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECjAyN0Iz5eoRv/f1wyQjdioN3dXcFVy638bA4OCp4xJc2ZS5d0ZozoCb27Gz5jDkZE0J0YgM6E2c1F0E0chfMtaX43dBvypjNhOpHo6awhYYo+h7HpEpUvYXTOYTpRJJoyCvKl6FMA3/jyJUykMF9swoimjIJ8KbQs10uYMFE7dAM+1PFLTmsAAADgFMxhVOic/l+gAgmjAglTFCSMCiRMUZAwKpAwRUHCqEDCAAAAAGfEHEYF5jBFYRNmvruy1O02QrclLy5hZl5eXmj/sRa4LZ5LmOnXK4udPzcCtwX/xSZMsxXttObf1UM3Jic2YarrW+M3t2b2L4ZujWUTprK5feH29vRhWY5DIdmE2Wkkfczs3kroxuTEJsz4jbWkj5m6fzl0ayybMBdubSR9zOSjshyHQvI9zNK7+lLpepiF/YsLynqYxcP6Ij2MevPJBGZ2rzRzGGcmmcBMPVAyh3GmkwnM5GPmMMWy002VZmgwfrPtvdQxQkuGZ7c73uvSHIbiWnqTfFx7GroZuVp4kXxcuRe6Gb0WXyUfVx+GbgZ6+bLy8R5lx4zORrcI4MvKx7qU8RtmcBasBuDLyse6lAu3zOCMGoAurkrWOv5l0/YwI1sEcFWym1u931XXbQ8TqgbgqmS3t3u/q2zaHoYagCq+rNz3bTPpb94EaE0+0rLysS+r60l/8yJIe6KjsvKxLyubSX/zKkh7cBKbMEujmxyDuCHZQrDsGMANyRbJDvVcD1Ouqpgfkmkqi/khGWWxYuovApTBjKb8cabJn4LoLwKUQF8NQIO+GgD02Om7VPlBEWAEZRcrXafSXwMIIbtY6TqV/hoANLBzmGtv3Ed6O9mIFwHcpP/KC/fhbycLWwNwk/6rr9yHv52MGoBCR2Xl2b3shuURLwL0lJWn7vsblgPXAHrKypOP/A3L1AA0cncr+wuVJXkkxt+t7K9Uqngkxt+t7K9U8kiMXu4R5Wv2QuXsXjkm+/4R5Sv2SuXUTxpm+/4R5av2SuXkE2b7ag1+pr/ZfffZyN5KNviZ/up6e/+TYI+TDXymv7LZOfyUW8kKoPl0vkwPlBnV9Xszep4nsyqbD6d5nkyfZMbfP8nfaSQJM7p3K9sZf98s3zyxvH8x4BPLyYy/b5Zvnlg+rHO3cgHYHmZ071YexPUwwe5WHsT1MNytrMtJc5hud3Tz5aQ5TLsdLF9OmsN0OuSLLt0SPpLc1vdMcodnkguCN1+qwJsvi4KEUYGEKQr3AFnZhmTGgq4hmbHIkKwY7HtiS/aWGPeeWFWviXHvieU1MfqZSzElelWsZS7FfKfmVbGWuRTzPa+KLYBmK2o2SpYw1fWt6pdrqhKmsrld+XqDhFHNzmFm9xrz3W5phmRuDjP1YG2m3VYyJHNzmMnHG9OdzsOwTSmyZCIutub0D6EAmWRiLR3ijLKGnLdByUR82G3J1pz+IRSgXGzpSnDldiG1fs+WooRjnJlvyjnbY0tXEs3xK7cLqfWXib/+LhpAOmH89XTZIOdhGnO+5vjr70LtcQFImGHo5kJ2G9oqnWsTOrkQ2v+lIn9GS6eLwh4mOndj5M9o0mVIxEdkcuvOKMuXj2mL+IhMbt1lI5kvuaRLpKlK9nHpEklWyUiXosgrXTRRlLkp0gUAAAAAAAAAAABDEAOFETpbEjERNEQQD0CEIYmJoCGCeAAiDElMBA0RxAMQYUhiImiIIB6ACEMSE0FDBPEARBiSmAgaIogHIMKQxETQEEE8ABGGJCaChgjiAYgwJDERNEQQD0CEIYmJoCGCeAAiAAAAAAAAAAAAAAAAAAAAAACA4pt7Hsfv61Etjv9piEZI/vhtRTRCFkgswtj1OH4mGKBmX+woGcEshA90shA6Cun+TxZ/C51Kp6u9NZ9zvzeimlAjXITEqtRW+ghZILEIq+/rZk/JBTB/iR6GibutaFk4wrNoWehI+P2/+tb8C2Q1+z2buCPzy5NGqP0l1cP4CKsyP81Hq5baQ1FP280ZLRjB9PKyB1owgl+tWYiNVk4z9m22acsyHWkaYeybz4U20kfo2RShCHJH6ajtQkch20nXW1FN9EALJozf/5JJf6qJO7+6Me3cc6GhbRph+ZnU+eYjZJsiFqH2/os4FukAsrabE1pEGiEZ/wulZHoYzKBPZi/5/R80YcyQcOJHeyILDZ59hIkf6lIJ4yP0bIpQhFoy46yJ5GTWdrnCiD8MZoYheqDNpP9nmbT3+z9owhg9Q0O5CKst0XFnLttQs4UyoS7AtV1qupxGED7ZZA+D3/+lSJiv7tqKqdTJlk/CmCMlnDCChYscE0bop9Hv/6CTfjMOm/ul7heCESK54UZ+25CczjID1zSAXDr6CGPXxYZkPoI5naWKvn7/By0rL8f2IpBfCEYQHJ/ntg3mwpnMGe0DCP74+wiCFy59hJrY5eN0/0/cDXjhEgAAAEPxL3xefuyZoGWYAAAAAElFTkSuQmCC" /><!-- --></p>
 </div>
 <div id="set-operations" class="section level2">
 <h2>Set operations</h2>
 <p>Set operations can be performed on <code>number_line</code> objects.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">10</span>); b &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dv">5</span>, <span class="dv">15</span>)
-c &lt;-<span class="st"> </span><span class="kw">union_number_lines</span>(a, b)
-a; b; c
-<span class="co">#&gt; [1] &quot;1 -&gt; 10&quot;</span>
-<span class="co">#&gt; [1] &quot;5 -&gt; 15&quot;</span>
-<span class="co">#&gt; [1] &quot;1 -&gt; 15&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>a &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dv">1</span>,<span class="dv">10</span>); b &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dv">5</span>, <span class="dv">15</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a>c &lt;-<span class="st"> </span><span class="kw">union_number_lines</span>(a, b)</span>
+<span id="cb13-3"><a href="#cb13-3"></a>a; b; c</span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="co">#&gt; [1] &quot;1 -&gt; 10&quot;</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a><span class="co">#&gt; [1] &quot;5 -&gt; 15&quot;</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="co">#&gt; [1] &quot;1 -&gt; 15&quot;</span></span></code></pre></div>
 <p><strong>Figure 5a: Union</strong> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAAAclBMVEUAAAAAADoAAGYAOpAAZrY6AAA6ZmY6kNtmAABmOpBmkNtmtv+QOgCQ27aQ29uQ2/+2ZgC225C2/7a2/9u2///bkDrbkGbbtrbb25Db2//b/7bb/9vb///ugu713rP/tmb/25D/29v//wD//7b//9v////tNTWlAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAD3UlEQVR4nO3cW3PbNhAGUFmmq7ZOG6exe7fiqNX//4vhRa77FnwcMQTJc8aPXHGBxYoANePdDgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoEbPnbmTgK+oZZU+P+sYlqGKdfoMS1JJw8ydBnxdFetUv7AMtSxT/cICWKVQTLsAAAAAAAAAAAAAAAAAAAAAMLvjce4M1uVoQtdOha/oeNQx66fE13I86phNUOPrOLIdcy+2NTCV26DG16Jf1k+Fr8lsrpz6AgAAAAAAAAAAAAAAAAAAAMD/nE6nuVMgoFzzOp10zMIo2IxOJx2zQEo2lxOLNffa2SRzv0hKNhv9sjgKNivTvyzKBQAAQLkzLMbc3dKKcxBQww0EzKXCUa4goL6MthkwgQpHuYKA+jLaZsAEKhzlCgLqy2ibAROocJQrCKgvo20GTKDCUa4goL6MthkwgQpHuYKA+jLaZsAEKhzlCgLqy2ibAROocJQrCKgvo20GTKDCUa4goL6MthkAAAAAAAAAAAAAAACs0u2f30eX/30+PyQBzfn877vJU3q5CwJu3p/PT8H1Tf9fF4OINqNszG1AMIJ+ftpB/FM6TZcJLZ/X/sqk1H1AUurxKUWlvr79Y/G0D5c/7JpkMdz+9W7XRLfY7e6z65tP0ae3n/9y16UVScbQTdIhGcP+8Wl3KB7FULL7T91fEBCUur8yKXUfkJT6NZfiUg8Bcamv7nD+Lfo6b9r+vnkfPWLawX6MVmfzOXvC3CdPizydIeYxGHP3ZRjdJAoYStZdXvj1fKlxeamHK4NSv3104SheA4pLfQlIS319392F+59duHg6h2zD9NMPUUo3P0+74+tFQ+iWWZMERA0zlCwIudS4vNRvVxaW+i2gcJ4uAeWlHgLiUk8hXz7Z+m/3ndl+/vCUpbT/+Ed2YmhefgzPYelDtT1fRHPU7+HKUwobZuyBYReUeggISt0HJKUeBhyWegpxw0S78150htl/CB963dZ5/0sQ0bTn9+gclk5SfySJZqk9zP5a3pPfrGHKB/H60cWl7vNPSt0POi31FNKGOeQtHu3n7x9GPPSiO4w4h5WfyDvxGaYTBHyrhglK/d8eLkkpKnV8h6mEqzN/vmRj3D/273CnfK3Q74azhskOm6MaJqjD6+cXh4xrmKTUYxomK/VCG2bU69jb37NX51lK+R3a5Z+96Y6PMOGWrFsEpe+Id5f5CV4rj2uYqNRdQFSIUSmNWUxXl63O+/j7/3Au/4FtVEr5HbofLqMOSL/V4h8um+j3uH5+2u/naX+4jEo9PJKCQox86OWLCQCAynwBjXqAH73bdxkAAAAASUVORK5CYII=" /><!-- --></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">c &lt;-<span class="st"> </span><span class="kw">intersect_number_lines</span>(a, b)
-a; b; c
-<span class="co">#&gt; [1] &quot;1 -&gt; 10&quot;</span>
-<span class="co">#&gt; [1] &quot;5 -&gt; 15&quot;</span>
-<span class="co">#&gt; [1] &quot;5 -&gt; 10&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>c &lt;-<span class="st"> </span><span class="kw">intersect_number_lines</span>(a, b)</span>
+<span id="cb14-2"><a href="#cb14-2"></a>a; b; c</span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="co">#&gt; [1] &quot;1 -&gt; 10&quot;</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="co">#&gt; [1] &quot;5 -&gt; 15&quot;</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a><span class="co">#&gt; [1] &quot;5 -&gt; 10&quot;</span></span></code></pre></div>
 <p><strong>Figure 5b: Intersection</strong> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAAAclBMVEUAAAAAADoAAGYAOpAAZrY6AAA6ZmY6kNtmAABmOpBmkNtmtv+QOgCQ27aQ29uQ2/+2ZgC225C2/7a2/9u2///bkDrbkGbbtrbb25Db2//b/7bb/9vb///ugu713rP/tmb/25D/29v//wD//7b//9v////tNTWlAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAD4ElEQVR4nO3c23bjRBAFUMdRMJCBCUzCPZ6Mwf//i+jiEB77aKRIVu+98qiyqrq6rIvXym4HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAPJ47Syfxfqoqluk9P1c2MWaGr/FcqaXXnStV4/6prFwmVd281FUtk6trXqoqFr6OcQEAAAAAAAAAAAAAAAAAAACAJRyPS2ewLUcLunU6PKHj0cRsnxZP5Xg0MVXQ42kcqcfSm20LLGUd9Hgq5mX7dHhKVnPj9BcAAAAAAAAAAAAAAAAAAAAA/ud0Oi2dAgHtWtbpZGKujIYt6HQyMVdIy5Zy4motvXeqZO2vkpYtxrxcHQ1blOW/LtoFAABAuTNcjaWnpRXnIGANJxCwlBVWuYGA9WVUZ8AMVljlBgLWl1GdATNYYZUbCFhfRnUGzGCFVW4gYH0Z1RkwgxVWuYGA9WVUZ8AMVljlBgLWl1GdATNYYZUbCFhfRnUGzGCFVW4gYH0Z1RkwgxVWuYGA9WVUZwAAAAAAAAAAAAAAALBJt398Gx3+1/n8kAQ05/M/H2ZP6eUuCLj5eD4/Bcc3/X9dDCLajLKa24Cggn592iL+Ll2my4KWr2t/ZNLqPiBp9fiUolZPb/9YvOzD4Q+7JtkMt39+2DXRKXa7++z45nP06e3nv9x1aUWSGrpFOiQ17B+fdofiKoaW3X/u/oKAoNX9kUmr+4Ck1a+5FLd6CIhbPbnD+dfo67xp5/vmY3SJaYv9FO3O5kt2hblPrhZ5OkPMY1Bz92UYnSQKGFrWHV749XzpcXmrhyODVr99dGEVrwHFrb4EpK2e3jd34f3PLtw8nUN2w/TDd1FKNz/Oe8fXi0rotlmTBEQDM7QsCLn0uLzVb0cWtvotoHCdLgHlrR4C4lbPId8+2f5v7zuz+/nDU5bS/tPv2RND8/J9+ByWXlTb54tojfp7uPKUwoEZ+8CwC1o9BASt7gOSVg8Fh62eQzww0d15L3qG2f8UXvS6W+f9z0FE0z6/R89h6SL1jyTRKrUPs7+Uz+S7DUx5Ea8fXdzqPv+k1X3RaavnkA7MIR/x6H7+/mHERS86w4jnsPIn8k78DNMJAt5rYIJW/3cPl6QUtTo+w1zC3ZlfX7Ia94/9O9w5Xyv0d8PZwGQPm6MGJujD6+cXh4wbmKTVYwYma/WVDsyo17G3v2WvzrOU8jO02z970x0/woS3ZN0mKH1HvLusT/BaedzARK3uAqJGjEppzGaaXLY77+Pv/8O5/Ae2USnlZ+h+uIwmIP1Wi3+4bKLf4/r1ab+f5/3hMmr1cEkKGjHyopdvJgAAVuZfA1pOKnjomTcAAAAASUVORK5CYII=" /><!-- --></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">c &lt;-<span class="st"> </span><span class="kw">subtract_number_lines</span>(a, b)
-a; b; c
-<span class="co">#&gt; [1] &quot;1 -&gt; 10&quot;</span>
-<span class="co">#&gt; [1] &quot;5 -&gt; 15&quot;</span>
-<span class="co">#&gt; $n1</span>
-<span class="co">#&gt; [1] &quot;1 -&gt; 5&quot;</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $n2</span>
-<span class="co">#&gt; [1] &quot;10 -&gt; 15&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>c &lt;-<span class="st"> </span><span class="kw">subtract_number_lines</span>(a, b)</span>
+<span id="cb15-2"><a href="#cb15-2"></a>a; b; c</span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="co">#&gt; [1] &quot;1 -&gt; 10&quot;</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="co">#&gt; [1] &quot;5 -&gt; 15&quot;</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="co">#&gt; $n1</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a><span class="co">#&gt; [1] &quot;1 -&gt; 5&quot;</span></span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="co">#&gt; </span></span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="co">#&gt; $n2</span></span>
+<span id="cb15-9"><a href="#cb15-9"></a><span class="co">#&gt; [1] &quot;10 -&gt; 15&quot;</span></span></code></pre></div>
 <p><strong>Figure 5c: Subtraction</strong> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAACQCAMAAADgIn5aAAAAdVBMVEUAAAAAADoAAGYAOpAAZrY6AAA6ZmY6kNtA4NBmAABmOpBmkNtmtv+QOgCQ27aQ29uQ2/+2ZgC225C2/7a2/9u2///bkDrbkGbbtrbb25Db2//b/7bb/9vb///ugu713rP/tmb/25D/29v//wD//7b//9v///8T/KmZAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAEGklEQVR4nO3c3XKjRhAGUFnWRk7iza6TtfMv2VGi93/EAJLjyh0fC4Zhzilf0tAzPQ0MqvJmAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGO5a82dxDuqa7SM7e6uto7RM3yFu1rNPfGUqcrlU9t4GVF9/VLZcBlZZf1S12jhq2gXAAAAAAAAAAAAluRwOMydwmAFp06hDoeSO6bodqdAh0PhHaNneE+HlZh7HqnECtZb4elTlsL7pejkKVHJS67g1AEAAAAAAAAAAADmczwe506BKanvqI5HHbN2Kjye41HH1ECNR3KkHnMvtjUwlZVQ45Holxoo8Xj0y+qpMPSmXQAAAAAAAAAAAP7ndJo7g8qdVKAwCjan00nHFEfFZnM66ZgSKdlMThRr7rVTJXNfJCWbjX4pjoLNyvSXRbkAYJ3OUIy5u6UR5yBgCRcQMJcFjnIFAcvLqM6ACSxwlCsIWF5GdQZMYIGjXEHA8jKqM2ACCxzlCgKWl1GdARNY4ChXELC8jOoMmMACR7mCgOVlVGfABBY4yhUELC+jOgMmsMBRriBgeRnVGTCBBY5yBQHLy6jOAAAAAAAAAAAAAAAAYJVuf/82OvzP8/khCdidz/98nDyllw9BwM3n8/kpOH7X/dfFIKLJKBtzExCMoJufZhB/952m64T2n9fuyKTUXUBS6uEpRaUe3/ax97RfDn/Y7JLFcPvHx80uusRmc58dv3uOzt6c/+VDm1YkGUM7SftkDNvHp83+uf/R7bnvn9u/ICAodXdkUuouICn1ay69S30JiEs9uv35l+h2vmv6++Zz9IhpBvslWp27v7InzH3ytMjTucQ8BmNub4bRRaKAS8naw3venq817l/qy5FBqd9O3XMUrwG9S30NSEs9vm8+hO8/m3DxtPbZC9MP30Up3Xya9o2vEw2hXWa7JCBqmEvJgpBrjfuX+u3InqV+C+g5T9eA/qW+BMSlnkK+fLL137x3Zu/z+6cspe2X37Idw+7l+3Aflj5Um/1FNEfdO1z/lMKGGbph2ASlvgQEpe4CklJfBhyWegpxw0Rv551oD7P9MXzota/O25+CiF2zf4/2YekkdVuSaJaazezP/Xvy3Rqm/yBeT9271F3+Sam7QaelnkLaMPu8xaP3+fuHAQ+96AoD9mH9d+SteA/TCgLeq2GCUv/3DpekFJU6vsJUwtWZP1+yMW4fu2+4U35W6N6Gs4bJNpuDGiaow+v5e4cMa5ik1EMaJit1oQ0z6HPs7a/Zp/MspfwKzfLPvnTHW5jwlaxdBH2/EW+u8xN8Vh7WMFGp24CoEINSGrKYRpetzvv4/r8/9/+BbVBK+RXaHy6jDkjvavEPl7vo97hufpr787Q/XEalvjySgkIMfOjliwkAgIX5FxrzXOiMtAjcAAAAAElFTkSuQmCC" /><!-- --></p>
 </div>
 <div id="compressing-number_line-objects" class="section level2">
@@ -380,71 +617,72 @@ a; b; c
 <p>You can compress a pair of overlapping <code>number_line</code> objects into one by using <code>compress_number_line()</code>. You can also choose to compress only those that overlap in a certain way.</p>
 <p>When overlapping <code>number_line</code> objects have different directions, the resulting compressed <code>number_line</code> object inherits the direction of the widest among them. If they have the same width, the compressed <code>number_line</code> object takes an <code>&quot;increasing&quot;</code> direction.</p>
 <p><strong>Figure 6. Pairs of <code>number_line</code> objects overlapping by <code>&quot;inbetween&quot;</code> and <code>&quot;exact&quot;</code> methods compressed into one</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cnl_a &lt;-<span class="st"> </span><span class="kw">c</span>(inbetween, exact); cnl_a
-<span class="co">#&gt;  [1] &quot;5 -&gt; 8&quot;     &quot;6 -&gt; 7&quot;     &quot;11 &lt;- 10&quot;   &quot;9 -&gt; 12&quot;    &quot;13 -&gt; 15&quot;  </span>
-<span class="co">#&gt;  [6] &quot;14 == 14&quot;   &quot;1 -&gt; 2&quot;     &quot;1 -&gt; 2&quot;     &quot;3 -&gt; 4&quot;     &quot;4 &lt;- 3&quot;    </span>
-<span class="co">#&gt; [11] &quot;2.5 == 2.5&quot; &quot;2.5 == 2.5&quot;</span>
-
-cmp_a &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(cnl_a, <span class="dt">deduplicate =</span> T); cmp_a
-<span class="co">#&gt; [1] &quot;5 -&gt; 8&quot;     &quot;9 -&gt; 12&quot;    &quot;13 -&gt; 15&quot;   &quot;1 -&gt; 2&quot;     &quot;3 -&gt; 4&quot;    </span>
-<span class="co">#&gt; [6] &quot;2.5 == 2.5&quot;</span></code></pre></div>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAzAAAADwCAMAAADo1nEAAAACE1BMVEUAAAAAABAAABwAACAAAC4AADUAADgAADoAAFIAAF8AAGYAFHMAFygAHYYAJJIAJzMAKE4ANKoAOgAAOpAASGQAZgAAZrYA/38YAAAYM7ArAAArQc0wAAAwZXg1AAA1Sc06AAA6OD06ZmY6kAA6kNs8FAA8JHM8Tc1A4NBGgrRLJABLQZJLWrBLWs1UAABUgIxbMy5bM1JbWpJbWrBbWs1fAABfAF9fXc1fXe5mAABmABxmOpBmRz1mR0dmkNtmtgBmtv9qQVJqTXNqWpJqWrBqWs12KAB2SE52m4yGHQCGHTWGNIaGSaqGSc2GcKqGcO6HzuuQFwCQFxCQJyiQODOQOD2QOgCQVTOQVUeQZgCQkACQ2wCQ27aQ29uQ2/+WSACWgGSWtHiWtIyqNACqSYaqXaqqgqqqgs2qgu60ZSC0ZTi0tGS0tHi0tIy2JwC2OCi2RzO2YzO2Yz22Y0e2ZgC2kAC2tgC225C2/wC2/7a2/9u2///NSTXNXV/NcIbNcM3NgqrNgs3Ngu7SgDjSm07StGTStHjStIzYv9jbOBDbRxzbVSjbVT3bYzPbYz3bY0fbkADbkDrbkGbbtgDbtrbb2wDb25Db2//b/wDb/7bb/9vb///uXV/ucIbugqrugs3ugu713rP/Rxz/VSj/YzP/Yz3/Y0f/tgD/tmb/2wD/25D/29v/+vr//wD//7b//9v////E/7cEAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAMH0lEQVR4nO3cj58UdR3H8a+KiMgPRbgNSTniyD0SoRTzTAPSJbQfHlZkUpJaFqWWRWVCaVDMUZpYWVYocyqD0k3dn9j3OzO7t8De3fcz7Gf3O7uvZz5u7ma+n93v7Hfe953vHI+MAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADqJosi34SINGo1Gx/21Ws3vHXzbXSZN05KV3Va6I/V6vasduQKle5IkSVc70v7KSi8sF0XeiVkkW41G58TUat6J8c/WRdI0nMSUDG+9HlBiSqY3SfQSoxhGmSiSJGahzDQanRNTq0kSUyYzaRpUYspkpl4PKzFlMpMkqokJJDNRGR1faZHAyIjOIQ2S6BTqYRKdQ9IToi4pYIZRIO9MmQtUl7w3wzHDsIbptnJdCSsv5foyFGsYnpJ1F0/JVASTFgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgZH7/SV5iZ6UY/emp6ut896L16vd89CNq4fxAWaTk5ObnQYf+4zKgna9o/CD2KTD2ky7RXfZmamurNG3XR+LggMQtGZnJyocQIMjAzo52Y6WlBYnoSmXo9qMT0JjJTU9VLzPi4LDHzR2ZycoHESAIwM6OdmOlpWWL0I1Ovh5aYHkRmaqqCiRkvo+MrLRCYmTIUT3q6DMX+tAITGtVzrnRgJO1N1PHIIjOM8I4sqBnGtU0V+1NuhomlbyIqUI9LRQMjWsMULTsHZpE1jCAzYa1hipa6gSmzhoml7+Ff0IO0OFXMi+ApWavdPIFZ7CmZ/0omoKdkrXbKgSlxjcbSt/At6N1aqop5mf/6lxc0rqwjvSS+/rUDIxerF+hL+t0BAAAAVBJrGJUCdbF6gb5KrmEIjEqBuli9QB+BqQoCEwQCUxUEJggEpgLWvD3RvP4PHvGuIjAlrXh9ovjuqsdfuPRgJQPj5cYf3ykruOEzt+j0pJsuCkwWJOi5ODBzQRpIBAZXavACs/Tp6A93mltP7jU3Pn/YrI2i6ISNyvNRdMgesXsvs2xb48FbzPqHtpgb7t5hVjUajT02Knc3GlvtEbs3SDYYa95+Ik1P28D8MtuYl9J0wn05YBO05u0jZt1Ho/m+4lCzPeRsMFa8/o0kOWUD81O3MVf/PPlgwn4595hN0Io3XjCr3x/N9hWHTNE+VK0lyTX7Dplbf/9xs/2E2X7YpueQWXtyr9vY6aV9hmkVLLl9q1n/hY+ZDXvMhh0uPWbVQ1uWbdvqppdwZ5gsMKlZZ4Nw0AXjiJtoNn806maYzefNurdOm82ni32tQ6fTdWlgvxFj9YKucIF545RZ/cHEVY+7YLzgJppN74+6GWZTYla/dspsOlXsax7K2/elux5a178LxdKn9trgfNfGxrE/rc2/7RgYF4pld2yxwfmUjY1b9NufVmXfBnxLVgTG5cPdku06n92LvXTAbda8NbrrW3+1+9v2ZZsDaXB3bLF6QVe4wPx5v9tkt2QPvOeScvXP9rvNimT0/q/90e5v2+c2efu+dNfDXGDszVd257U2OlT8eHLvrQsFxt58ZXdeqxpb3Y/ZT+srFpjNNjCp1QzHwYmX7P9a+5qHCExJ2S3ZRCswm95b8UaSJOfycCSPffO+F+97caK5b+5QJQJThGLpU1+039343F6fGcZZdscn7Xc33FXNGeZ0EYVss+sXdo554rxp35dtCExJlwTmgVNFFLJN8pM/jd7/9fdM+758U4XAuDWMDcY1+w67pcxau/7fXqxhntvr4nNZgVvD2GAsuX2HW8qserBhNhRrmLu22P96fB6+2gPjlifZGibbecDkK5i3TptiX+sQgSmrPTBueZKtYYr7NJO4Fcxrp0yxr3ko7MDMyZ+FbbdzytKnT1yzL4p+5CLknpLZMGW3aZfIn4VtsHPKsm17ltzeaHzaRcg9JbNhym7TApQHII/D3FMyG5aDafGMzP1Q7Ms3zfaQaw9M6ynZuf02I0nxjMz+UOwrNpUJDAAA3TRs/5Yswz++DEIl/y0ZgVEpUBerF+gjMFVBYIJAYKqCwASBwFQFgQlCJQMDAACAvmMNo1KgLlYv0FfJNQyBUSlQF6sX6CMwVUFggkBgqoLABIHAVAWBCUIlAwMAAIC+Yw2jUqAuVi/QV8k1DIFRKVAXqxfoIzBVQWCCQGCqgsAEgcBUBYEJQiUDAwAAgL5jDaNSoC5WL9BXyTUMgVEpUBerF+gjMFVR8cCsfHVncf1f++gzvkWxUmeuAIGpiooHxomzrxcHxgVpkYKgEJiqIDBBqGRgUD02GCtf/UocH7OB+b7bmOt/GL+70345+4hN0Mrjz5ib3rkt21ccMkV7YAi5wBw/Zm56d+e1j7pgPOMmmo3v3OZmmI1nzE2vHDMbjxX7mofy9v3uOdAHLjC/e9htsluye8+4pFz/g4fdZuVvb/vsl35j97ftc5u8fb97PgBYw6gUqHKBiXe2ArPxzMrjcRyfLcLxyFfvefaeZ3c29zUPxeEFppJrGAKjUqDqksDce6yIQra593t2jvnyGdO+z20ITHcQGJUCVe2BccuTbA1T3KflK5hXjpliX/MQgekSAqNSoKo9MK2nZGcfthmJi2dk9odiX7EhMN1CYFQK1MXqBfoqGRgAAAD0HWsYlQJ1sXqBviquYaLIMzGtdvO1bzQ6J6ZWq/m9g2+7y6Sp9HrWCoy4I+XFzW28QKP29r4NS0sSaQB824tfWE8UeSemma15mjcanRNTq3knxj9bF0lTcWL0Zhh5eEuKsy/eKYhj7cQkiTgx/s3lYdQRRZLE5Jnp3LrR6JyYWk2SmDKZSVN5YlRvyXqTmVg0Z8SxdmKSRJ4YUesgMhOV0fGVFgmMjOgc0iCVGg6JuAzF/iQ9oXgCXqQzjJm3bbdmGPlKpldXqL8edUZy/Yc5w0jfQfHFfUnvyOY/1o01TLmFf2B56eXCPxY0DXANI3t5vdeWEORlkZZX/JSs9HOykPLS4674hyDEp2SS11Z7aS2SG7dySj9WDkcfkquegwBUMC4AAAAAAAAAAAAAAAAAAAAAAEDRLFAZ/U6LJe4DBSG8AQX9EuBZDkBBeD0azgIFAZ7lABSE16PhLFAQ4FkOQEF4PRrOAgUBnuUAFITXo+EsUBDgWQ5AQXg9Gs4CBQGe5QAUhNej4SxQEOBZDkBBeD0azgIFAZ7lABSE16PhLFAQ4FkOQEF4PRrOAgAAAAAAAAAAAAAAAAAAAAAAMJBu/ueEqPm/Z2ePSApGZmf/d0C9SxdGBQXXPTk7+6ag/Uj2/7ooqLA9kp2zLRCcQfb52JP4r+/HVHyg/p9r1lIy1FmBZKjLd0k01N23/Kj3x543P2JGJBfDzf86YEZEb2HMbln7kQ9Fr25f/8Ko65aI5BzchzQmOYflR980Y95nkQ/Z7g/df4ICwVBnLSVDnRVIhrrZF++hzgvEQ911Y7N/E/06H7H5vu5J0RRjT/Zl0dU58h/ZDLNbMlvIu5PXHBWcs/tlKHoTUUE+ZK6556/nYoz9hzpvKRjquZf2PItmgfdQFwXSoe6+T4wK73+M8OJxxmQ3TN/+nKhL131H944vIzoFd5mNSApEgcmHTFBSjLH/UM+19BzquQLPz6ko8B/qvEA81Brkl4/s+rf3nbL7+bE3ZV1a/vI/ZCuGkQufF67DpJOqXV+IPqPsHs6/S8LAlF0wGMFQ5wWCoc4KJEOdn7BwqDWIAyO6O8+I1jDLfyWc9Nyt8/JfCypG7PpdtA6TfkjZkkT0KdnF7F/8M9mzwPifRPOlvYc6679kqLOTlg61BmlgxuQRF93P7z5SYtITvUOJdZj/itwRr2EcQUGvAiMY6tY9nKRLoqEWv4MW4dUpn19k57j8aPYMV/OxQnY3LAuMbLFZKjCCcWi+vndJucBIhrpMYGRDXdHAlHoce/PfR0U1si7J38Fe/rIn3eIljPCWzF0Evs+ITfH5CB4rlwuMaKhdgWggSnWpzMXUdbKrc7f49//YrP8f2Ep1Sf4O7g+XogRIf6uJ/3A5Ivp7XPb52N/Pun+4FA11PiUJBqLkpCe/mAAAABCY/wMYmkgdegJE4QAAAABJRU5ErkJggg==" /><!-- --></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>cnl_a &lt;-<span class="st"> </span><span class="kw">c</span>(inbetween, exact); cnl_a</span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="co">#&gt;  [1] &quot;5 -&gt; 8&quot;     &quot;6 -&gt; 7&quot;     &quot;11 &lt;- 10&quot;   &quot;9 -&gt; 12&quot;    &quot;13 -&gt; 15&quot;  </span></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="co">#&gt;  [6] &quot;14 == 14&quot;   &quot;1 -&gt; 2&quot;     &quot;1 -&gt; 2&quot;     &quot;2.5 == 2.5&quot; &quot;2.5 == 2.5&quot;</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="co">#&gt; [11] &quot;3 -&gt; 4&quot;     &quot;4 &lt;- 3&quot;</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a>cmp_a &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(cnl_a, <span class="dt">deduplicate =</span> T); cmp_a</span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="co">#&gt; [1] &quot;5 -&gt; 8&quot;     &quot;9 -&gt; 12&quot;    &quot;13 -&gt; 15&quot;   &quot;1 -&gt; 2&quot;     &quot;2.5 == 2.5&quot;</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a><span class="co">#&gt; [6] &quot;3 -&gt; 4&quot;</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <p><strong>Figure 7. Pairs of <code>number_line</code> objects overlapping by <code>&quot;across&quot;</code> and <code>&quot;chain&quot;</code> methods compressed into one</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cnl_b &lt;-<span class="st"> </span><span class="kw">c</span>(across, chain); cnl_b
-<span class="co">#&gt;  [1] &quot;16 -&gt; 19&quot; &quot;18 -&gt; 21&quot; &quot;22 -&gt; 25&quot; &quot;23 -&gt; 26&quot; &quot;27 -&gt; 30&quot; &quot;31 &lt;- 29&quot;</span>
-<span class="co">#&gt;  [7] &quot;32 -&gt; 34&quot; &quot;34 -&gt; 36&quot; &quot;39 &lt;- 37&quot; &quot;41 &lt;- 39&quot; &quot;42 -&gt; 44&quot; &quot;47 &lt;- 44&quot;</span>
-
-cmp_b &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(cnl_b, <span class="dt">deduplicate =</span> T); cmp_b
-<span class="co">#&gt; [1] &quot;16 -&gt; 21&quot; &quot;22 -&gt; 26&quot; &quot;27 -&gt; 31&quot; &quot;32 -&gt; 36&quot; &quot;41 &lt;- 37&quot; &quot;47 &lt;- 42&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>cnl_b &lt;-<span class="st"> </span><span class="kw">c</span>(across, chain); cnl_b</span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="co">#&gt;  [1] &quot;16 -&gt; 19&quot; &quot;18 -&gt; 21&quot; &quot;22 -&gt; 25&quot; &quot;23 -&gt; 26&quot; &quot;27 -&gt; 30&quot; &quot;31 &lt;- 29&quot;</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="co">#&gt;  [7] &quot;32 -&gt; 34&quot; &quot;34 -&gt; 36&quot; &quot;39 &lt;- 37&quot; &quot;41 &lt;- 39&quot; &quot;42 -&gt; 44&quot; &quot;47 &lt;- 44&quot;</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a></span>
+<span id="cb17-5"><a href="#cb17-5"></a>cmp_b &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(cnl_b, <span class="dt">deduplicate =</span> T); cmp_b</span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="co">#&gt; [1] &quot;16 -&gt; 21&quot; &quot;22 -&gt; 26&quot; &quot;27 -&gt; 31&quot; &quot;32 -&gt; 36&quot; &quot;41 &lt;- 37&quot; &quot;47 &lt;- 42&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>Compress <code>number_line</code> objects that overlap in a particular way by using the <code>methods</code> argument.</p>
 <p><strong>Figure 8. Pairs of <code>number_line</code> objects overlapping by <code>&quot;aligns_start&quot;</code> and <code>&quot;exact&quot;</code> methods compressed into one</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cnl_c &lt;-<span class="st"> </span><span class="kw">c</span>(aligns_start, aligns_end); cnl_c
-<span class="co">#&gt;  [1] &quot;45 -&gt; 46&quot;     &quot;45 -&gt; 47&quot;     &quot;48 -&gt; 49.5&quot;   &quot;48 == 48&quot;    </span>
-<span class="co">#&gt;  [5] &quot;51 &lt;- 50&quot;     &quot;51 -&gt; 52&quot;     &quot;54 -&gt; 55&quot;     &quot;53 -&gt; 55&quot;    </span>
-<span class="co">#&gt;  [9] &quot;56 -&gt; 57.5&quot;   &quot;57.5 == 57.5&quot; &quot;58 -&gt; 59&quot;     &quot;60 &lt;- 59&quot;</span>
-
-cmp_c &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(cnl_c, <span class="dt">deduplicate =</span> T, <span class="dt">methods =</span><span class="st">&quot;aligns_start|exact&quot;</span>); cmp_c
-<span class="co">#&gt; [1] &quot;45 -&gt; 47&quot;     &quot;48 -&gt; 49.5&quot;   &quot;50 -&gt; 52&quot;     &quot;54 -&gt; 55&quot;    </span>
-<span class="co">#&gt; [5] &quot;53 -&gt; 55&quot;     &quot;56 -&gt; 57.5&quot;   &quot;57.5 == 57.5&quot; &quot;58 -&gt; 59&quot;    </span>
-<span class="co">#&gt; [9] &quot;60 &lt;- 59&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>cnl_c &lt;-<span class="st"> </span><span class="kw">c</span>(aligns_start, aligns_end); cnl_c</span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="co">#&gt;  [1] &quot;45 -&gt; 46&quot;     &quot;45 -&gt; 47&quot;     &quot;48 -&gt; 49.5&quot;   &quot;48 == 48&quot;     &quot;51 &lt;- 50&quot;    </span></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="co">#&gt;  [6] &quot;51 -&gt; 52&quot;     &quot;54 -&gt; 55&quot;     &quot;53 -&gt; 55&quot;     &quot;56 -&gt; 57.5&quot;   &quot;57.5 == 57.5&quot;</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="co">#&gt; [11] &quot;58 -&gt; 59&quot;     &quot;60 &lt;- 59&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a>cmp_c &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(cnl_c, <span class="dt">deduplicate =</span> T, <span class="dt">methods =</span><span class="st">&quot;aligns_start|exact&quot;</span>); cmp_c</span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="co">#&gt; [1] &quot;45 -&gt; 47&quot;     &quot;48 -&gt; 49.5&quot;   &quot;50 -&gt; 52&quot;     &quot;54 -&gt; 55&quot;     &quot;53 -&gt; 55&quot;    </span></span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="co">#&gt; [6] &quot;56 -&gt; 57.5&quot;   &quot;57.5 == 57.5&quot; &quot;58 -&gt; 59&quot;     &quot;60 &lt;- 59&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 </div>
 <div id="collapsing-number_line-objects" class="section level2">
 <h2>Collapsing <code>number_line</code> objects</h2>
-<p>The resulting compressed <code>number_line</code> object can yet again overlap with others, especially when not every <code>method</code> is used. This doesn’t happen by default but you can do so by changing <code>collapse</code> to <code>TRUE</code>.</p>
-<p>It’s worth mentioning that this process starts from the first <code>number_line</code> object in the set and then proceeds to the last. Therefore, changing their position in the set can lead to different results.</p>
+<p>The resulting compressed <code>number_line</code> object can yet again overlap with others. Especially when using specific <code>methods</code>. This doesn’t happen by default but you can do so by changing <code>collapse</code> to <code>TRUE</code>.</p>
+<p>It’s worth mentioning that this process starts from the first <code>number_line</code> object in the set. Therefore, changing their position in the set can lead to different results.</p>
 <p><strong>Figure 9a: Compressing pairs of <code>number_line</code> objects by <code>&quot;across&quot;</code>, <code>&quot;chain&quot;</code>, <code>&quot;inbetween&quot;</code> and <code>&quot;aligns_end&quot;</code> methods</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nl_z &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dt">l=</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>), <span class="dt">r =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">8</span>,<span class="dv">8</span>,<span class="dv">7</span>))
-nl_z
-<span class="co">#&gt; [1] &quot;1 -&gt; 3&quot; &quot;2 -&gt; 4&quot; &quot;4 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>nl_z &lt;-<span class="st"> </span><span class="kw">number_line</span>(<span class="dt">l=</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>), <span class="dt">r =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">8</span>,<span class="dv">8</span>,<span class="dv">7</span>))</span>
+<span id="cb19-2"><a href="#cb19-2"></a>nl_z</span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="co">#&gt; [1] &quot;1 -&gt; 3&quot; &quot;2 -&gt; 4&quot; &quot;4 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>In the figure above, there are <code>&quot;across&quot;</code>, <code>&quot;chain&quot;</code>, <code>&quot;inbetween&quot;</code> and <code>&quot;aligns_end&quot;</code> overlaps but we’ve chosen to only compress pairs that overlap by <code>&quot;chain&quot;</code> and <code>&quot;aligns_end&quot;</code> methods. The resulting <code>number_line</code> object from compressing <code>1 -&gt; 3 and 2 -&gt; 4</code> now overlaps with the resulting <code>number_line</code> objects from <code>4 -&gt; 8 and 5 -&gt; 8</code>.</p>
+<p>In the figure above, there are <code>&quot;across&quot;</code>, <code>&quot;chain&quot;</code>, <code>&quot;inbetween&quot;</code> and <code>&quot;aligns_end&quot;</code> methods of overlap but we’ve chosen to only compress pairs that overlap by <code>&quot;chain&quot;</code> and <code>&quot;aligns_end&quot;</code> methods. The resulting <code>number_line</code> object from compressing <code>1 -&gt; 3 and 2 -&gt; 4</code> now overlaps with the resulting <code>number_line</code> objects from <code>4 -&gt; 8 and 5 -&gt; 8</code>.</p>
 <p><strong>Figure 9b: Compressing pairs of <code>number_line</code> objects by <code>&quot;chain&quot;</code> and <code>&quot;aligns_end&quot;</code> methods compressed into one</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cmp_z &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(nl_z, <span class="dt">methods =</span> <span class="st">&quot;across|chain&quot;</span>)
-
-cmp_z
-<span class="co">#&gt; [1] &quot;1 -&gt; 4&quot; &quot;4 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>cmp_z &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(nl_z, <span class="dt">methods =</span> <span class="st">&quot;across|chain&quot;</span>)</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a>cmp_z</span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="co">#&gt; [1] &quot;1 -&gt; 4&quot; &quot;4 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>As mentioned, if each <code>number_line</code> object’s position in the set changes, the result could also change. See below.</p>
 <p><strong>Figure 9c: Rearranged the pairs of <code>number_line</code> objects before compressing by <code>&quot;across&quot;</code>, <code>&quot;chain&quot;</code>, <code>&quot;inbetween&quot;</code> and <code>&quot;aligns_end&quot;</code> methods </strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nl_zb &lt;-<span class="st"> </span>nl_z[<span class="kw">c</span>(<span class="dv">2</span><span class="op">:</span><span class="dv">5</span>,<span class="dv">1</span>)]; nl_zb
-<span class="co">#&gt; [1] &quot;2 -&gt; 4&quot; &quot;4 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot; &quot;1 -&gt; 3&quot;</span>
-
-cmp_zb &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(nl_zb, <span class="dt">methods =</span> <span class="st">&quot;across|chain&quot;</span>); cmp_zb
-<span class="co">#&gt; [1] &quot;1 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>nl_zb &lt;-<span class="st"> </span>nl_z[<span class="kw">c</span>(<span class="dv">2</span><span class="op">:</span><span class="dv">5</span>,<span class="dv">1</span>)]; nl_zb</span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="co">#&gt; [1] &quot;2 -&gt; 4&quot; &quot;4 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot; &quot;1 -&gt; 3&quot;</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a></span>
+<span id="cb21-4"><a href="#cb21-4"></a>cmp_zb &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(nl_zb, <span class="dt">methods =</span> <span class="st">&quot;across|chain&quot;</span>); cmp_zb</span>
+<span id="cb21-5"><a href="#cb21-5"></a><span class="co">#&gt; [1] &quot;1 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>In Fig. 8b, <code>1 -&gt; 3</code> came first, so only <code>number_line</code> objects that overlapped with <code>1 -&gt; 3</code> were compressed. However in Fig. 8c, because of the new positions, <code>2 -&gt; 4</code> came first, so only those that overlapped with <code>2 -&gt; 4</code> were compressed.</p>
-<p>In the example below, we change <code>collapse</code> to <code>TRUE</code> to collapse (rather than compress) the initial set (<code>nl_z</code>) which gives the same result as compressing the rearranged version (<code>nl_zb</code>).</p>
+<p>Changing <code>collapse</code> to <code>TRUE</code> will collapse (rather than compress) the initial set (<code>nl_z</code>). This gives the same result as compressing the rearranged version (<code>nl_zb</code>).</p>
 <p><strong>Figure 9d: pairs of <code>number_line</code> objects overlapping by <code>&quot;chain&quot;</code> and `“aligns_end” methods collapsed into one</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cmp_zba &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(nl_z, <span class="dt">methods =</span> <span class="st">&quot;across|chain&quot;</span>, <span class="dt">collapse =</span> T); cmp_zba
-<span class="co">#&gt; [1] &quot;1 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>cmp_zba &lt;-<span class="st"> </span><span class="kw">compress_number_line</span>(nl_z, <span class="dt">methods =</span> <span class="st">&quot;across|chain&quot;</span>, <span class="dt">collapse =</span> T); cmp_zba</span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="co">#&gt; [1] &quot;1 -&gt; 8&quot; &quot;5 -&gt; 8&quot; &quot;6 -&gt; 7&quot;</span></span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
 
-<p><code>fixed_episodes()</code>, <code>rolling_episodes()</code> and <code>episode_group()</code> are more advanced implementations of <code>compress_number_line()</code>. They can compress (<code>&quot;fixed_episodes&quot;</code>) and collapse (<code>&quot;rolling_episodes&quot;</code>) overlapping <code>number_line</code> objects. They have additional useful features such as controlling the order in which pairs are compressed i.e. chronological order (<code>from_last</code>) or a user defined order (<code>custom_sort</code>), and using additional periods (<code>case_length</code> and <code>recurrence_length</code>) before and/or (<code>bi_direction</code>) after the reference <code>number_line</code> object. See <a href="episode_group.html">episode grouping</a> for further details.</p>
-</div>
+<p><code>episodes()</code> is a more advanced implementations of <code>compress_number_line()</code>. It can compress (<code>&quot;fixed_episodes&quot;</code>) and collapse (<code>&quot;rolling_episodes&quot;</code>) overlapping <code>number_line</code> objects. It has additional useful features such as controlling the order in which pairs are compressed i.e. chronological order (<code>from_last</code>) or a user-defined order (<code>custom_sort</code>). See <a href="episodes.html">episode grouping</a> for more information.</p>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

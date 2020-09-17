@@ -93,19 +93,15 @@ setMethod("c", signature(x = "number_line"), function(x,...) {
 
   # id <- unlist(lapply(list(x, ...), function(y) as.number_line(y)@id))
   # gid <- unlist(lapply(list(x, ...), function(y) as.number_line(y)@gid))
-  zi <- unlist(list(x, ...))
+  zi <- unlist(lapply(list(x, ...), function(x) as.number_line(x)@.Data), use.names = F)
   id <- gid <- 1:length(zi)
   methods::new("number_line", .Data = zi, id = id, gid = gid, start= ai)
-
 })
 
 #' @rdname number_line-class
 #' @export
 unique.number_line <- function(x, ...){
-  db <- unique(data.frame(l = left_point(x), r = right_point(x), ob = x))
-  db$cri <- paste(as.numeric(db$l), as.numeric(db$r),sep="")
-  db <- subset(db, !duplicated(db$cri))
-  x <- db$ob
+  x <- x[!duplicated(paste0(x@start, " ", x@.Data))]
   return(x)
 }
 
@@ -137,14 +133,17 @@ format.number_line <- function(x, ...){
 #' @title \code{epid} object
 #'
 #' @description
-#' S4 objects to store the results of \code{\link{fixed_episodes}}, \code{\link{rolling_episodes}} and \code{\link{episode_group}}
+#' S4 objects to store the results of \code{\link{episodes}}
 #'
 #' @aliases epid-class
 #' @importFrom "methods" "new"
 #' @importFrom "utils" "head"
 #' @export
-setClass("epid", contains = "numeric", representation(sn = "numeric", wind_id = "numeric", wind_nm= "character", case_nm= "character", dist_from_wind = "ANY", dist_from_epid = "ANY", epid_interval = "number_line",
-                                                      epid_length= "ANY", epid_total = "numeric", epid_dataset ="character"))
+setClass("epid", contains = "numeric", representation(sn = "numeric", wind_id = "numeric", wind_nm = "character",
+                                                      case_nm = "character", dist_from_wind = "ANY",
+                                                      dist_from_epid = "ANY", epid_interval = "number_line",
+                                                      epid_length= "ANY", epid_total = "numeric",
+                                                      epid_dataset = "character", iteration = "numeric"))
 
 #' @rdname epid-class
 #' @export
@@ -162,7 +161,8 @@ as.epid <- function(x){
                     case_nm = rep(NA_character_, length(x)),
                     wind_nm = rep(NA_character_, length(x)),
                     epid_interval = as.number_line(rep(NA_real_, length(x))), epid_total = rep(NA_real_, length(x)),
-                    epid_dataset = rep(NA_character_, length(x)))
+                    epid_dataset = rep(NA_character_, length(x)),
+                    iteration = rep(NA_real_, length(x)))
 
   if(class(y) =="number_line"){
     x@epid_interval <- y
@@ -183,9 +183,7 @@ format.epid <- function(x, ...){
 #' @rdname epid-class
 #' @export
 unique.epid <- function(x, ...){
-  db <- unique(data.frame(c = x@case_nm, ob = x))
-  db <- subset(db, db$c!="Duplicate")
-  x <- db$ob
+  x <- x[!x@case_nm %in% c("Duplicate_C", "Duplicate_R")]
   return(x)
 }
 
@@ -199,10 +197,12 @@ setMethod("show", signature(object="epid"), function(object){
 #' @param x x
 #' @param ... ...
 setMethod("rep", signature(x = "epid"), function(x, ...) {
-  methods::new("epid", rep(x@.Data, ...), sn = rep(x@sn, ...), wind_id = rep(x@wind_id, ...),
-               dist_from_epid = rep(x@dist_from_epid, ...), dist_from_wind = rep(x@dist_from_wind, ...),
-               wind_nm = rep(x@wind_nm, ...), case_nm = rep(x@case_nm, ...), epid_interval = rep(x@epid_interval, ...),
-               epid_length = rep(x@epid_length, ...), epid_total = rep(x@epid_total, ...), epid_dataset = rep(x@epid_dataset, ...))
+  methods::new("epid", rep(x@.Data, ...), sn = rep(x@sn, ...),
+               wind_id = rep(x@wind_id, ...), dist_from_epid = rep(x@dist_from_epid, ...),
+               dist_from_wind = rep(x@dist_from_wind, ...), wind_nm = rep(x@wind_nm, ...),
+               case_nm = rep(x@case_nm, ...), epid_interval = rep(x@epid_interval, ...),
+               epid_length = rep(x@epid_length, ...), epid_total = rep(x@epid_total, ...),
+               epid_dataset = rep(x@epid_dataset, ...), iteration = rep(x@iteration, ...))
 })
 
 #' @aliases [,epid-method
@@ -215,7 +215,7 @@ setMethod("[", signature(x = "epid"),
             methods::new("epid", x@.Data[i], case_nm = x@case_nm[i], sn = x@sn[i], wind_id = x@wind_id[i], wind_nm = x@wind_nm[i],
                          dist_from_epid = x@dist_from_epid[i], dist_from_wind = x@dist_from_wind[i],
                          epid_length = x@epid_length[i], epid_total = x@epid_total[i], epid_dataset = x@epid_dataset[i],
-                         epid_interval = x@epid_interval[i])
+                         epid_interval = x@epid_interval[i], iteration = x@iteration[i])
           })
 
 #' @aliases [[,epid-method
@@ -226,7 +226,7 @@ setMethod("[[", signature(x = "epid"),
             methods::new("epid", x@.Data[i], case_nm = x@case_nm[i], sn = x@sn[i], wind_id = x@wind_id[i], wind_nm = x@wind_nm[i],
                          dist_from_epid = x@dist_from_epid[i], dist_from_wind = x@dist_from_wind[i],
                          epid_length = x@epid_length[i], epid_total = x@epid_total[i], epid_dataset = x@epid_dataset[i],
-                         epid_interval = x@epid_interval[i])
+                         epid_interval = x@epid_interval[i], iteration = x@iteration[i])
           })
 
 #' @rdname epid-class
@@ -246,11 +246,13 @@ setMethod("c", signature(x = "epid"), function(x,...) {
   epid_length <- unlist(lapply(list(x, ...), function(y) y@epid_length))
   epid_total <- unlist(lapply(list(x, ...), function(y) y@epid_total))
   epid_dataset <- unlist(lapply(list(x, ...), function(y) y@epid_dataset))
+  iteration <- unlist(lapply(list(x, ...), function(y) y@iteration))
   zi <- unlist(list(x, ...))
 
   methods::new("epid", zi, case_nm = case_nm, sn = sn, wind_id = wind_id, wind_nm = wind_nm,
                epid_length = epid_length, epid_total = epid_total, epid_dataset = epid_dataset,
-               epid_interval = ei, dist_from_epid = dist_from_epid, dist_from_wind = dist_from_wind)
+               epid_interval = ei, dist_from_epid = dist_from_epid, dist_from_wind = dist_from_wind,
+               iteration = iteration)
 
 })
 
@@ -266,7 +268,7 @@ setMethod("c", signature(x = "epid"), function(x,...) {
 #' @importFrom "utils" "head"
 #' @export
 setClass("pid", contains = "numeric", representation(sn = "numeric", pid_cri= "numeric", link_id = "numeric",
-                                                     pid_dataset ="character", pid_total = "numeric"))
+                                                     pid_dataset ="character", pid_total = "numeric", iteration = "numeric"))
 
 #' @rdname pid-class
 #' @export
@@ -278,7 +280,7 @@ as.pid <- function(x, ...){
 
   x[!is.finite(as.numeric(x))] <- NA
   x <- methods::new("pid", .Data = as.numeric(x), sn = 1:length(x), pid_cri = rep(NA_real_, length(x)), link_id = rep(NA_real_, length(x)),
-                    pid_total = rep(NA_real_, length(x)), pid_dataset = rep(NA_character_, length(x)))
+                    pid_total = rep(NA_real_, length(x)), pid_dataset = rep(NA_character_, length(x)), iteration = rep(NA_real_, length(x)))
   return(x)
 }
 
@@ -286,17 +288,14 @@ as.pid <- function(x, ...){
 #' @export
 format.pid <- function(x, ...){
   if (length(x)==0) "pid(0)"
-  else return(paste("P.", formatC(x@.Data, width= nchar(max(x@.Data)), flag=0, format = "fg"), " (",
-                    ifelse(x@pid_cri==0,"No Hit", paste("CRI ", formatC(x@pid_cri, width = 2, flag=0, format = "fg"), sep="")),
-                    ")", sep=""))
+  else return(paste0("P.", formatC(x@.Data, width= nchar(max(x@.Data)), flag = 0, format = "fg"),
+                     " (", pid_cri_l(x@pid_cri),")"))
 }
 
 #' @rdname pid-class
 #' @export
 unique.pid <- function(x, ...){
-  db <- unique(data.frame(p = x@.Data, ob = x))
-  db <- subset(db, !duplicated(db$p))
-  x <- db$ob
+  x <- x[!duplicated(x@.Data)]
   return(x)
 }
 
@@ -311,7 +310,7 @@ setMethod("show", signature(object="pid"), function(object){
 #' @param ... ...
 setMethod("rep", signature(x = "pid"), function(x, ...) {
   methods::new("pid", rep(x@.Data, ...), sn = rep(x@sn, ...), pid_total = rep(x@pid_total, ...), link_id = rep(x@link_id, ...),
-               pid_dataset = rep(x@pid_dataset, ...), pid_cri = rep(x@pid_cri, ...))
+               pid_dataset = rep(x@pid_dataset, ...), pid_cri = rep(x@pid_cri, ...), iteration = rep(x@iteration, ...))
 })
 
 #' @aliases [,pid-method
@@ -322,7 +321,7 @@ setMethod("rep", signature(x = "pid"), function(x, ...) {
 setMethod("[", signature(x = "pid"),
           function(x, i, j, ..., drop = TRUE) {
             methods::new("pid", x@.Data[i], pid_cri = x@pid_cri[i], sn = x@sn[i], link_id = x@link_id[i],
-                         pid_total = x@pid_total[i], pid_dataset = x@pid_dataset[i])
+                         pid_total = x@pid_total[i], pid_dataset = x@pid_dataset[i], iteration = x@iteration[i])
           })
 
 #' @aliases [[,pid-method
@@ -331,7 +330,7 @@ setMethod("[", signature(x = "pid"),
 setMethod("[[", signature(x = "pid"),
           function(x, i, j, ..., exact = TRUE) {
             methods::new("pid", x@.Data[i], pid_cri = x@pid_cri[i], sn = x@sn[i], link_id = x@link_id[i],
-                         pid_total = x@pid_total[i], pid_dataset = x@pid_dataset[i])
+                         pid_total = x@pid_total[i], pid_dataset = x@pid_dataset[i], iteration = x@iteration[i])
           })
 
 #' @rdname pid-class
@@ -342,9 +341,9 @@ setMethod("c", signature(x = "pid"), function(x,...) {
   link_id <- unlist(lapply(list(x, ...), function(y) y@link_id))
   pid_total <- unlist(lapply(list(x, ...), function(y) y@pid_total))
   pid_dataset <- unlist(lapply(list(x, ...), function(y) y@pid_dataset))
+  iteration <- unlist(lapply(list(x, ...), function(y) y@iteration))
   zi <- unlist(list(x, ...))
 
   methods::new("pid", zi, pid_cri = pid_cri, sn = sn,
-               pid_total = pid_total, pid_dataset = pid_dataset, link_id = link_id)
-
+               pid_total = pid_total, pid_dataset = pid_dataset, link_id = link_id, iteration = iteration)
 })
