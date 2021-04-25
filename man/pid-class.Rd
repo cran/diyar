@@ -3,9 +3,14 @@
 \docType{class}
 \name{pid-class}
 \alias{pid-class}
+\alias{is.pid}
 \alias{as.pid}
 \alias{format.pid}
 \alias{unique.pid}
+\alias{summary.pid}
+\alias{print.pid_summary}
+\alias{as.data.frame.pid}
+\alias{as.list.pid}
 \alias{show,pid-method}
 \alias{rep,pid-method}
 \alias{[,pid-method}
@@ -13,11 +18,21 @@
 \alias{c,pid-method}
 \title{\code{pid} objects}
 \usage{
+is.pid(x)
+
 as.pid(x, ...)
 
 \method{format}{pid}(x, ...)
 
 \method{unique}{pid}(x, ...)
+
+\method{summary}{pid}(object, ...)
+
+\method{print}{pid_summary}(x, ...)
+
+\method{as.data.frame}{pid}(x, ...)
+
+\method{as.list}{pid}(x, ...)
 
 \S4method{show}{pid}(object)
 
@@ -45,5 +60,29 @@ as.pid(x, ...)
 \item{exact}{exact}
 }
 \description{
-S4 objects to store the results of \code{\link{record_group}}
+S4 objects storing the result of \code{\link{links}}.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{sn}}{Unique record identifier.}
+
+\item{\code{.Data}}{Unique group identifier.}
+
+\item{\code{link_id}}{Unique record identifier for matching records.}
+
+\item{\code{pid_cri}}{Matching criteria.}
+
+\item{\code{pid_dataset}}{Data sources in each group.}
+
+\item{\code{pid_total}}{The number of records in each group.}
+
+\item{\code{iteration}}{The iteration of the linkage process when a record was linked to its group.}
+}}
+
+\examples{
+# A test for pid objects
+pd <- links(criteria = 1)
+is.pid(pd); is.pid(2)
+
 }

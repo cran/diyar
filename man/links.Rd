@@ -12,116 +12,141 @@ links(
   strata = NULL,
   data_source = NULL,
   data_links = "ANY",
-  display = "progress",
+  display = "none",
   group_stats = FALSE,
   expand = TRUE,
-  shrink = FALSE
+  shrink = FALSE,
+  recursive = FALSE,
+  check_duplicates = FALSE
 )
 
 record_group(df, ..., to_s4 = TRUE)
 }
 \arguments{
-\item{criteria}{\code{list} of attributes to compare at each stage. Comparisons are done as an exact match i.e. (\code{==}). See \code{Details}.}
+\item{criteria}{\code{[list|atomic]}. Attributes to compare. Each element of the list is a stage in the linkage process. See \code{Details}.}
 
-\item{sub_criteria}{\code{list} of additional attributes to compare at each stage. Comparisons are done as an exact match or with user-defined logical tests \code{function}. See \code{\link{sub_criteria}}}
+\item{sub_criteria}{\code{[list|\link{sub_criteria}]}. Additional matching criteria for each stage of the linkage process. See \code{\link{sub_criteria}}}
 
-\item{sn}{Unique numerical record identifier. Useful for creating familiar episode identifiers.}
+\item{sn}{\code{[integer]}. Unique record identifier. Useful for creating familiar \code{\link[=pid-class]{pid}} identifiers.}
 
-\item{strata}{Subsets. Record groups are tracked separately within each subset.}
+\item{strata}{\code{[atomic]}. Subsets of the dataset. Record-groups are created separately for each \code{strata}. See \code{Details}.}
 
-\item{data_source}{Unique data source identifier. Useful when the dataset contains data from multiple sources.}
+\item{data_source}{\code{[character]}. Data source identifier. Adds the list of data sources in each record-group to the \code{\link[=pid-class]{pid}}. Useful when the dataset has data from multiple sources.}
 
-\item{data_links}{A set of \code{data_sources} required in each record group. A \code{strata} without records from these data sources will be skipped, and record groups without these will be unlinked. See \code{Details}.}
+\item{data_links}{\code{[list|character]}. A set of \code{data_sources} required in each \code{\link[=pid-class]{pid}}. A record-group without records from these \code{data_sources} will be unlinked. See \code{Details}.}
 
-\item{display}{The messages printed on screen. Options are; \code{"none"} (default) or, \code{"progress"} and \code{"stats"} for a progress update or a more detailed breakdown of the linkage process.}
+\item{display}{\code{[character]}. Progress messages printed on screen. Options are; \code{"none"} (default), \code{"progress"} or \code{"stats"}.}
 
-\item{group_stats}{If \code{TRUE} (default), group-specific information like record counts. See \code{Value}.}
+\item{group_stats}{\code{[logical]}. If \code{TRUE} (default), return group specific information like record counts for each \code{\link[=pid-class]{pid}}.}
 
-\item{expand}{If \code{TRUE}, allows increases in the size of a record group at subsequent stages of the linkage process.}
+\item{expand}{\code{[logical]}. If \code{TRUE}, allows a record-group to expand with each subsequent stages of the linkage process. \emph{Not interchangeable with \code{shrink}}.}
 
-\item{shrink}{If \code{TRUE}, allows reductions in the size of a record group at subsequent stages of the linkage process.}
+\item{shrink}{\code{[logical]}. If \code{TRUE}, forces a record-group to shrink with each subsequent stage of the linkage process. \emph{Not interchangeable with \code{expand}}.}
 
-\item{df}{\code{data.frame}. One or more datasets appended together. See \code{Details}.}
+\item{recursive}{\code{[logical]}. If \code{TRUE}, within each iteration of the process, a match can spawn new matches. See \code{vignette("links")}.}
 
-\item{...}{Arguments passed to \bold{\code{links}}}
+\item{check_duplicates}{\code{[logical]}. If \code{TRUE}, within each iteration of the process, duplicates values of an attributes are not checked. The outcome of the logical test on the first instance of the value will be recycled for the duplicate values. See \code{vignette("links")}.}
 
-\item{to_s4}{Data type of returned object. \code{\link[=pid-class]{pid}} (\code{TRUE}) or \code{data.frame} (\code{FALSE}).}
+\item{df}{\code{[data.frame]}. Deprecated. One or more datasets appended together. See \code{Details}.}
+
+\item{...}{Arguments passed to \code{links}.}
+
+\item{to_s4}{\code{[logical]}. Deprecated. Output type - \code{\link[=pid-class]{pid}} (\code{TRUE}) or \code{data.frame} (\code{FALSE}).}
 }
 \value{
-\code{\link[=pid-class]{pid}} objects or \code{data.frame} if \code{to_s4} is \code{FALSE})
-
-\itemize{
-\item \code{sn} - unique record identifier as provided (or generated)
-\item \code{pid | .Data} - unique group identifier
-\item \code{link_id} - unique record identifier of matching records
-\item \code{pid_cri} - matching criteria
-\item \code{pid_dataset} - data sources in each group
-\item \code{pid_total} - number of records in each group
-\item \code{iteration} - iteration of the process when each record was linked to its record group
-}
+\code{\link[=pid-class]{pid}}
 }
 \description{
-Link records in ordered stages with flexible matching conditions.
+Match records in successive stages with different matching conditions.
+Each set of linked records are assigned a unique identifier with relevant group-level information.
 }
 \details{
-\bold{\code{links()}} performs an ordered multistage deterministic linkage.
-The relevance or priority of each stage is determined by the order in which they have been listed.
+Match priority decreases with each subsequent stage of linkage
+i.e. earlier stages (\code{criteria}) are considered superior.
+Therefore, it's important for each \code{criteria} to be listed in an order of decreasing relevance.
 
-\code{sub_criteria} specifies additional matching conditions for each stage (\code{criteria}) of the process.
-If \code{sub_criteria} is not \code{NULL}, only records with matching \code{criteria} and \code{sub_criteria} are linked.
-If a record has missing values for any \code{criteria}, that record is skipped at that stage, and another attempt is made at the next stage.
-If there are no matches for a record at every stage, that record is assigned a unique group ID.
+Records with missing \code{criteria} values (\code{NA}) are skipped at each stage of the linkage process, while
+records with missing \code{strata} values (\code{NA}) are skipped from the entire linkage process.
 
-By default, records are compared for an exact match.
-However, user-defined logical tests (function) are also permitted.
-The function must be able to compare two atomic vectors and return either TRUE or FALSE.
-The function must have two arguments - x for the attribute and y for what it'll be compared against.
+If a record is skipped, another attempt will be made to match the record at the next stage.
+If a record does not match any other record by the end of the linkage process (or it has a missing \code{strata}),
+it is assigned to a unique record-group.
 
-A match at each stage is considered more relevant than a match at the next stage. Therefore, \code{criteria} should always be listed in order of decreasing relevance.
+A \code{\link{sub_criteria}} can be used to request additional matching conditions for each stage of the linkage process.
+When used, only records with matching \code{criteria} and \code{sub_criteria} are linked.
 
-\code{data_source} - including this populates the \code{pid_dataset} slot. See \code{Value}.
+In \bold{\code{\link{links}}}, each \code{\link{sub_criteria}} must be linked to a \code{criteria}.
+This is done by adding a \code{\link{sub_criteria}} to a named element of a \code{list}.
+Each element's name must correspond to a stage. See below for an example of 3 \code{sub_criteria} linked to
+\code{criteria} \code{1}, \code{5} and \code{13}.
 
-\code{data_links} should be a \code{list} of \code{atomic} vectors with every element named \code{"l"} (links) or \code{"g"} (groups).
-\itemize{
-\item \code{"l"} - Record groups with records from every listed data source will be retained.
-\item \code{"g"} - Record groups with records from any listed data source will be retained.
+For example;
+
+\deqn{list("cr1" = sub_criteria, "cr5" = sub_criteria, "cr13" = sub_criteria).}
+
+\code{\link{sub_criteria}} can be nested to achieve nested conditions.
+A \code{\link{sub_criteria}} can be linked to different \code{criteria}.
+Any unlinked \code{\link{sub_criteria}} will be ignored.
+
+By default, attributes in a \code{\link{sub_criteria}} are compared for an \code{\link{exact_match}}.
+However, user-defined logical tests (\code{function}) are also permitted. Such tests must meet 3 requirements:
+\enumerate{
+\item It must be able to compare two \code{atomic} vectors.
+\item It must have two arguments named \code{`x`} and \code{`y`}, where \code{`y`} is the value for one observation being compared against all other observations (\code{`x`}).
+\item It must return either \code{TRUE} or \code{FALSE}.
 }
-\code{data_links} is useful for skipping record groups that are not required.
 
-\bold{\code{record_group()}} as it existed before \code{v0.2.0} has been retired.
-Its now exists to support previous code and arguments with minimal disruption. Please use \bold{\code{links()}} moving forward.
+Every element in \code{data_links} must be named \code{"l"} (links) or \code{"g"} (groups).
+Unnamed elements of \code{data_links} will be assumed to be \code{"l"}.
+\itemize{
+\item If named \code{"l"}, only groups with records from every listed \code{data_source} will remain linked.
+\item If named \code{"g"}, only groups with records from any listed \code{data_source} will remain linked.
+}
+
+\bold{\code{record_group()}} has been retired is no longer supported.
+It only exists to support previous code with minimal input from users.
+Moving forward, please use \bold{\code{links()}}.
 
 See \code{vignette("links")} for more information.
 }
 \examples{
-library(diyar)
 # Exact match
-links(criteria = c("Obinna","James","Ojay","James","Obinna"))
+attr_1 <- c(1, 1, 1, NA, NA, NA, NA, NA)
+attr_2 <- c(NA, NA, 2, 2, 2, NA, NA, NA)
+links(criteria = list(attr_1, attr_2))
 
 # User-defined tests using `sub_criteria()`
-# Matching `sex` and + 20-year age gaps
+# Matching `sex` and a 20-year age range
 age <- c(30, 28, 40, 25, 25, 29, 27)
 sex <- c("M", "M", "M", "F", "M", "M", "F")
-f1 <- function(x, y) (y - x) \%in\% 0:20
+f1 <- function(x, y) abs(y - x) \%in\% 0:20
 links(criteria = sex,
-      sub_criteria = list(s1 = sub_criteria(age, funcs = f1)))
+      sub_criteria = list(cr1 = sub_criteria(age, match_funcs = f1)))
 
-# Multistage linkage
+# Multistage matches
 # Relevance of matches: `forename` > `surname`
 data(staff_records); staff_records
 links(criteria = list(staff_records$forename, staff_records$surname),
       data_source = staff_records$sex)
 
 # Relevance of matches:
-# `staff_id` > `age` AND (`initials`, `hair_colour` OR `branch_office`)
+# `staff_id` > `age` (AND (`initials`, `hair_colour` OR `branch_office`))
 data(missing_staff_id); missing_staff_id
 links(criteria = list(missing_staff_id$staff_id, missing_staff_id$age),
-      sub_criteria = list(s2 = sub_criteria(missing_staff_id$initials,
+      sub_criteria = list(cr2 = sub_criteria(missing_staff_id$initials,
                                           missing_staff_id$hair_colour,
                                           missing_staff_id$branch_office)),
       data_source = missing_staff_id$source_1)
 
+# Group expansion
+match_cri <- list(c(1,NA,NA,1,NA,NA),
+                  c(1,1,1,2,2,2),
+                  c(3,3,3,2,2,2))
+links(criteria = match_cri, expand = TRUE)
+links(criteria = match_cri, expand = FALSE)
+links(criteria = match_cri, shrink = TRUE)
+
 }
 \seealso{
-\code{\link{episodes}}, \code{\link{predefined_tests}} and \code{\link{sub_criteria}}
+\code{\link{episodes}}; \code{\link{partitions}}; \code{\link{predefined_tests}}; \code{\link{sub_criteria}}; \code{\link{schema}}
 }

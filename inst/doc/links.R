@@ -1,367 +1,296 @@
-## ----setup, include = F-------------------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
-  collapse = T,
+  collapse = TRUE,
   comment = "#>"
 )
 
-## ----include=F----------------------------------------------------------------
-plot_pid <- diyar:::plot_pid
+## ---- include = FALSE---------------------------------------------------------
+library(diyar); 
+# library(cowplot)
+# library(ggplot2)
 
-## ----warning=F, message=F-----------------------------------------------------
-library(diyar);
-data(patient_list); 
-dbs <- patient_list[c("forename","surname","sex")]; dbs
+## ----warning = FALSE----------------------------------------------------------
+## 3-stage linkage
+# Attributes to be compared at each stage
+attr_1 <- c(1, 1, 1, NA, NA, NA, NA, NA)
+attr_2 <- c(NA, NA, 2, 2, 2, NA, NA, NA)
+attr_3 <- c(NA, NA, NA, NA, 3, 3, 3, 3)
+stages <- list(attr_1 = attr_1, attr_2 = attr_2, attr_3 = attr_3)
+# Source of each record 
+data_sets <- c("A", "A", "A", "A", "B", "B", "B", "B")
+# Dataset
+dfr <- cbind(as.data.frame(stages), data_sets)
+# Linkage
+dfr$pd1 <- links(stages, data_source = data_sets)
+# Identifiers
+dfr
 
-# 1 stage <- Matching surname only
-dbs$pids_a <- links(criteria = dbs$surname, display = "none", group_stats = T)
+## ----warning = FALSE----------------------------------------------------------
+# Components of a `pid` identifier
+as.data.frame(dfr$pd1)
 
-# 2 stage - Matching surname, then matching sex
-dbs$pids_b <- links(criteria = list(dbs$surname, dbs$sex), display = "none")
+## ----warning = FALSE----------------------------------------------------------
+# Attribute - Names
+attr_4 <- c(NA, NA, "James", "James", "Tobi", "Tobi", "Ope")
+# Date of birth 
+attr_5 <- c("12/04/1957", "12/04/1957", "22/06/1973", "20/01/1980",
+            "12/04/1957", "12/04/1957", "12/04/1957")
+# Dataset
+stages_2 <- list(attr_4 = attr_4, attr_5 = attr_5)
 
-dbs
+dfr_2 <- as.data.frame(stages_2)
+dfr_2$pd2 <- links(stages_2)
 
-## ----echo=FALSE, message=FALSE, warning=FALSE---------------------------------
-cat("to_df(`pid`)")
-to_df(dbs$pids_a)
+dfr_2
 
-## ----warning=F, message=F-----------------------------------------------------
-dbs2 <- patient_list[c("forename","surname","sex")]; dbs2
+## ----warning = FALSE----------------------------------------------------------
+attr_4c <- attr_4b <- c(attr_4, "Ope")
+attr_4c[attr_4c == "Tobi"] <- NA
+attr_5b <- c(attr_5, "13/02/1991")
+# Attribute - Sex
+attr_4.5 <- c(NA, NA, NA, NA, "M", "M", NA, NA)
 
-# Matching `sex`, and `forename` initials
-lgl_1 <- function(x, y) substr(x, 1, 1) == substr(y, 1, 1) 
-dbs2$pids_1 <- links(criteria =  list(dbs2$sex), 
-                     sub_criteria = list(
-                       cr1 = sub_criteria(dbs2$forename, funcs = lgl_1)),
-                     display = "none")
+stages_2bi <- list(attr_4b = attr_4b, attr_5b = attr_5b)
+stages_2bii <- list(attr_4c = attr_4c, attr_4.5 = attr_4.5, attr_5b = attr_5b)
+# Dataset 1
+dfr_2b <- as.data.frame(stages_2bi)
+# Linkage option 1
+dfr_2b$pd2bi <- links(stages_2bi)
 
-# Matching `sex`, and `forename` with character length of 5
-lgl_2 <- function(x, y) nchar(x) == nchar(y) & nchar(x) == 5
-dbs2$pids_2 <- links(criteria =  list(dbs2$sex), 
-                    sub_criteria = list(
-                      cr1 = sub_criteria(dbs2$forename, funcs = lgl_2)),
-                    display = "none")
+# Dataset 2
+dfr_2c <- as.data.frame(stages_2bii)
+# Linkage option 2
+dfr_2c$pd2bii <- links(stages_2bii)
 
-# Matching `sex`, and `forename` that ends with "y"
-lgl_3 <- function(x, y) substr(x, length(x) - 1, length(x)) == "y"
-dbs2$pids_3 <- links(criteria =  list(dbs2$sex), 
-                    sub_criteria = list(
-                      cr1 = sub_criteria(dbs2$forename, funcs = lgl_3)),
-                    display = "none")
+# Results for option 1
+dfr_2b
 
-# Matching `sex` and at least one `forename` that ends with "y"
-lgl_4 <- function(x, y) substr(y, length(y) - 1, length(y)) == "y"
-dbs2$pids_4 <- links(criteria =  list(dbs2$sex), 
-                    sub_criteria = list(
-                      cr1 = sub_criteria(dbs2$forename, funcs = lgl_4)),
-                    display = "none")
+# Results for option 2
+dfr_2c
 
-## ----message=F, warning=F-----------------------------------------------------
-Opes_c <- Opes[c("date_of_birth", "name", "hair_colour")]
-Opes_c <- Opes["date_of_birth"]
-# approximate age
-Opes_c$age <- as.numeric(round((Sys.Date() - as.Date(Opes_c$date_of_birth, "%d/%m/%Y"))/365.5))
+## ----warning = FALSE, include = FALSE-----------------------------------------
+# plt1 <- schema(dfr_2b$pd2bi, seed = 2,
+#                show_label = TRUE,
+#                theme = "dark")
+# plt2 <- schema(dfr_2c$pd2bii, seed = 2,
+#                show_label = TRUE,
+#                theme = "dark")
+# 
+# f <- plot_grid(plt1 + theme(plot.background = element_rect(color = "white")),
+#                plt2 + theme(plot.background = element_rect(color = "white")),
+#                labels = c("pd2bi", "pd2bii"),
+#                label_colour = "white",
+#                label_size = 12,
+#                label_x = c(0, 0))
+# ggsave(dpi = 100, plot = f, filename = "fig_p1.png", width = 15, height = 4.5, units = "in")
 
-# Match individuals between ages 35 and 55 
-rng1 <- function(x, y) x %in% 35:55
-Opes_c$pids_a <- links(criteria = "place_holder",
-                       sub_criteria = list(cr1 = sub_criteria(Opes_c$age, funcs = rng1)),
-                       display ="none")
+## ----warning = FALSE----------------------------------------------------------
+dfr$pd1b <- links(stages, expand = FALSE)
+dfr
 
-# Match individuals with a 5-year age gap between themselves
-rng2 <- function(x, y) abs(y - x) %in% 0:5
-Opes_c$pids_b <- links(criteria = "place_holder",
-                       sub_criteria = list(cr1 = sub_criteria(Opes_c$age, funcs = rng2)),
-                       display ="none")
+## ----warning = FALSE, include = FALSE-----------------------------------------
+# plt1 <- schema(dfr$pd1, seed = 2, theme = "dark")
+# plt2 <- schema(dfr$pd1b, seed = 2, theme = "dark")
+# f <- plot_grid(plt1 + theme(plot.background = element_rect(color = "white")),
+#                plt2 + theme(plot.background = element_rect(color = "white")),
+#                labels = c("pd1", "pd1b"),
+#                label_colour = "white",
+#                label_size = 12)
+# ggsave(dpi = 100, plot = f, filename = "fig_p2.png", width = 15, height = 4.5, units = "in")
 
-# Match individuals with more than a 5-year age gap between each other 
-rng3 <- function(x, y) (y - x) > 5
-Opes_c$pids_c <- links(criteria = "place_holder",
-                       sub_criteria = list(cr1 = sub_criteria(Opes_c$age, funcs = rng3)),
-                       display ="none")
+## ----warning = FALSE----------------------------------------------------------
+# Attributes to be compared at each stage
+attr_6 <- c(1, 1, 1, 1, 2, 2, 2, 2)
+attr_7 <- c(NA, NA, 2, 2, NA, NA, NA, NA)
+attr_8 <- c("3c", "3c", "3c", "3c", "3a", "3a", "4a", "4b")
+stages_3 <- list(attr_6 = attr_6, attr_7 = attr_7, attr_8 = attr_8)
 
-Opes_c[c("age","pids_a", "pids_b", "pids_c")]
+dfr_3 <- cbind(as.data.frame(stages_3))
+dfr_3$pd3a <- links(stages_3, expand = FALSE)
+dfr_3$pd3b <- links(stages_3, shrink = TRUE)
 
-## ----warning=F, message=F-----------------------------------------------------
-dbs$pids_c <- links(criteria =  list(dbs$sex, dbs$surname), display = "none")
+dfr_3
 
-dbs
-
-## ----message=F, warning=F-----------------------------------------------------
-dbs_2 <- patient_list; dbs_2
-
-dbs_2$cri_2 <- paste(dbs_2$surname, dbs_2$sex,sep="-")
-dbs_2$pid_d <- links(sn = dbs_2$rd_id, list(dbs_2$forename, dbs_2$cri_2), display = "none")
-
-dbs_2
-
-## ----echo=F, fig.height=4, fig.width=8.5, message=F, warning=F----------------
-plot_pid(pid = dbs_2$pid_d)
-
-## ----message=F, warning=F-----------------------------------------------------
+## ----warning = FALSE----------------------------------------------------------
 data(Opes); Opes
 
-# 1 stage linkage
-  # stage 1 - name AND (department OR hair_colour OR date_of_birth)
-Opes$pids_a <- links(criteria = Opes$name,
-                     sub_criteria = list(cr1 = sub_criteria(Opes$department, 
-                                                            Opes$hair_colour, 
-                                                            Opes$date_of_birth)),
-                     display = "none"
-                     )
+# `criteria` AND matching department
+sub_cri_1 <- sub_criteria(Opes$department)
+# `criteria` AND matching (department OR hair_colour)
+sub_cri_2 <- sub_criteria(Opes$department, Opes$hair_colour)
+# `criteria` AND matching (department AND hair_colour AND date_of_birth)
+sub_cri_3 <- sub_criteria(Opes$department, Opes$hair_colour, Opes$date_of_birth, operator = "and")
+# `criteria` AND matching ((department OR hair_colour) AND date_of_birth)
+sub_cri_4 <- sub_criteria(sub_cri_2, Opes$date_of_birth, operator = "and")
+# `criteria` AND matching (any two parts of the date of birth)
+sub_cri_5 <- sub_criteria(Opes$db_pt1, Opes$db_pt2, Opes$db_pt3)
 
-Opes[c("name","department","hair_colour","date_of_birth","pids_a")]
-  
-# 1 stage linkage 
-  # stage 1 - name AND ((department OR hair_colour) AND (date_of_birth)) 
-Opes$pids_b <- links(criteria = Opes$name, 
-                     sub_criteria = list(cr1 = sub_criteria(Opes$department, 
-                                                            Opes$hair_colour),
-                                         cr1 = sub_criteria(Opes$date_of_birth)),
-                     display = "none")
+Opes$pd4a <- links(criteria = Opes$name, sub_criteria = list(cr1 = sub_cri_1))
+Opes$pd4b <- links(criteria = Opes$name, sub_criteria = list(cr1 = sub_cri_2))
+Opes$pd4c <- links(criteria = Opes$name, sub_criteria = list(cr1 = sub_cri_3))
+Opes$pd4d <- links(criteria = Opes$name, sub_criteria = list(cr1 = sub_cri_4))
+Opes$pd4e <- links(criteria = list(Opes$name, Opes$name),
+                     sub_criteria = list(cr1 = sub_cri_4,
+                                         cr2 = sub_cri_5))
 
-Opes[c("name","department","hair_colour","date_of_birth","pids_b")]
+Opes[c("name", "department", "hair_colour", "date_of_birth", 
+       "pd4a", "pd4b", "pd4c", "pd4d", "pd4e")]
 
-# 1 stage linkage 
-  # stage 1 - name AND ((department OR hair_colour) AND (dd-mm OR dd-yyyy OR mm-yyyy))
-Opes$pids_c <- links(criteria = Opes$name, 
-                     sub_criteria = list(cr1 = sub_criteria(Opes$department, 
-                                                            Opes$hair_colour),
-                                         cr1 = sub_criteria(Opes$db_pt1, Opes$db_pt2, Opes$db_pt3)),
-                            display = "none")
 
-Opes[c("name","department","hair_colour","date_of_birth","pids_c")]
+## ----warning = FALSE----------------------------------------------------------
+data(staff_records); 
+dfr_4 <- staff_records[c("forename")]
+dfr_4$forename
 
-# 1 stage linkage 
-  # stage 1 - name AND ((department)  AND (hair_colour) AND (dd-mm OR dd-yyyy OR mm-yyyy))
-Opes$pids_d <- links(criteria = Opes$name, 
-                     sub_criteria = list(cr1 = sub_criteria(Opes$department),
-                                         cr1 = sub_criteria(Opes$hair_colour),
-                                         cr1 = sub_criteria(Opes$db_pt1, Opes$db_pt2, Opes$db_pt3)),
-                            display = "none")
+# Logical test 1 - Similarity score of 70% or more 
+jw_func <- function(x, y){
+  score <- 1 - stringdist::stringdist(x, y, "jw")
+  score > .7
+}
 
-Opes[c("name","department","hair_colour","date_of_birth","pids_d")]
+# Logical test 2 - Matching Soundex
+soundex_func <- function(x, y){
+  score <- 1 - stringdist::stringdist(x, y, "soundex")
+  as.logical(score)
+}
 
-## ----message=F, warning=F-----------------------------------------------------
-data(Opes); Opes
+sub_cri_6 <- sub_criteria(dfr_4$forename, dfr_4$forename, 
+                          match_funcs = c(jw_func, soundex_func),
+                          operator = "or")
+dfr_4$pd5 <- links(criteria = "place_holder", sub_criteria = list(cr1 = sub_cri_6))
+dfr_4
 
-# 2 stage linkage
-  # stage 1 - link "Opes" in departments that start with the letter "P" THEN 
-  # stage 2 - bridge these to "Opes" whose hair colour starts with the letter "B"
-dept_func <- function(x, y) substr(x, 1, 1) == substr(y, 1, 1) & substr(y, 1, 1) == "P" 
-hair_func <- function(x, y) substr(x, 1, 1) == substr(y, 1, 1) & substr(y, 1, 1) == "B"
+## ----warning = FALSE----------------------------------------------------------
+data(missing_staff_id); 
+dfr_5 <- missing_staff_id[c("staff_id",  "initials", "hair_colour", "branch_office")]
+dfr_5
+score_range <- prob_score_range(attribute = as.list(dfr_5))
+score_range
 
-Opes$p_exp_a <- links(criteria = list(Opes$name, Opes$name),
-                     sub_criteria = list(
-                       cr1 = sub_criteria(Opes$department, funcs = dept_func),
-                       cr2 = sub_criteria(Opes$hair_colour, funcs = hair_func)),
-                     display = "none")
+# Logical test - Matching last word in `hair_colour` and `branch_office`
+last_word_wf <- function(x) tolower(gsub("^.* ", "", x))
+last_word_cmp <- function(x, y) last_word_wf(x) == last_word_wf(y)
+prob_pids2 <- links_wf_probabilistic(attribute = as.list(dfr_5),
+                                     cmp_func = c(diyar::exact_match,
+                                                  diyar::exact_match,
+                                                  last_word_cmp,
+                                                  last_word_cmp),
+                                     score_threshold = score_range$mid_scorce)
+prob_pids2
 
-# 2 stage linkage
-  # stage 1 - link "Opes" in departments that start with the letter "P" THEN 
-  # stage 2 - link "Opes" whose hair colour starts with the letter "B"
-Opes$p_nexp_a <- links(criteria = list(Opes$name, Opes$name),
-                     sub_criteria = list(
-                       cr1 = sub_criteria(Opes$department, funcs = dept_func),
-                       cr2 = sub_criteria(Opes$hair_colour, funcs = hair_func)),
-                     expand = F,
-                     display = "none")
+# Results for specific record pairs
+prob_pids3 <- links_wf_probabilistic(attribute = as.list(dfr_5),
+                                     cmp_func = c(diyar::exact_match,
+                                                  diyar::exact_match,
+                                                  last_word_cmp,
+                                                  last_word_cmp),
+                                     score_threshold = score_range$mid_scorce,
+                                     id_1 = c(1, 1, 1),
+                                     id_2 = c(6, 7, 4))
+prob_pids3
 
-Opes[c("name","department","hair_colour", "p_exp_a", "p_nexp_a")]
+## ----warning = FALSE----------------------------------------------------------
+summary(Opes$pd4c)
 
-## ----message=F, warning=F-----------------------------------------------------
-# The same as `p_exp_a` 
-Opes$p_exp_b <- links(criteria = list(Opes$name, Opes$name),
-                     sub_criteria = list(
-                       cr2 = sub_criteria(Opes$department, funcs = dept_func),
-                       cr1 = sub_criteria(Opes$hair_colour, funcs = hair_func)),
-                     display = "none")
+## ----warning = FALSE----------------------------------------------------------
+new_cri <- paste0(Opes$department, Opes$hair_colour, Opes$date_of_birth, sep = "-")
+new_cri <- paste0(Opes$name, " ", new_cri)
+Opes$pd4c2 <- links(criteria = new_cri)
 
-# Not the same as `p_nexp_a`
-Opes$p_nexp_b <- links(criteria = list(Opes$name, Opes$name),
-                     sub_criteria = list(
-                       cr2 = sub_criteria(Opes$department, funcs = dept_func),
-                       cr1 = sub_criteria(Opes$hair_colour, funcs = hair_func)),
-                     expand = F,
-                     display = "none")
+max(Opes$pd4c2@iteration)
 
-Opes[c("name","department","hair_colour", "p_exp_a", "p_exp_b", "p_nexp_a", "p_nexp_b")]
+# Same outcome - identical identifiers 
+Opes$pd4c; Opes$pd4c2
 
-## ----warning=F----------------------------------------------------------------
-data(patient_list_2); patient_list_2
+## ----warning = FALSE----------------------------------------------------------
+# Logical test - Similarity score of 70% or more OR matching Soundex
+jw_soundex_func <- function(x, y) jw_func(x, y) | soundex_func(x, y)
 
-patient_list_2$pids_a <- links(
-  sn = patient_list_2$rd_id,
-  criteria = list(patient_list_2$forename, 
-                  patient_list_2$surname,
-                  patient_list_2$sex), 
-  display = "none")
+sub_cri_6b <- sub_criteria(dfr_4$forename, match_funcs = jw_soundex_func)
+dfr_4$pd5b <- links(criteria = "place_holder", sub_criteria = list(cr1 = sub_cri_6b))
 
-patient_list_2
+# Same outcome - identical identifiers
+all(dfr_4$pd5 == dfr_4$pd5b)
 
-## ----echo=F, fig.height=4, fig.width=8.5, message=F, warning=F----------------
-plot_pid(pid = patient_list_2$pids_a)
+## ----warning = FALSE----------------------------------------------------------
+# Dataset 
+dfr_6 <- data.frame(attr_1 = rep(1, 10))
+# Logical test - Absolute difference between values is > 0
+rng_1p_func <- function(x, y) abs(y - x) > 0
+sub_cri_7 <- sub_criteria(dfr_6$attr_1, match_funcs = rng_1p_func)
 
-## ----warning=F----------------------------------------------------------------
-df <- data.frame(
-  forename = c("John", "John", "Jon", 
-               NA_character_, "Mary", "Mary",
-               "Mariam", "John", "Henry",
-               "Obinna", "Tomi"),
-  surname = c("Swan", "Swanley", "Swanley",
-              NA_character_, "Jane", "Jan",
-              "Janet", "Swan", "Henderson", 
-              "Nelson", "Abdulkareem"), 
-  age = c(12, 11, 10, 10, 5, 6, 6, 12, 30, 31, 2500)
+dfr_6$pd_7a <- links("place_holder", sub_criteria = list("cr1" = sub_cri_7),
+                     check_duplicates  = TRUE)
+dfr_6$pd_7b <- links("place_holder", sub_criteria = list("cr1" = sub_cri_7),
+                     check_duplicates  = FALSE)
+
+# Same outcome - identical identifiers
+all(dfr_6$pd_7a == dfr_6$pd_7b)
+
+# but different number of iterations
+max(dfr_6$pd_7a@iteration); max(dfr_6$pd_7b@iteration)
+
+## ----warning = FALSE----------------------------------------------------------
+# Attribute 2
+dfr_6$attr_2 <- c(rep(1, 3), rep(2, 3), rep(3, 4))
+# logical test - Difference between values is > 0
+rng_1p_func <- function(x, y) y - x > 0
+
+sub_cri_8 <- sub_criteria(dfr_6$attr_1, dfr_6$attr_2, match_funcs = rng_1p_func,
+                          equal_funcs = diyar::exact_match)
+
+dfr_6$pd_7c <- links("place_holder", sub_criteria = list("cr1" = sub_cri_8),
+                     check_duplicates  = TRUE)
+dfr_6$pd_7d <- links("place_holder", sub_criteria = list("cr1" = sub_cri_8),
+                     check_duplicates  = FALSE)
+
+# Same outcome - identical identifiers
+all(dfr_6$pd_7c == dfr_6$pd_7d)
+
+# but different number of iterations
+max(dfr_6$pd_7c@iteration); max(dfr_6$pd_7d@iteration)
+
+## ----warning = FALSE----------------------------------------------------------
+# Dataset 
+dfr_7 <- data.frame(attr_1 = 1:10, stringsAsFactors = FALSE)
+# Logical test - Absolute difference of less than 4
+rng_l4_func <- function(x, y) abs(y - x) < 4
+sub_cri_9 <- sub_criteria(dfr_7$attr_1, match_funcs = rng_l4_func)
+
+dfr_7$pd_8a <- links("place_holder", sub_criteria = list("cr1" = sub_cri_9), recursive  = TRUE)
+dfr_7$pd_8b <- links("place_holder", sub_criteria = list("cr1" = sub_cri_9), recursive  = FALSE)
+
+# Different outcomes - different identifiers
+dfr_7
+
+# and different number of iterations
+max(dfr_7$pd_8a@iteration); max(dfr_7$pd_8b@iteration)
+
+## ----warning = FALSE----------------------------------------------------------
+# dataset 
+attr_10 <- rep(LETTERS, 10000)
+sub_cri_10 <- sub_criteria(attr_10)
+
+# Fast
+system.time(
+  pd_8c <- links("place_holder", sub_criteria = list("cr1" = sub_cri_10),
+                 recursive = TRUE)
 )
 
-df$pids_a <- links(criteria = list(df$forename, df$surname, df$age), display = "none")
- 
-df
+# Faster
+system.time(
+  pd_8d <- links("place_holder", sub_criteria = list("cr1" = sub_cri_10),
+                 recursive = FALSE)
+)
 
-## ----echo=F, fig.height=4, fig.width=8.5, message=F, warning=F----------------
-plot_pid(df$pids_a)
+# Fastest
+system.time(
+  pd_8e <- match(attr_10, attr_10)
+)
 
-## ----message=F, warning=F-----------------------------------------------------
-data(Opes); Opes
+# Same outcomes - identical identifiers
+all(pd_8c == pd_8d) & all(pd_8c == pd_8e)
 
-# 1 stage linkage
-  # stage 1 - link "Opes" that are in the same department AND have the same day and month of birth 
-Opes$cri <- paste(Opes$name, Opes$department, Opes$db_pt1, sep = " ")
-Opes$p_shk_c <- links(criteria = list(Opes$cri),
-                     display = "none")
-
-Opes[c("name","department","db_pt3", "p_shk_c")]
-
-## ----message=F, warning=F-----------------------------------------------------
-# 3 stage linkage
-  # stage 1 - link "Opes" that have the same name, THEN WITHIN THESE
-  # stage 2 - link "Opes" that are in the same department, THEN WITHIN THESE
-  # stage 3 - link "Opes" have the same day and month of birth 
-Opes$p_shk_d <- links(criteria = list(Opes$name, Opes$department, Opes$db_pt1),
-                      sub_criteria = list(
-                        cr1 = sub_criteria("place_holder", funcs = diyar::exact_match),
-                        cr2 = sub_criteria("place_holder", funcs = diyar::exact_match),
-                        cr3 = sub_criteria("place_holder", funcs = diyar::exact_match)
-                      ),
-                      shrink = T,
-                     display = "none")
-
-Opes[c("name","department","db_pt3", "p_shk_c", "p_shk_d")]
-
-## ----message=F, warning=F-----------------------------------------------------
-# 1 stage linkage
-  # stage 1 - link "Opes" that have the same name
-Opes$p_shk_e1 <- links(criteria = list(Opes$name),
-                      sub_criteria = list(
-                        cr1 = sub_criteria("place_holder", funcs = diyar::exact_match)),
-                      shrink = T,
-                     display = "none")
-
-# Another attempt is made always made at the next for records with no links 
-Opes$e1 <- ifelse(Opes$p_shk_e1@pid_cri == 0, "No Hits", as.character(Opes$p_shk_e1))
-
-# 1 stage linkage
-  # stage 1 - link "Opes" that are in the same department
-Opes$p_shk_e2 <- links(criteria = list(Opes$department),
-                      strata = Opes$e1,
-                       sub_criteria = list(
-                        cr1 = sub_criteria("place_holder", funcs = diyar::exact_match)),
-                      shrink = T,
-                     display = "none")
-
-# Another attempt is made always made at the next for records with no links
-Opes$e2 <- ifelse(Opes$p_shk_e1@pid_cri == 0, "No Hits", as.character(Opes$p_shk_e1))
-
-# 1 stage linkage
-  # stage 3 - link "Opes" have the same day and month of birth 
-Opes$p_shk_e3 <- links(criteria = list(Opes$db_pt1),
-                      strata = Opes$e2,
-                       sub_criteria = list(
-                        cr1 = sub_criteria("place_holder", funcs = diyar::exact_match)),
-                      shrink = T,
-                     display = "none")
-
-Opes[c("name","department","db_pt3", "p_shk_e1", "p_shk_e2", "p_shk_e3", "p_shk_c", "p_shk_d")]
-
-## ----message=F, warning=F-----------------------------------------------------
-data(Opes); Opes
-
-Opes$p_cmp1 <- links(criteria = list("place_holder", "place_holder"),
-                      sub_criteria = list(
-                        cr1 = sub_criteria(Opes$department, funcs = dept_func),
-                        cr2 = sub_criteria(Opes$hair_colour, funcs = hair_func)),
-                     expand = T,
-                     shrink = F,
-                     display = "none")
-
-Opes$p_cmp2 <- links(criteria = list("place_holder", "place_holder"),
-                      sub_criteria = list(
-                        cr1 = sub_criteria(Opes$department, funcs = dept_func),
-                        cr2 = sub_criteria(Opes$hair_colour, funcs = hair_func)),
-                     expand = F,
-                     shrink = T,
-                     display = "none")
-
-# `p_cmp1` is not the same as `p_cmp2`
-Opes[c("name", "department", "hair_colour", "p_cmp1", "p_cmp2")]
-
-## ----warning=F, message=F-----------------------------------------------------
-patient_list_2$forename <- ifelse(patient_list_2$rd_id %in% 1:3, "Nil", patient_list_2$forename)
-# 2 stage linkage
-    # Stage 1 - forename
-    # Stage 2 - surname
-
-patient_list_2$pids_b <- links(criteria = list(patient_list_2$forename, 
-                                               patient_list_2$surname), 
-                               display = "none")
-
-patient_list_2[c("forename","surname","pids_b")]
-
-## ----warning=F, message=F-----------------------------------------------------
-# `NA` as the proxy for missing value
-patient_list_2$forename <- ifelse(patient_list_2$forename == "Nil", NA, patient_list_2$forename)
-
-patient_list_2$pids_d <- links(sn = patient_list_2$rd_id, 
-                               criteria = list(patient_list_2$forename, 
-                                               patient_list_2$surname), 
-                               display = "none")
-
-patient_list_2[c("forename","surname", "pids_b", "pids_d")]
-
-## ---- warning=F, message=F----------------------------------------------------
-# Matching `sex`, and `forename` initials
-dbs2
-dbs2$initials <- substr(dbs2$forename, 1, 1)
-dbs2$pids_1b <- links(criteria = dbs2$initials,
-                     display = "none")
-
-dbs2[c("forename", "initials", "pids_1", "pids_1b")]
-
-## ---- warning=F, message=F----------------------------------------------------
-# 1 stage linkage 
-  # stage 1 - name AND ((department)  AND (hair_colour) AND (year_of_birth))
-Opes$month_of_birth <- substr(Opes$date_of_birth, 4, 5)
-Opes$pids_e <- links(criteria = Opes$name, 
-                     sub_criteria = list(cr1 = sub_criteria(Opes$department),
-                                         cr1 = sub_criteria(Opes$hair_colour),
-                                         cr1 = sub_criteria(Opes$month_of_birth)),
-                            display = "none")
-
-Opes$cri <- paste(Opes$name, Opes$month_of_birth, Opes$department, Opes$hair_colour, sep="-")
-
-# 1 stage linkage 
-  # stage 1 - name AND department AND hair_colour AND date_of_birth
-Opes$pids_f <- links(criteria = Opes$cri,  display = "none")
-
-Opes[c("name","department","hair_colour","month_of_birth","pids_e","pids_f")]
-
-## ---- warning=F, message=F----------------------------------------------------
-Opes[c("department")]
-
-Opes$links_a <- links(Opes$department, display = "none")
-
-Opes$links_b <- match(Opes$department, Opes$department[!duplicated(Opes$department)])
-
-Opes[c("department", "links_a", "links_b")]
-
+# and same number of iterations
+max(pd_8c@iteration); max(pd_8d@iteration)
 

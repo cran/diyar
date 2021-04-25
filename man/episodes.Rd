@@ -2,10 +2,11 @@
 % Please edit documentation in R/episode_group.R
 \name{episodes}
 \alias{episodes}
+\alias{episodes_wf_splits}
 \alias{fixed_episodes}
 \alias{rolling_episodes}
 \alias{episode_group}
-\title{Track episodes for case definitions and record deduplication.}
+\title{Link events  to chronological episodes.}
 \usage{
 episodes(
   date,
@@ -13,22 +14,54 @@ episodes(
   episode_type = "fixed",
   recurrence_length = case_length,
   episode_unit = "days",
+  strata = NULL,
+  sn = NULL,
   episodes_max = Inf,
   rolls_max = Inf,
-  overlap_methods_c = "overlap",
-  overlap_methods_r = overlap_methods_c,
-  sn = NULL,
-  strata = NULL,
+  case_overlap_methods = 8,
+  recurrence_overlap_methods = case_overlap_methods,
   skip_if_b4_lengths = FALSE,
   data_source = NULL,
   data_links = "ANY",
   custom_sort = NULL,
   skip_order = Inf,
-  recurrence_from_last = TRUE,
+  reference_event = "last_record",
   case_for_recurrence = FALSE,
   from_last = FALSE,
   group_stats = FALSE,
-  display = "none"
+  display = "none",
+  case_sub_criteria = NULL,
+  recurrence_sub_criteria = case_sub_criteria,
+  case_length_total = 1,
+  recurrence_length_total = case_length_total
+)
+
+episodes_wf_splits(
+  date,
+  case_length = Inf,
+  episode_type = "fixed",
+  recurrence_length = case_length,
+  episode_unit = "days",
+  strata = NULL,
+  sn = NULL,
+  episodes_max = Inf,
+  rolls_max = Inf,
+  case_overlap_methods = 8,
+  recurrence_overlap_methods = case_overlap_methods,
+  skip_if_b4_lengths = FALSE,
+  data_source = NULL,
+  data_links = "ANY",
+  custom_sort = NULL,
+  skip_order = Inf,
+  reference_event = "last_record",
+  case_for_recurrence = FALSE,
+  from_last = FALSE,
+  group_stats = FALSE,
+  display = "none",
+  case_sub_criteria = NULL,
+  recurrence_sub_criteria = case_sub_criteria,
+  case_length_total = 1,
+  recurrence_length_total = case_length_total
 )
 
 fixed_episodes(
@@ -36,16 +69,16 @@ fixed_episodes(
   case_length = Inf,
   episode_unit = "days",
   to_s4 = TRUE,
-  overlap_methods_c = "overlap",
+  case_overlap_methods = 8,
   deduplicate = FALSE,
-  display = "progress",
+  display = "none",
   bi_direction = FALSE,
   recurrence_length = case_length,
-  overlap_methods_r = overlap_methods_c,
+  recurrence_overlap_methods = case_overlap_methods,
   include_index_period = TRUE,
   ...,
-  overlap_methods = "overlap",
-  overlap_method = "overlap",
+  overlap_methods = 8,
+  overlap_method = 8,
   x
 )
 
@@ -55,145 +88,142 @@ rolling_episodes(
   recurrence_length = case_length,
   episode_unit = "days",
   to_s4 = TRUE,
-  overlap_methods_c = "overlap",
-  overlap_methods_r = overlap_methods_c,
+  case_overlap_methods = 8,
+  recurrence_overlap_methods = case_overlap_methods,
   deduplicate = FALSE,
-  display = "progress",
+  display = "none",
   bi_direction = FALSE,
   include_index_period = TRUE,
   ...,
-  overlap_methods = "overlap",
-  overlap_method = "overlap",
+  overlap_methods = 8,
+  overlap_method = 8,
   x
 )
 
 episode_group(df, ..., episode_type = "fixed")
 }
 \arguments{
-\item{date}{Event date (\code{date}, \code{datetime} or \code{numeric}) or period (\code{\link{number_line}}).}
+\item{date}{\code{[date|datetime|integer|\link{number_line}]}. Event date or period.}
 
-\item{case_length}{Cut-off point (\code{numeric}) or period (\code{\link{number_line}}), distinguishing one \code{"case"} from another.
+\item{case_length}{\code{[integer|\link{number_line}]}. Duration from index event distinguishing one \code{"case"} from another.
 This is the case window.}
 
-\item{episode_type}{\code{"fixed"} or \code{"rolling"}.}
+\item{episode_type}{\code{[character]}. Options are \code{"fixed"} (default), \code{"rolling"} or \code{"recursive"}. See \code{Details}.}
 
-\item{recurrence_length}{Cut-off point or period distinguishing a \code{"recurrent"} event from its index \code{"case"}.
-This is the recurrence window. By default, it's the same as \code{case_length}.}
+\item{recurrence_length}{\code{[integer|\link{number_line}]}. Duration from the last \code{"duplicate"} event distinguishing a \code{"recurrent"} event from its index event. This is the recurrence window.}
 
-\item{episode_unit}{Time units for \code{case_length} and \code{recurrence_length}. Options are "seconds", "minutes", "hours", "days", "weeks", "months" or "years". See \code{diyar::episode_unit}.}
+\item{episode_unit}{\code{[character]}. Time units for \code{case_length} and \code{recurrence_length}. Options are "seconds", "minutes", "hours", "days" (default), "weeks", "months" or "years". See \code{diyar::episode_unit}.}
 
-\item{episodes_max}{The maximum number of episodes permitted within each \code{strata}.}
+\item{strata}{\code{[atomic]}. Subsets of the dataset. Episodes are created separately for each \code{strata}.}
 
-\item{rolls_max}{Maximum number of times the index \code{"case"} can recur. Only used if \code{episode_type} is \code{"rolling"}.}
+\item{sn}{\code{[integer]}. Unique record identifier. Useful for creating familiar \code{\link[=epid-class]{epid}} identifiers.}
 
-\item{overlap_methods_c}{Methods of overlap considered when tracking duplicates of \code{"case"} events. See (\code{\link{overlaps}})}
+\item{episodes_max}{\code{[integer]}. The maximum number of episodes permitted within each \code{strata}.}
 
-\item{overlap_methods_r}{Methods of overlap considered when tracking duplicates of \code{"recurrent"} events. See (\code{\link{overlaps}})}
+\item{rolls_max}{\code{[integer]}. Maximum number of times the index \code{"case"} can recur. Only used if \code{episode_type} is \code{"rolling"}.}
 
-\item{sn}{Unique numerical record identifier. Useful for creating familiar episode identifiers.}
+\item{case_overlap_methods}{\code{[character|integer]}. Methods of overlap considered when tracking duplicates of \code{"case"} events. See (\code{\link{overlaps}})}
 
-\item{strata}{Subsets. Episodes are tracked separately within each subset. \code{\link{links}} is useful for creating these.}
+\item{recurrence_overlap_methods}{\code{[character|integer]}. Methods of overlap considered when tracking duplicates of \code{"recurrent"} events. See (\code{\link{overlaps}})}
 
-\item{skip_if_b4_lengths}{If \code{TRUE} (default), \code{events} before the cut-off points or periods are skipped.}
+\item{skip_if_b4_lengths}{\code{[logical]}. If \code{TRUE} (default), when using lagged \code{case_length} or \code{recurrence_length}, \code{events} before the cut-off point or period are skipped.}
 
-\item{data_source}{Unique data source identifier. Useful when the dataset has data from multiple sources.}
+\item{data_source}{\code{[character]}. Unique data source identifier. Adds the list of datasets in each episode to the \code{\link[=epid-class]{epid}}. Useful when the dataset has data from multiple sources.}
 
-\item{data_links}{A set of \code{data_sources} required in each episode. A \code{strata} without records from these data sources will be skipped, and episodes without these will be unlinked. See \code{Details}.}
+\item{data_links}{\code{[list|character]}. A set of \code{data_sources} required in each \code{\link[=epid-class]{epid}}. An episode without records from these \code{data_sources} will be unlinked. See \code{Details}.}
 
-\item{custom_sort}{Preferential order for selecting index (\code{"case"}) events. Required for tracking episodes in a non-chronological sequence.}
+\item{custom_sort}{\code{[atomic]}. Preferential order for selecting index or reference events.}
 
-\item{skip_order}{\code{"nth"} level of \code{custom_sort}. Episodes with index events beyond this level of preference are skipped.}
+\item{skip_order}{\code{[integer]}. \code{"nth"} level of \code{custom_sort}. Episodes with index events beyond this level of preference are skipped.}
 
-\item{recurrence_from_last}{If \code{TRUE} (default), the reference event for a \code{recurrence window} will be the last event from the previous window.
-If \code{FALSE} (default), it will be the first event. Only used if \code{episode_type} is \code{"rolling"}.}
+\item{reference_event}{\code{[character]}. Specifies which of the duplicates are used as reference events for subsequent windows. Options are "last_record" (default), "last_event", "first_record" or ""firs_event".}
 
-\item{case_for_recurrence}{If \code{TRUE}, both \code{"case"} and \code{"recurrent"} events will have a case window.
+\item{case_for_recurrence}{\code{[logical]}. If \code{TRUE}, both \code{"case"} and \code{"recurrent"} events will have a case window.
 If \code{FALSE} (default), only \code{case events} will have a \code{case window}. Only used if \code{episode_type} is \code{"rolling"}.}
 
-\item{from_last}{Chronological sequence of episode tracking. Ascending (\code{TRUE}) or descending \code{TRUE}.}
+\item{from_last}{\code{[logical]}. Chronological order of episode tracking i.e. ascending (\code{TRUE}) or descending (\code{FALSE}).}
 
-\item{group_stats}{If \code{TRUE} (default), episode-specific information like episode start and endpoints are returned. See \code{Value}.}
+\item{group_stats}{\code{[logical]}. If \code{TRUE} (default), episode-specific information like episode start and end dates are returned.}
 
-\item{display}{The messages printed on screen. Options are; \code{"none"} (default) or, \code{"progress"} and \code{"stats"} for a progress update or a more detailed breakdown of the tracking process.}
+\item{display}{\code{[character]}. The progress messages printed on screen. Options are; \code{"none"} (default), \code{"progress"} and \code{"stats"}.}
 
-\item{to_s4}{Data type of returned object. \code{\link[=epid-class]{epid}} (\code{TRUE}) or \code{data.frame} (\code{FALSE}).}
+\item{case_sub_criteria}{\code{[\link{sub_criteria}]}. Matching conditions for "case" windows in addition to temporal links.}
 
-\item{deduplicate}{if \code{TRUE}, \code{"duplicate"} events are excluded from the output.}
+\item{recurrence_sub_criteria}{\code{[\link{sub_criteria}]}. Matching conditions for "recurrence" windows in addition to temporal links.}
 
-\item{bi_direction}{If \code{TRUE}, \code{"duplicate"} events before and after the index event are tracked.}
+\item{case_length_total}{\code{[integer|\link{number_line}]}. Minimum number of matched case windows required for an episode.}
 
-\item{include_index_period}{If \code{TRUE}, overlaps with the index event or period are linked even if they are outside the cut-off period.}
+\item{recurrence_length_total}{\code{[integer|\link{number_line}]}. Minimum number of matched recurrence windows required for an episode.}
 
-\item{...}{Arguments passed to \bold{\code{episodes}}}
+\item{to_s4}{\code{[logical]}. Deprecated. Output type - \code{\link[=epid-class]{epid}} (\code{TRUE}) or \code{data.frame} (\code{FALSE}).}
 
-\item{overlap_methods}{Deprecated. Please use \code{overlap_methods_c} or \code{overlap_methods_r}. Methods of overlap considered when tracking duplicate event. See (\code{\link{overlaps}})}
+\item{deduplicate}{\code{[logical]}. Deprecated. If \code{TRUE}, \code{"duplicate"} events are excluded from the \code{\link[=epid-class]{epid}}.}
 
-\item{overlap_method}{Deprecated. Please use \code{overlap_methods_c} or \code{overlap_methods_r}. Methods of overlap considered when tracking event. All event are checked by the same set of \code{overlap_method}.}
+\item{bi_direction}{\code{[logical]}. Deprecated. If \code{TRUE}, \code{"duplicate"} events before and after the index event are tracked.}
 
-\item{x}{Deprecated. Record date or period. Please use \code{date}}
+\item{include_index_period}{\code{[logical]}. Deprecated. If \code{TRUE}, events overlapping with the index event or period are linked even if they are outside the cut-off period.}
 
-\item{df}{\code{data.frame}. One or more datasets appended together. See \code{Details}.}
+\item{...}{Arguments passed to \code{episodes}.}
+
+\item{overlap_methods}{\code{[character]}. Deprecated. Please use \code{case_overlap_methods} or \code{recurrence_overlap_methods}. Methods of overlap considered when tracking duplicate event. See (\code{\link{overlaps}})}
+
+\item{overlap_method}{\code{[character]}. Deprecated. Please use \code{case_overlap_methods} or \code{recurrence_overlap_methods}. Methods of overlap considered when tracking event. All event are checked by the same set of \code{overlap_method}.}
+
+\item{x}{\code{[date|datetime|integer|\link{number_line}]}. Deprecated. Record date or period. Please use \code{date}.}
+
+\item{df}{\code{[data.frame]}. Deprecated. One or more datasets appended together. See \code{Details}.}
 }
 \value{
 
 
-\code{\link[=epid-class]{epid}} objects or \code{data.frame} if \code{to_s4} is \code{FALSE}
-
-\itemize{
-\item \code{sn} - unique record identifier as provided (or generated)
-\item \code{epid | .Data} - unique episode identifier
-\item \code{wind_id} - unique window identifier
-\item \code{wind_nm} - type of window i.e. "Case" or "Recurrence"
-\item \code{case_nm} - record type in regards to case assignment
-\item \code{dist_from_wind} - duration of each event from its window's reference event
-\item \code{dist_from_epid} - duration of each event from its episode's reference event
-\item \code{epid_dataset} - data sources in each episode
-\item \code{epid_interval} - episode start and end dates. A \code{\link{number_line}} object.
-\item \code{epid_length} - the difference between episode start and end dates (\code{difftime}). If possible, it's the same unit as \code{episode_unit} otherwise, a difference in days is returned
-\item \code{epid_total} - number of records in each episode
-\item \code{iteration} - iteration of the process when each event was tracked to its episode.
-}
+\code{\link[=epid-class]{epid}}
 }
 \description{
-Link events into a chronological sequence of episodes.
+Link events with matching attributes and within specified durations of each other.
+Each set of linked records are assigned a unique identifier with relevant group-level information.
 }
 \details{
-Episodes are tracked from index events in chronological sequence as determined by \code{from_last}.
-You can use \code{custom_sort} for a non-chronological sequence. However, ties will be broken by chronological orders.
+All dated records within a specified duration of an index record are linked together as an episode.
+By default, this process occurs in ascending order, beginning with the earliest event.
+This can be changed to a descending (\code{from_last}) or custom order (\code{custom_sort}).
+Ties are always broken by the chronological order of events.
 
-A \code{"fixed"} episode has a fixed maximum duration determined by \code{case_length}.
-But a \code{"rolling"} episode can continue to recur. therefore, its maximum duration is variable.
+A \code{"fixed"} episode has a fixed maximum duration determined by \code{case_length}, while a \code{"rolling"} episode can continue to recur.
 A \code{"rolling"} episode will persist as long as is specified by \code{rolls_max}.
 
-\bold{\code{episodes()}} will categorise records into 5 types of events;
+\bold{\code{episodes()}} will categorise records into 5 type of events;
 
 \itemize{
-\item \code{"Case"} - Index case of the episode.
-\item \code{"Duplicate_C"} - Duplicate of the index case.
-\item \code{"Recurrent"} - Recurrent event of the index case.
+\item \code{"Case"} - Index event of the episode.
+\item \code{"Duplicate_C"} - Duplicate of the index event.
+\item \code{"Recurrent"} - Recurrence of the index event.
 \item \code{"Duplicate_R"} - Duplicate of the recurrent event.
-\item \code{"Skipped"} - Those skipped from the episode tracking process.
+\item \code{"Skipped"} - Records excluded from the episode tracking process.
 }
 
-\code{data_source} - including this populates the \code{epid_dataset} slot. See \code{Value}.
-
-\code{data_links} should be a \code{list} of \code{atomic} vectors with every element named \code{"l"} (links) or \code{"g"} (groups).
+Every element in \code{data_links} must be named \code{"l"} (links) or \code{"g"} (groups).
+Unnamed elements of \code{data_links} will be assumed to be \code{"l"}.
 \itemize{
-\item \code{"l"} - Episodes with records from every listed data source will be retained.
-\item \code{"g"} - Episodes with records from any listed data source will be retained.
+\item If named \code{"l"}, only groups with records from every listed \code{data_source} will be unlinked.
+\item If named \code{"g"}, only groups with records from any listed \code{data_source} will be unlinked.
 }
-\code{data_links} and \code{skip_order} are useful for skipping episodes that are not required to minimise processing time.
 
-\bold{\code{episode_group()}} as it existed before \code{v0.2.0} has been retired.
-Its now exists to support previous code with minimal disruption. Please use \bold{\code{episodes()}} moving forward.
+\emph{\code{NA} values in \code{strata} excludes records from the episode tracking process}
 
-\bold{\code{rolling_episodes()}} and \bold{\code{rolling_episodes()}} are wrapper functions for tracking \code{"fixed"} and \code{"rolling"} episodes respectively.
-They exist for convenience, to support previous code and arguments with minimal disruption.
+\bold{\code{episodes_wf_splits()}} is a wrapper function of \bold{\code{episode_group()}} which reframes the data before the episode tracking process.
+This aims to reduce the overall processing time for the tracking process. See \code{vignette("episodes")} for further details.
+
+\bold{\code{episode_group()}} has been retired.
+It now only exists to support previous code with minimal input from users.
+Moving forward, please use \bold{\code{episodes()}}.
+
+\bold{\code{rolling_episodes()}} and \bold{\code{rolling_episodes()}} are convenience functions
+to support previous code with minimal input from users.
+Moving forward, please use \bold{\code{episodes()}}.
 
 See \code{vignette("episodes")} for more information.
 }
 \examples{
-library(diyar)
 data(infections)
 data(hospital_admissions)
 
@@ -219,11 +249,11 @@ hospital_admissions$admin_period <- number_line(hospital_admissions$admin_dt,
 admissions <- hospital_admissions[c("admin_period","epi_len")]
 
 # Episodes of overlapping periods of admission
-hospital_admissions$epids_i<- episodes(date = hospital_admissions$admin_period,
+hospital_admissions$epids_i <- episodes(date = hospital_admissions$admin_period,
                                        case_length = 0,
-                                       overlap_methods_c = "inbetween")
+                                       case_overlap_methods = "inbetween")
 
 }
 \seealso{
-\code{\link[=windows]{epid_length}}, \code{\link[=windows]{epid_window}}, \code{\link{links}}, \code{\link{overlaps}} and \code{\link{number_line}}
+\code{\link{custom_sort}}; \code{\link{sub_criteria}}; \code{\link[=windows]{epid_length}}; \code{\link[=windows]{epid_window}}; \code{\link{partitions}}; \code{\link{links}}; \code{\link{overlaps}}; \code{\link{number_line}}; \code{\link{schema}}
 }

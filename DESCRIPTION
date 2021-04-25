@@ -1,29 +1,28 @@
 Package: diyar
 Type: Package
-Title: Multistage Record Linkage and Case Definition for
-        Epidemiological Analysis
-Date: 2020-09-16
-Version: 0.2.0
-URL: https://olisansonwu.github.io/diyar/index.html,
+Title: Record Linkage and Epidemiological Case Definitions in R
+Date: 2021-04-24
+Version: 0.3.0
+URL: https://olisansonwu.github.io/diyar/index.html
 BugReports: https://github.com/OlisaNsonwu/diyar/issues
 Author: Olisaeloka Nsonwu
 Maintainer: Olisaeloka Nsonwu <olisa.nsonwu@gmail.com>
-Description: Perform multistage deterministic linkages and apply case definitions to datasets.
-    Records are linked by different matching criteria in a specified order of certainty. 
-    The linkage process handles missing data and conflicting matches using this same order.
-    Track events (e.g. sample collection) and period (e.g. hospital admission) to episodes. 
-    This process permits several options such as episode lengths and recurrence.
-    Record linkage and episode tracking assign unique group identifiers to matched records.
-    Duplicate events or records can then be identified or sub-analyses performed within each group.  
+Description: An R package for record linkage and implementing epidemiological case definitions in R.
+    Record linkage is implemented either through a multistage deterministic approach or a probabilistic approach. 
+    Matching records are assigned to unique groups. There are mechanisms to address missing data and conflicting matches across linkage stages.
+    Track and assign events (e.g. sample collection) and periods (e.g. hospital admission) to unique groups based on a case definition. 
+    The tracking process permits several options such as episode lengths and recurrence.
+    Duplicate events or records can then be identified for removal or further analyses.  
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: methods, grDevices, graphics, utils, Rfast
+Imports: methods, grDevices, graphics, utils, Rfast, ggplot2, rlang
 RoxygenNote: 7.1.1
-Suggests: knitr, rmarkdown, testthat, covr
+Suggests: knitr, rmarkdown, testthat, covr, stringdist
 VignetteBuilder: knitr
 Language: en-GB
 NeedsCompilation: no
-Packaged: 2020-09-16 15:07:10 UTC; Olisaeloka.Nsonwu
+Packaged: 2021-04-25 09:42:05 UTC; Olisaeloka.Nsonwu
+Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2020-09-17 09:30:12 UTC
+Date/Publication: 2021-04-25 10:00:02 UTC

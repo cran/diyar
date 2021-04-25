@@ -1,35 +1,29 @@
 #' @title Set operations on number line objects
 #' @name set_operations
-#' @description Perform set operations on a pair of \code{number_line} objects.
+#' @description Perform set operations on a pair of \code{[\link{number_line}]}s.
 #'
-#' @param x \code{number_line} object
-#' @param y \code{number_line} object
+#' @param x \code{[\link{number_line}]}
+#' @param y \code{[\link{number_line}]}
 #' @aliases set_operations
-#' @return \code{number_line}; \code{list}
+#' @return \code{[\link{number_line}]}; \code{list}
 #'
 #' @details
 #'
-#' \bold{\code{union_number_lines()}} - Return a \code{number_line} object with the combined range of \code{x} and \code{y}
+#' \bold{\code{union_number_lines()}} - Combined the range of \code{x} and that of \code{y}
 #'
-#' \bold{\code{intersect_number_line()}} - Returns a subset of \code{x} that overlaps with \code{y} and vice versa
+#' \bold{\code{intersect_number_line()}} - Subset of \code{x} that overlaps with \code{y} and vice versa
 #'
-#' \bold{\code{subtract_number_lines()}} - Returns a subset of \code{x} that does not overlap with \code{y} and vice versa.
-#' Returns a list with two elements;
-#' \itemize{
-#' \item \code{n1} - subset before the overlapped range between \code{x} and \code{y}.
-#' \item \code{n2} - subset after the overlapped range between \code{x} and \code{y}
-#' }
+#' \bold{\code{subtract_number_lines()}} - Subset of \code{x} that does not overlap with \code{y} and vice versa.
 #'
-#' The \code{direction} of the returned \code{number_line} will be that of the widest one (\code{x} or \code{y}).
-#' If \code{x} and \code{y} have the same length, it'll be an \code{"increasing direction"}.
+#' The \code{direction} of the returned \code{[\link{number_line}]} will be that of the widest one (\code{x} or \code{y}).
+#' If \code{x} and \code{y} have the same length, it'll be an \code{"increasing"} direction.
 #'
-#' If  \code{x} and \code{y} do not overlap, \code{NA} (\code{"NA ?? NA"}) is returned.
+#' If \code{x} and \code{y} do not overlap, \code{NA} (\code{"NA ?? NA"}) is returned.
 #'
 #' @seealso
-#' \code{\link{number_line}} and \code{\link{overlaps}}
+#' \code{\link{number_line}};  \code{\link{overlaps}}
 #'
 #' @examples
-#'
 #' nl_1 <- c(number_line(1, 5), number_line(1, 5), number_line(5, 9))
 #' nl_2 <- c(number_line(1, 2), number_line(2, 3), number_line(0, 6))
 #'
@@ -62,7 +56,7 @@ union_number_lines <- function(x, y){
   )
 
   dir <- ifelse(abs(x@.Data[lg]) > abs(y@.Data[lg]), x@.Data[lg]/abs(x@.Data[lg]), y@.Data[lg]/abs(y@.Data[lg]))
-  o[lg] <- reverse_number_line(o[lg], direction= ifelse(dir==1, "decreasing", "increasing"))
+  o[lg] <- reverse_number_line(o[lg], direction= ifelse(dir == 1 & !is.na(dir), "decreasing", "increasing"))
 
   return(o[-1])
 }

@@ -13,9 +13,10 @@
 \alias{overlap_method}
 \alias{include_overlap_method}
 \alias{exclude_overlap_method}
+\alias{overlap_method_codes}
 \title{Overlapping number line objects}
 \usage{
-overlaps(x, y, methods = "overlap", method = "overlap")
+overlaps(x, y, methods = 8)
 
 overlap(x, y)
 
@@ -38,15 +39,16 @@ overlap_method(x, y)
 include_overlap_method(methods)
 
 exclude_overlap_method(methods)
+
+overlap_method_codes(methods)
 }
 \arguments{
-\item{x}{\code{number_line} object.}
+\item{x}{\code{[\link{number_line}]}}
 
-\item{y}{\code{number_line} object.}
+\item{y}{\code{[\link{number_line}]}}
 
-\item{methods}{Methods of overlap. Check different pairs of \code{number_line} objects by different \code{methods}. Options are \code{"exact"}, \code{"reverse"}, \code{"inbetween"}, \code{"across"}, \code{"chain"}, \code{"aligns_start"} and \code{"aligns_end"}.}
-
-\item{method}{Deprecated. Please use \code{methods} instead. Method of overlap. Check every pair of \code{number_line} objects by the same \code{method}.}
+\item{methods}{\code{[charater|integer]}. Methods of overlap. Check different pairs of \code{number_line} objects by different \code{methods}. Options are \code{"exact"}, \code{"reverse"}, \code{"inbetween"}, \code{"across"}, \code{"chain"}, \code{"aligns_start"} and \code{"aligns_end"}.
+Combinations are also supported see \code{diyar::overlap_methods$options}.}
 }
 \value{
 \code{logical}; \code{character}
@@ -55,32 +57,34 @@ exclude_overlap_method(methods)
 Identify overlapping \code{number_line} objects
 }
 \details{
-\bold{8 logical test;}
+\bold{9 logical test;}
 
 \bold{\code{exact()}} - Identical left and right points.
 
 \bold{\code{reverse()}} - Swapped left and right points.
 
-\bold{\code{inbetween()}} - start and endpoints of one \code{number_line} object is within the start and endpoints of another.
+\bold{\code{inbetween()}} - start and end point of one \code{number_line} object is within the start and end point of another.
 
-\bold{\code{across()}} - start or endpoints of one \code{number_line} object is within the start and endpoints of another.
+\bold{\code{across()}} - start or end point of one \code{number_line} object is in between the start and end point of another.
 
 \bold{\code{chain()}} - endpoint of one \code{number_line} object is the same as the start point of another.
 
 \bold{\code{aligns_start()}} - identical start points only.
 
-\bold{\code{aligns_end()}} - identical endpoints only.
+\bold{\code{aligns_end()}} - identical end point only.
 
 \bold{\code{overlap()}} - any kind of overlap. A convenient \code{method} for "ANY" and "ALL" methods of overlap.
 
-\bold{\code{overlaps()}} - overlap by any set of the 7 methods above.
+\bold{\code{overlaps()}} - overlap by a specified combination of the methods.
 
 \bold{Describe methods of overlap;}
 
-\bold{\code{overlap_method()}} - Shows if and how a pair of \code{number_line} object have overlapped.
+\bold{\code{overlap_method()}} - Shows how a pair of \code{number_line} object has overlapped.
 Does not show \code{"overlap"} since \bold{\code{overlap()}} is always \code{TRUE} when any other method is \code{TRUE}.
 
-\bold{\code{include_overlap_method()}} and \bold{\code{exclude_overlap_method()}} - Conveniently create the required values for \code{methods} and \code{overlap_methods} in \code{\link{episodes}}.
+\bold{\code{include_overlap_method()}} and \bold{\code{exclude_overlap_method()}} - Conveniently create the required values for \code{methods}, and \code{case_overlap_methods} and \code{recurrence_overlap_methods} in \code{\link{episodes}}.
+
+\bold{\code{overlap_method_codes()}} - Numeric codes for the supported combination of overlap methods.
 }
 \examples{
 a <- number_line(-100, 100)
@@ -128,7 +132,10 @@ include_overlap_method(c("across", "chain"))
 
 exclude_overlap_method("across")
 exclude_overlap_method(c("across", "chain"))
+
+overlap_method_codes("across")
+overlap_method_codes("across|chain|exact")
 }
 \seealso{
-\code{\link{number_line}} and \code{\link{set_operations}}
+\code{\link{number_line}};  \code{\link{set_operations}}
 }
