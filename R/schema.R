@@ -17,7 +17,14 @@
 #'
 #' @return \code{ggplot} objects
 #' @details
-#' A visual aid to describing the data linkage (\code{\link{links}}), episode tracking (\code{\link{episodes}}) or partitioning process (\code{\link{partitions}}).
+#' A visual aid to describe the data linkage (\code{\link{links}}), episode tracking (\code{\link{episodes}}) or partitioning process (\code{\link{partitions}}).
+#'
+#' \bold{\code{show_labels} options (multi-select)}
+#' \itemize{
+#' \item schema.epid - \bold{TRUE}, \bold{FALSE}, "sn", "epid", "date", "case_nm", "length_label", "length_arrow", "case_overlap_methods" or "recurrence_overlap_methods"
+#' \item schema.pane - \bold{TRUE}, \bold{FALSE}, "sn", "pane", "date", "case_nm" or "window_label"
+#' \item schema.pid - \bold{TRUE}, \bold{FALSE}, "sn" or "pid"
+#' }
 #'
 #' @examples
 #' schema(number_line(c(1, 2), c(2, 1)))
@@ -208,7 +215,7 @@ schema.epid <- function(x, title = NULL, show_labels = c("length_arrow"),
   # Information to show in the plot
   if(isTRUE(show_labels)){
     show_labels <- c("sn", "epid", "date", "case_nm", "length_label",
-                     "length_arrow", "case_overlap_methods","recurrece_overlap_methods")
+                     "length_arrow", "case_overlap_methods","recurrence_overlap_methods")
   }
 
   # Case length arrows
@@ -341,13 +348,18 @@ schema.epid <- function(x, title = NULL, show_labels = c("length_arrow"),
     case_l_ar$start <- as.numeric(case_l_ar$start)
     case_l_ar$end <- as.numeric(case_l_ar$end)
 
-    case_l_ar$pl_x_e <- max(plt_df$end, plt_df$start)
-    case_l_ar$pl_x_s <- min(plt_df$start, plt_df$end)
+    pl_x_e <- max(plt_df$end, plt_df$start)
+    pl_x_s <- min(plt_df$start, plt_df$end)
 
-    lgk <- ((case_l_ar$end > case_l_ar$pl_x_e) | is.infinite(case_l_ar$end))
-    case_l_ar$end[lgk] <- case_l_ar$pl_x_e[lgk]
-    lgk <- ((case_l_ar$start < case_l_ar$pl_x_s) | is.infinite(case_l_ar$start))
-    case_l_ar$start[lgk] <- case_l_ar$pl_x_s[lgk]
+    lgk <- ((case_l_ar$end > pl_x_e & case_l_ar$end > case_l_ar$start))
+    case_l_ar$end[lgk] <- pl_x_e
+    lgk <- ((case_l_ar$end < pl_x_s & case_l_ar$end < case_l_ar$start))
+    case_l_ar$end[lgk] <- pl_x_s
+
+    lgk <- ((case_l_ar$start < pl_x_s & case_l_ar$end > case_l_ar$start))
+    case_l_ar$start[lgk] <- pl_x_s
+    lgk <- ((case_l_ar$start > pl_x_e & case_l_ar$end < case_l_ar$start))
+    case_l_ar$start[lgk] <- pl_x_e
 
     case_l_ar$bck_dir <- abs(case_l_ar$nl_s) > abs(case_l_ar$nl_e)
     rev_len <- reverse_number_line(number_line(case_l_ar$start[case_l_ar$bck_dir], case_l_ar$end[case_l_ar$bck_dir]), direction = "both")
@@ -467,10 +479,10 @@ schema.pane <- function(x, title = NULL, show_labels = c("window_label"),
 
   # `Pane` data
   panes <- x
+  plt_df <- as.data.frame(panes)
   if(!is.null(custom_label)){
     plt_df$custom_label <- custom_label
   }
-  plt_df <- as.data.frame(panes)
   plt_df$start <- as.number_line(x@options$date)@start
   plt_df$end <- right_point(as.number_line(x@options$date))
   plt_df$epid <- as.character(panes@.Data)
@@ -575,37 +587,37 @@ schema.pane <- function(x, title = NULL, show_labels = c("window_label"),
   plt_df$x_lead <- link_sn$mid_x[match(plt_df$pane_id, link_sn$sn)]
   plt_df$y_lead <- link_sn$y[match(plt_df$pane_id, link_sn$sn)]
 
-    plt_df$event_type <- ""
-    plt_df$event_nm <- ""
-    # Show `pane_id` if requested
-    if("pane" %in% show_labels){
-      plt_df$event_type <- paste0("PN.", plt_df$epid)
-    }
-    # Show `case_nm` if requested
-    if("case_nm" %in% show_labels){
-      plt_df$event_type <- paste0(plt_df$event_type, ifelse(plt_df$event_type == "", "", "\n"),
-                                  plt_df$case_nm,
-                                  ifelse(plt_df$sn %in% plt_df$pane_id & plt_df$case_nm != -1,
-                                         "\n(reference)",""))
-    }
-    # Show record `date` if requested
-    if("date" %in%  show_labels){
-      plt_df$event_nm <- number_line(plt_df$start,
-                                     plt_df$end)
-      plt_df$event_nm <- ifelse(left_point(plt_df$event_nm) == right_point(plt_df$event_nm),
-                                format(left_point(plt_df$event_nm)),
-                                format(plt_df$event_nm))
-    }
-    # Show record `custom_label` if requested
-    if(!is.null(custom_label)){
-      plt_df$event_nm <- paste0(plt_df$custom_label, " ",
-                                    plt_df$event_nm)
-    }
-    # Show record `sn` if requested
-    if("sn" %in%  show_labels){
-      plt_df$event_nm <- paste0("SN ", plt_df$sn, "; ",
-                                plt_df$event_nm)
-    }
+  plt_df$event_type <- ""
+  plt_df$event_nm <- ""
+  # Show `pane_id` if requested
+  if("pane" %in% show_labels){
+    plt_df$event_type <- paste0("PN.", plt_df$epid)
+  }
+  # Show `case_nm` if requested
+  if("case_nm" %in% show_labels){
+    plt_df$event_type <- paste0(plt_df$event_type, ifelse(plt_df$event_type == "", "", "\n"),
+                                plt_df$case_nm,
+                                ifelse(plt_df$sn %in% plt_df$pane_id & plt_df$case_nm != -1,
+                                       "\n(reference)",""))
+  }
+  # Show record `date` if requested
+  if("date" %in%  show_labels){
+    plt_df$event_nm <- number_line(plt_df$start,
+                                   plt_df$end)
+    plt_df$event_nm <- ifelse(left_point(plt_df$event_nm) == right_point(plt_df$event_nm),
+                              format(left_point(plt_df$event_nm)),
+                              format(plt_df$event_nm))
+  }
+  # Show record `custom_label` if requested
+  if(!is.null(custom_label)){
+    plt_df$event_nm <- paste0(plt_df$custom_label, " ",
+                              plt_df$event_nm)
+  }
+  # Show record `sn` if requested
+  if("sn" %in%  show_labels){
+    plt_df$event_nm <- paste0("SN ", plt_df$sn, "; ",
+                              plt_df$event_nm)
+  }
 
   # Can't plot `Inf'/`-Inf`, so close infinite `window`
   r_lim <- c(border$end, plt_df$end)
@@ -756,20 +768,20 @@ schema.pid <- function(x, title = NULL, show_labels = TRUE,
   }
 
   # Labels to plot
-    pl_dt$event_nm <- ""
-    pl_dt$pid_l <- ""
-    # Show record `custom_label` if requested
-    if(!is.null(custom_label)){
-      pl_dt$event_nm <- paste0(pl_dt$custom_label, " ", pl_dt$event_nm)
-    }
-    # Show record `sn` is requested
-    if("sn" %in% show_labels){
-      pl_dt$event_nm <- paste0("SN ", pl_dt$sn, "; ", pl_dt$event_nm)
-    }
-    # Show record `pid` is requested
-    if("pid" %in% show_labels){
-      pl_dt$pid_l <- pl_dt$link_col
-    }
+  pl_dt$event_nm <- ""
+  pl_dt$pid_l <- ""
+  # Show record `custom_label` if requested
+  if(!is.null(custom_label)){
+    pl_dt$event_nm <- paste0(pl_dt$custom_label, " ", pl_dt$event_nm)
+  }
+  # Show record `sn` is requested
+  if("sn" %in% show_labels){
+    pl_dt$event_nm <- paste0("SN ", pl_dt$sn, "; ", pl_dt$event_nm)
+  }
+  # Show record `pid` is requested
+  if("pid" %in% show_labels){
+    pl_dt$pid_l <- pl_dt$link_col
+  }
 
   border$pid_box_cri <- pl_dt$pid_box_cri[match(border$pid_box, pl_dt$pid_box)]
   tx_l <- min(pl_dt$x1)

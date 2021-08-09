@@ -383,7 +383,7 @@ combns <- function(x, m, FUN = NULL, simplify = TRUE, ...){
 
 #' @name listr
 #' @aliases listr
-#' @title Written lists.
+#' @title Grammatical lists.
 #' @description A convenience function to format \code{atomic} vectors as a written list.
 #'
 #' @param x \code{atomic} vector.
@@ -547,8 +547,8 @@ l_ar <- function(lens, pltd, wind_nm, is_dt, epid_unit){
       if(nrow(y) > 0){
         if(any(y$bi_dir)){
           v <- y[y$bi_dir,]
-          v$start <- y$pt_end
-          y$end <- y$pt_end
+          v$start <- v$pt_end
+          y$end[y$bi_dir] <- y$pt_end[y$bi_dir]
           y <- rbind(y, v)
           rm(v)
         }
@@ -631,7 +631,7 @@ length_to_range <- function(lengths, date, from_last, episode_unit){
 }
 
 opt_level <- function(opt, mth, tr_mth){
-  if(opt == "e") {
+  if(opt == "g") {
     tr_mth
   }else if(opt == "b"){
     lgk <- mth != tr_mth
@@ -690,7 +690,7 @@ check_skips <- function(lgk, lead_skip_b4_len, cri, cr, tr_ep_int, vr, tr_int, i
   }
 }
 
-f_rbind <- function(x, y){
+xx_f_rbind <- function(x, y){
   if(length(x) == length(y)){
     rbind(x, y)
   }else{
@@ -707,16 +707,105 @@ f_rbind <- function(x, y){
   }
 }
 
-extract_3dot_lengths <- function(x){
+f_rbind <- function(..., deparse.level = 1){
+  dfs <- list(...)
+  dfs_nms <- unlist(lapply(dfs, names), use.names = FALSE)
+  dfs_nms <- dfs_nms[!duplicated(dfs_nms)]
+  dfs <- lapply(dfs, function(x){
+    for (i in dfs_nms) {
+      if(!i %in% names(x) & nrow(x) > 0){
+        x[[i]] <- NA
+      }else if (!i %in% names(x) & nrow(x) == 0){
+        x[[i]] <- logical()
+      }
+    }
+    return(x)
+  })
+  t.rbind <- function(..., x = deparse.level) rbind(..., deparse.level = x)
+  dfs <- do.call("t.rbind", dfs)
+  return(dfs)
+}
+
+#' @name attr_eval
+#' @title Sub-criteria attributes.
+#' @param x \code{[\link{sub_criteria}]}
+#' @param func \code{[function]}
+#' @param simplify If \code{TRUE} (default), coerce to a vector.
+#' @description
+#' Recursive evaluation of a function (\code{func}) on each attribute (vector) in a \bold{\code{\link{sub_criteria}}}.
+#' @return \code{vector}; \code{list}
+#' @export
+#'
+#' @examples
+#' x <- sub_criteria(rep(1, 5), rep(5 * 10, 5))
+#' attr_eval(x)
+#' attr_eval(x, func = max)
+#' attr_eval(x, func = max, simplify = FALSE)
+#' attr_eval(sub_criteria(x, x), func = max, simplify = FALSE)
+attr_eval <- function(x, func = length, simplify = TRUE){
   if(all(class(x) == "sub_criteria")){
-    unlist(lapply(x, function(sc){
-      extract_3dot_lengths(sc[[1]])
-    }), use.names = FALSE)
+    x <- lapply(x, function(x){
+      attr_eval(x[[1]], func = func, simplify = simplify)
+    })
   }else if(all(class(x) == "list")){
-    unlist(lapply(x, length), use.names = FALSE)
+    x <- lapply(x, func)
   }else if(is.atomic(x)){
-    length(x)
+    x <- func(x)
   }
+
+  if(simplify) unlist(x, use.names = FALSE) else x
+}
+
+#' @name combi
+#' @title Vector combinations
+#' @description Numeric codes for unique combination of vectors.
+#' @param ... \code{[atomic]}
+#' @return \code{numeric}
+#'
+#' @examples
+#' x <- c("A", "B", "A", "C", "B", "B")
+#' y <- c("X", "X", "Z", "Z", "X", "Z")
+#' combi(x, y)
+#'
+#' # The code above is equivalent to but quicker than the one below.
+#' z <- paste0(y, "-", x)
+#' z <- match(z, z)
+#' z
+#' @export
+
+combi <- function(...){
+  # ... must be vectors
+  combi <- list(...)
+  # Validations
+  err_txt <- unlist(lapply(seq_len(length(combi)), function(i){
+    x <- err_atomic_vectors(combi[[i]], paste0("vector ", i))
+    x[x == FALSE] <- NA_character_
+    x
+  }), use.names = FALSE)
+  err_txt <- err_txt[!is.na(err_txt)]
+  if(length(err_txt) > 0) stop(err_txt, call. = FALSE)
+
+  vec_lens <- unlist(lapply(combi, length), use.names = FALSE)
+  dd_err <- vec_lens[!duplicated(vec_lens)]
+  if(!(length(dd_err) == 1 | (length(dd_err) == 2 & 1 %in% dd_err))){
+    err_txt <- paste0("Length of each vector in `...` must be the same or equal to 1:\n",
+                      paste0("X - Length of vector ",
+                             seq_len(length(vec_lens)),
+                             " is ", vec_lens, ".",
+                             collapse = "\n"))
+    stop(err_txt, call. = FALSE)
+  }
+
+  combi[vec_lens == 1] <- NULL
+
+  combi_cd <- match(combi[[1]], combi[[1]])
+  for (j in seq_len(length(combi))[-1]){
+    k <- match(combi[[j]], combi[[j]])
+    combi_cd <- combi_cd + (1/k)
+    combi_cd <- match(combi_cd, combi_cd)
+  }
+  rm(list = ls()[ls() != "combi_cd"])
+  return(combi_cd)
 }
 
 dst_tab <- function(x, order_by_label = NULL, order_by_val = TRUE){
@@ -730,28 +819,4 @@ dst_tab <- function(x, order_by_label = NULL, order_by_val = TRUE){
   y$values <- y$values[pos]
   y$lengths <- y$lengths[pos]
   y
-}
-
-date_strata_combi <- function(date, strata){
-  if(class(date) == "number_line"){
-    s <- list(date@start, date@.Data, strata)
-  }else{
-    s <- list(date, strata)
-  }
-
-  mx_n <- max(unlist(lapply(seq_len(length(s)), function(i){
-    x <- s[[i]]
-    x <- match(x, x[!duplicated(x)])
-    floor(log10(max(x)))
-  }), use.names = FALSE))
-
-  date_strata_combi <- sapply(seq_len(length(s)), function(i){
-    x <- s[[i]]
-    x <- match(x, x[!duplicated(x)])
-    log10(max(x))
-    10^(mx_n+i) * x
-  })
-
-  date_strata_combi <- rowSums(date_strata_combi)
-  return(date_strata_combi)
 }

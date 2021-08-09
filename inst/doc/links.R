@@ -5,9 +5,22 @@ knitr::opts_chunk$set(
 )
 
 ## ---- include = FALSE---------------------------------------------------------
-library(diyar); 
+library(diyar)
+# library(stringdist)
 # library(cowplot)
 # library(ggplot2)
+
+stringdist <- function(...){
+if (requireNamespace("stringdist", quietly = TRUE)) {
+      stringdist::stringdist(...)
+   } else {
+     warning("`stringdist` package not found\nSimilarity scores were not calculated.\n`exact_match()` was used instead")
+     k <- list(...)
+      as.numeric(!exact_match(k[[1]], k[[2]]))
+   }  
+}
+
+
 
 ## ----warning = FALSE----------------------------------------------------------
 ## 3-stage linkage
@@ -144,13 +157,13 @@ dfr_4$forename
 
 # Logical test 1 - Similarity score of 70% or more 
 jw_func <- function(x, y){
-  score <- 1 - stringdist::stringdist(x, y, "jw")
+  score <- 1 - stringdist(x, y, "jw")
   score > .7
 }
 
 # Logical test 2 - Matching Soundex
 soundex_func <- function(x, y){
-  score <- 1 - stringdist::stringdist(x, y, "soundex")
+  score <- 1 - stringdist(x, y, "soundex")
   as.logical(score)
 }
 

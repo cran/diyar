@@ -33,7 +33,8 @@ episodes(
   case_sub_criteria = NULL,
   recurrence_sub_criteria = case_sub_criteria,
   case_length_total = 1,
-  recurrence_length_total = case_length_total
+  recurrence_length_total = case_length_total,
+  skip_unique_strata = TRUE
 )
 
 episodes_wf_splits(
@@ -155,6 +156,8 @@ If \code{FALSE} (default), only \code{case events} will have a \code{case window
 
 \item{recurrence_length_total}{\code{[integer|\link{number_line}]}. Minimum number of matched recurrence windows required for an episode.}
 
+\item{skip_unique_strata}{\code{[logical]}. If \code{TRUE} (default), all strata with a single record are skipped skipped.}
+
 \item{to_s4}{\code{[logical]}. Deprecated. Output type - \code{\link[=epid-class]{epid}} (\code{TRUE}) or \code{data.frame} (\code{FALSE}).}
 
 \item{deduplicate}{\code{[logical]}. Deprecated. If \code{TRUE}, \code{"duplicate"} events are excluded from the \code{\link[=epid-class]{epid}}.}
@@ -209,9 +212,6 @@ Unnamed elements of \code{data_links} will be assumed to be \code{"l"}.
 }
 
 \emph{\code{NA} values in \code{strata} excludes records from the episode tracking process}
-
-\bold{\code{episodes_wf_splits()}} is a wrapper function of \bold{\code{episode_group()}} which reframes the data before the episode tracking process.
-This aims to reduce the overall processing time for the tracking process. See \code{vignette("episodes")} for further details.
 
 \bold{\code{episode_group()}} has been retired.
 It now only exists to support previous code with minimal input from users.

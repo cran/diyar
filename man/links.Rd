@@ -17,7 +17,8 @@ links(
   expand = TRUE,
   shrink = FALSE,
   recursive = FALSE,
-  check_duplicates = FALSE
+  check_duplicates = FALSE,
+  tie_sort = NULL
 )
 
 record_group(df, ..., to_s4 = TRUE)
@@ -46,6 +47,8 @@ record_group(df, ..., to_s4 = TRUE)
 \item{recursive}{\code{[logical]}. If \code{TRUE}, within each iteration of the process, a match can spawn new matches. See \code{vignette("links")}.}
 
 \item{check_duplicates}{\code{[logical]}. If \code{TRUE}, within each iteration of the process, duplicates values of an attributes are not checked. The outcome of the logical test on the first instance of the value will be recycled for the duplicate values. See \code{vignette("links")}.}
+
+\item{tie_sort}{\code{[atomic]}. Preferential order for selecting breaking tied matches within a stage.}
 
 \item{df}{\code{[data.frame]}. Deprecated. One or more datasets appended together. See \code{Details}.}
 
@@ -103,7 +106,7 @@ Unnamed elements of \code{data_links} will be assumed to be \code{"l"}.
 \item If named \code{"g"}, only groups with records from any listed \code{data_source} will remain linked.
 }
 
-\bold{\code{record_group()}} has been retired is no longer supported.
+\bold{\code{record_group()}} has been retired and is no longer supported.
 It only exists to support previous code with minimal input from users.
 Moving forward, please use \bold{\code{links()}}.
 
