@@ -1,11 +1,59 @@
 
+# Version 0.3.1.9000
+
+## New features
+
+-   New function - `reframe()`. Modify the attributes of a
+    `sub_criteria` object.
+-   New function - `link_records()`. Record linkage by creating all
+    record pairs as opposed to batches as with `link()`.
+-   New function - `make_pairs()`. Create every combination of
+    records-pairs for a given dataset.
+-   New function - `make_pairs_wf_source()`. Create records-pairs from
+    different sources only.
+-   New function - `make_ids()`. Convert an edge list to a group
+    identifier.
+-   New function - `merge_ids()`. Merge two group identifiers.
+-   New function - `attrs()`. Pass a set of attributes to one instance
+    of `match_funcs` or `equal_funcs`.
+
+## Changes
+
+-   Optimised `episodes_wf_splits()`
+-   Optimised `episodes()` and `links()`. Reduced processing times.
+-   Three new options for the `display` argument.
+    `"progress_with_report"`, `"stats_with_report"` and
+    `"none_with_report"`. Creates a `d_report`; a status of the analysis
+    over its run time.
+-   `eval_sub_criteria()`. Record-pairs are no longer created in the
+    function. Therefore, `index_record` and `sn` arguments have been
+    replaced with `x_pos` and `y_pos`.
+-   `link_records()` and `links_wf_probabilistic()`. The `cmp_threshold`
+    argument has been renamed to `attr_threshold`.
+-   `show_labels` argument in `schema()`. Two new options - `"wind_nm"`
+    and `"length"` to replace `"length_label"`.
+
+## Bug fixes
+
+-   Incorrect `wind_id` list in `episodes()` when `data_link` is used.
+    Resolved.
+-   Incorrect `link_id` in `links()` when `recursive` is used. Resolved.
+-   `iteration` not recorded in some situations with `episodes()`.
+    Resolved.
+-   `skip_order` ends an open episode. Resolved.
+-   `NA` in `dist_wind_index` and `dist_epid_index` when `sn` is
+    supplied. Resolved.
+-   `overlap_method_codes()` - overlap method codes not recycled
+    properly. Resolved.
+
 # Version 0.3.1
 
 ## New features
 
 -   New function - `delink()`. Unlink identifiers.
 -   New function - `episodes_wf_splits()`. Wrapper function of
-    `episodes()` for better optimised handling of duplicates records.
+    `episodes()`. Better optimised for handling datasets with many
+    duplicate records.
 -   New function - `combi()`. Numeric codes for unique combination of
     vectors.
 -   New function - `attr_eval()`. Recursive evaluation of a function on

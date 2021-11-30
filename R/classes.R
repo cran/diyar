@@ -42,11 +42,20 @@ setMethod("rep", signature(x = "number_line"), function(x, ...) {
 #' @param drop drop
 setMethod("[", signature(x = "number_line"),
           function(x, i, j, ..., drop = TRUE) {
-            methods::new("number_line",
-                         x@.Data[i],
-                         start = x@start[i],
-                         id = x@id[i],
-                         gid = x@gid[i])
+            is_lazy_opt <- !is.null(attr(x, "opts"))
+            is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
+            if(is_lazy_opt){
+             i <- 1
+             attr(x, "opts") <- NULL
+            }
+            x@.Data <- x@.Data[i]
+            x@start <- x@start[i]
+            x@id <- x@id[i]
+            x@gid <- x@gid[i]
+            if(is_lazy_opt){
+              attr(x, "opts") <- "d_lazy_opts"
+            }
+            return(x)
           })
 
 #' @aliases [[,number_line-method
@@ -54,11 +63,20 @@ setMethod("[", signature(x = "number_line"),
 #' @param exact exact
 setMethod("[[", signature(x = "number_line"),
           function(x, i, j, ..., exact = TRUE) {
-            methods::new("number_line",
-                         x@.Data[i],
-                         start = x@start[i],
-                         id = x@id[i],
-                         gid = x@gid[i])
+            is_lazy_opt <- !is.null(attr(x, "opts"))
+            is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
+            if(is_lazy_opt){
+              i <- 1
+              attr(x, "opts") <- NULL
+            }
+            x@.Data <- x@.Data[i]
+            x@start <- x@start[i]
+            x@id <- x@id[i]
+            x@gid <- x@gid[i]
+            if(is_lazy_opt){
+              attr(x, "opts") <- "d_lazy_opts"
+            }
+            return(x)
           })
 
 #' @aliases [<-,number_line-method
@@ -66,15 +84,20 @@ setMethod("[[", signature(x = "number_line"),
 #' @param value value
 setMethod("[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
   if (is.number_line(value)) {
+    is_lazy_opt <- !is.null(attr(x, "opts"))
+    is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
+    if(is_lazy_opt){
+      i <- 1
+      attr(x, "opts") <- NULL
+    }
     x@.Data[i] <- value@.Data
     x@start[i] <- value@start
     x@id[i] <- value@id
     x@gid[i] <- value@gid
-    new("number_line",
-        x@.Data,
-        start = x@start,
-        id = x@id,
-        gid = x@gid)
+    if(is_lazy_opt){
+      attr(x, "opts") <- "d_lazy_opts"
+    }
+    return(x)
   }
 })
 
@@ -82,15 +105,20 @@ setMethod("[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
 #' @rdname number_line-class
 setMethod("[[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
   if (is.number_line(value)) {
+    is_lazy_opt <- !is.null(attr(x, "opts"))
+    is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
+    if(is_lazy_opt){
+      i <- 1
+      attr(x, "opts") <- NULL
+    }
     x@.Data[i] <- value@.Data
     x@start[i] <- value@start
     x@id[i] <- value@id
     x@gid[i] <- value@gid
-    new("number_line",
-        x@.Data,
-        start = x@start,
-        id = x@id,
-        gid = x@gid)
+    if(is_lazy_opt){
+      attr(x, "opts") <- "d_lazy_opts"
+    }
+    return(x)
   }
 })
 
@@ -109,14 +137,13 @@ setMethod("$<-", signature(x = "number_line"), function(x, name, value) {
 #' @rdname number_line-class
 setMethod("c", signature(x = "number_line"), function(x,...) {
   x <- to_s4(do.call("rbind", lapply(list(x, ...), function(y) as.data.frame(as.number_line(y)))))
-  # x@id <- x@gid <- seq_len(length(x))
   return(x)
 })
 
 #' @rdname number_line-class
 #' @export
 unique.number_line <- function(x, ...){
-  x <- x[!duplicated(data.frame(x@start, x@.Data))]
+  x <- x[!duplicated(combi(x@start, x@.Data))]
   return(x)
 }
 
@@ -156,8 +183,8 @@ format.number_line <- function(x, ...){
     s[x@.Data == 0 & !is.na(x@.Data) & !is.nan(x@.Data)] <- "=="
 
     paste0(x@start, " ",
-          s, " ",
-          x@start + x@.Data)
+           s, " ",
+           x@start + x@.Data)
   }
 }
 
@@ -220,7 +247,7 @@ setClass("epid",
                         epid_total = "integer",
                         epid_dataset = "ANY",
                         iteration = "integer",
-                        options = "list"))
+                        options = "ANY"))
 
 #' @rdname epid-class
 #' @examples
@@ -285,14 +312,14 @@ format.epid <- function(x, ...){
   if (length(x) == 0) {
     return("epid(0)")
   }else {
-      int_l <- rep("", length(x))
-      int_l[!is.na(x@epid_interval)] <- paste0(" ",
-                                               format.number_line(x@epid_interval[!is.na(x@epid_interval)]))
-      return(paste0("E.",
-                    formatC(x@.Data, width = nchar(max(x@.Data)), flag = 0, format = "fg"),
-                    int_l,
-                    " (", c("S", "C", "R", "D", "D", "C","R")[x@case_nm + 2L], ")"))
-    }
+    int_l <- rep("", length(x))
+    int_l[!is.na(x@epid_interval)] <- paste0(" ",
+                                             format.number_line(x@epid_interval[!is.na(x@epid_interval)]))
+    return(paste0("E.",
+                  formatC(x@.Data, width = nchar(max(x@.Data)), flag = 0, format = "fg"),
+                  int_l,
+                  " (", c("S", "C", "R", "D", "D", "C", "R")[x@case_nm + 2L], ")"))
+  }
 }
 
 #' @rdname epid-class
@@ -360,8 +387,8 @@ print.epid_summary <- function(x, ...){
     pd_len <- ifelse(ds_len > 20, 1, 20 - ds_len)
     pd_txt <- unlist(lapply(pd_len, function(j) paste0(rep(" ", j), collapse = "")), use.names = FALSE)
     ds_txt <- ifelse(nchar(val) > 20,
-           paste0(substr(val, 1, 20), "~"),
-           val)
+                     paste0(substr(val, 1, 20), "~"),
+                     val)
 
     if(length(ds_len) > 0){
       ds_txt <- paste0("     ", ds_txt, ":", pd_txt,
@@ -545,8 +572,14 @@ setMethod("[[", signature(x = "epid"),
 setMethod("c", signature(x = "epid"), function(x,...) {
   x <- to_s4(do.call("rbind", lapply(list(x, ...), as.data.frame)))
   for (vr in methods::slotNames(x)){
-    if(all(is.na(methods::slot(x, vr)))){
-      methods::slot(x, vr) <- NULL
+    if(length(methods::slot(x, vr)) > 0){
+      if(all(is.na(methods::slot(x, vr)))){
+        if(vr == "options"){
+          methods::slot(x, vr) <- list()
+        }else{
+          methods::slot(x, vr) <- NULL
+        }
+      }
     }
   }
   x
@@ -586,7 +619,7 @@ setClass("pane",
                         pane_length = "ANY",
                         pane_total = "integer",
                         pane_dataset = "ANY",
-                        options = "list"))
+                        options = "ANY"))
 
 #' @rdname pane-class
 #' @examples
@@ -637,7 +670,7 @@ format.pane <- function(x, ...){
                          "",
                          paste0(" ", format.number_line(x@pane_interval))),
                   " (", c("S", "I", "D")[x@case_nm + 2L], ")"))
-    }
+  }
 }
 
 #' @rdname pane-class
@@ -855,8 +888,14 @@ setMethod("[[", signature(x = "pane"),
 setMethod("c", signature(x = "pane"), function(x,...) {
   x <- to_s4(do.call("rbind", lapply(list(x, ...), as.data.frame)))
   for (vr in methods::slotNames(x)){
-    if(all(is.na(methods::slot(x, vr)))){
-      methods::slot(x, vr) <- NULL
+    if(length(methods::slot(x, vr)) > 0){
+      if(all(is.na(methods::slot(x, vr)))){
+        if(vr == "options"){
+          methods::slot(x, vr) <- list()
+        }else{
+          methods::slot(x, vr) <- NULL
+        }
+      }
     }
   }
   x
@@ -912,6 +951,9 @@ as.pid <- function(x, ...){
                     pid_total = tots$lengths[match(x, tots$values)],
                     pid_dataset = NULL,
                     iteration = rep(1L, length(x)))
+
+  x@pid_cri[!duplicated(x@.Data, fromLast = TRUE) &
+              !duplicated(x@.Data, fromLast = FALSE)] <- 0L
   return(x)
 }
 
@@ -1003,7 +1045,7 @@ print.pid_summary <- function(x, ...){
                 "Total records:", paste0(paste0(rep(" ", (mx_ds_len - 9) + 7), collapse = ""), fmt(x$total_records)), "\n",
                 " by matching criteria:", "\n",
                 paste0(ds_txts["pid_cri"], "\n"),
-                "Total record groups:", paste0(paste0(rep(" ", (mx_ds_len - 10) + 7), collapse = ""), fmt(x$total_episodes)), "\n",
+                "Total record groups:", paste0(paste0(rep(" ", (mx_ds_len - 10) + 7), collapse = ""), fmt(x$total_groups)), "\n",
                 " by group dataset:", "\n",
                 paste0(ds_txts["data_source"], "\n"),
                 " by records per group:", "\n",
@@ -1101,9 +1143,79 @@ setMethod("[[", signature(x = "pid"),
 setMethod("c", signature(x = "pid"), function(x,...) {
   x <- to_s4(do.call("rbind", lapply(list(x, ...), as.data.frame)))
   for (vr in methods::slotNames(x)){
-    if(all(is.na(methods::slot(x, vr)))){
-      methods::slot(x, vr) <- NULL
+    if(length(methods::slot(x, vr)) > 0){
+      if(all(is.na(methods::slot(x, vr)))){
+        if(vr == "options"){
+          methods::slot(x, vr) <- list()
+        }else{
+          methods::slot(x, vr) <- NULL
+        }
+      }
     }
   }
   x
 })
+
+#' @name d_report
+#' @title d_report
+#' @aliases d_report
+#' @export
+plot.d_report <- function(x, ...){
+  . <- NULL
+  t <- length(x$iteration)
+  x <- data.frame(x = c(x$iteration, x$iteration, x$iteration, x$iteration),
+                   y = c(as.numeric(x$duration), x$records_checked, x$records_tracked, x$records_skipped),
+                   l = c(rep(paste0("duration (", attr(x$duration, "units"), ")"), t),
+                         rep("records_checked", t), rep("records_assigned", t),
+                         rep("records_skipped", t)),
+                   stringsAsFactors = FALSE)
+  x$x_cd <- match(x$x, x$x)
+  x_breaks <- x$x_cd[!duplicated(x$x)]
+  x_labs <- x$x[!duplicated(x$x)]
+  x_labs <- gsub(" ", "\n", x_labs)
+
+  ggplot2::ggplot(data = x, ggplot2::aes(.data$x_cd, .data$y)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~ .data$l, ncol =2, scales = "free") +
+    ggplot2::scale_x_continuous("Iteration", labels = x_labs[seq(1, length(x_labs), length.out = 10)],
+                                breaks = x_breaks[seq(1, length(x_labs), length.out = 10)])
+}
+
+#' @rdname d_report
+#'
+#' @param x \code{[d_report]}.
+#' @param ... Arguments passed to other methods
+#' @export
+as.list.d_report <- function(x, ...){
+  class(x) <- NULL
+  return(as.list(x, ...))
+}
+
+#' @rdname d_report
+#' @export
+as.data.frame.d_report <- function(x, ...){
+  return(as.data.frame(as.list(x), ...))
+}
+
+
+`[.d_lazy_opts` <- function(x, i, ..., drop = TRUE) {
+  if(length(x) == 1){
+    return(x)
+  }else{
+    x <- as.vector(x)
+    x <- x[i]
+    class(x) <- "d_lazy_opts"
+    return(x)
+  }
+}
+
+`[<-.d_lazy_opts` <- function(x, i, j, ..., value) {
+  if(length(x) == 1){
+    i <- 1
+  }
+  x <- as.vector(x)
+  x[i] <- value
+  class(x) <- "d_lazy_opts"
+  return(x)
+}
+

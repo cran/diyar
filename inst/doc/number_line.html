@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2021-08-07" />
+<meta name="date" content="2021-11-29" />
 
 <title>number_line and overlaps</title>
 
@@ -138,8 +138,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<h1 class="title toc-ignore"><code>number_line</code> and overlaps</h1>
-<h4 class="date">07 August 2021</h4>
+<h1 class="title toc-ignore">number_line and overlaps</h1>
+<h4 class="date">29 November 2021</h4>
 
 
 
@@ -179,44 +179,44 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>There are convenience functions to reverse, shrink, expand or shift a <code>number_line</code> along the number line.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>nl_c <span class="ot">&lt;-</span> <span class="fu">number_line</span>(<span class="fu">as.Date</span>(<span class="st">&quot;04/04/2019&quot;</span>, <span class="st">&quot;%d/%M/%Y&quot;</span>), <span class="fu">as.Date</span>(<span class="st">&quot;07/04/2019&quot;</span>, <span class="st">&quot;%d/%M/%Y&quot;</span>))</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>nl_c</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-04 -&gt; 2019-08-07&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-04 -&gt; 2019-11-07&quot;</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Expand the `number_line` by 2 days from both ends </span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>nl_d <span class="ot">&lt;-</span> <span class="fu">expand_number_line</span>(nl_c, <span class="dv">2</span>); nl_d</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-02 -&gt; 2019-08-09&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-02 -&gt; 2019-11-09&quot;</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Expand the `number_line` by 2 days from the lower end only</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>nl_e <span class="ot">&lt;-</span> <span class="fu">expand_number_line</span>(nl_c, <span class="dv">2</span>, <span class="st">&quot;start&quot;</span>); nl_e</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-02 -&gt; 2019-08-07&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-02 -&gt; 2019-11-07&quot;</span></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Shrink the `number_line` by 2 days from the upper end only</span></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>nl_f <span class="ot">&lt;-</span> <span class="fu">expand_number_line</span>(nl_c, <span class="sc">-</span><span class="dv">2</span>, <span class="st">&quot;end&quot;</span>); nl_f</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-04 -&gt; 2019-08-05&quot;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-04 -&gt; 2019-11-05&quot;</span></span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Shrink the `number_line` by 2 days from both ends</span></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>nl_g <span class="ot">&lt;-</span> <span class="fu">expand_number_line</span>(nl_c, <span class="sc">-</span><span class="dv">2</span>); nl_g</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-06 &lt;- 2019-08-05&quot;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-06 &lt;- 2019-11-05&quot;</span></span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Reverse the direction of the `number_line`</span></span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>nl_h <span class="ot">&lt;-</span> <span class="fu">reverse_number_line</span>(nl_c); nl_h</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-07 &lt;- 2019-08-04&quot;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-07 &lt;- 2019-11-04&quot;</span></span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Shift the `number_line` towards the negative end of the number line by 2 days </span></span>
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>nl_i <span class="ot">&lt;-</span> <span class="fu">shift_number_line</span>(nl_c, <span class="sc">-</span><span class="dv">2</span>); nl_i</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-02 -&gt; 2019-08-05&quot;</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-02 -&gt; 2019-11-05&quot;</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Shift the `number_line` towards the positive end of the number line by 2 days </span></span>
 <span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>nl_j <span class="ot">&lt;-</span> <span class="fu">shift_number_line</span>(nl_c, <span class="dv">2</span>); nl_j</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-06 -&gt; 2019-08-09&quot;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-06 -&gt; 2019-11-09&quot;</span></span>
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Change the left part of the `number_line` to a negative value</span></span>
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>nl_k <span class="ot">&lt;-</span> <span class="fu">invert_number_line</span>(nl_c, <span class="st">&quot;left&quot;</span>); nl_k</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;-18112 -&gt; 18115&quot;</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;-18204 -&gt; 18207&quot;</span></span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Split a `number_line`</span></span>
 <span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>nl_l <span class="ot">&lt;-</span> <span class="fu">seq</span>(nl_c, <span class="at">length.out =</span> <span class="dv">3</span>); nl_l</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-08-04 -&gt; 2019-08-05&quot; &quot;2019-08-05 -&gt; 2019-08-06&quot;</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3] &quot;2019-08-06 -&gt; 2019-08-07&quot;</span></span></code></pre></div>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;2019-11-04 -&gt; 2019-11-05&quot; &quot;2019-11-05 -&gt; 2019-11-06&quot;</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3] &quot;2019-11-06 -&gt; 2019-11-07&quot;</span></span></code></pre></div>
 </div>
 <div id="overlaps" class="section level2">
 <h2>Overlaps</h2>
