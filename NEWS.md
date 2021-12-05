@@ -1,5 +1,32 @@
 
-# Version 0.3.1.9000
+# Version 0.4.1.9000
+
+## New features
+
+New function - `overlap_method_names()`. Overlap methods for a
+corresponding overlap method codes.
+
+## Changes
+
+-   `"chain"` overlap method split into `"x_chain_y"` and `"y_chain_x"`.
+    `"chain"` will continue to be supported as a keyword for
+    `"x_chain_y" OR "y_chain_x"` method
+-   `"across"` overlap method split into `"x_across_y"` and
+    `"y_across_x"`. `"across"` will continue to be supported as a
+    keyword for `"x_across_y" OR "y_across_x"` methods
+-   `"inbetween"` overlap method split into `"x_inbetween_y"` and
+    `"y_inbetween_x"`. `"inbetween"` will continue to be supported as a
+    keyword for `"x_inbetween_y" OR "y_inbetween_x"` methods
+-   Optimised `overlaps()`.
+-   Changed overlap method codes. Please review any previously specified
+    codes with `overlap_method_names()`.
+
+## Bug fixes
+
+-   `make_batch_pairs()` (internal) created invalid record pairs.
+    Resolved.
+
+# Version 0.4.0
 
 ## New features
 
@@ -35,9 +62,9 @@
 
 ## Bug fixes
 
--   Incorrect `wind_id` list in `episodes()` when `data_link` is used.
+-   Incorrect `wind_id` list in `episodes(..., data_link = "XX")` in .
     Resolved.
--   Incorrect `link_id` in `links()` when `recursive` is used. Resolved.
+-   Incorrect `link_id` in `links(..., recursive = TRUE)`. Resolved.
 -   `iteration` not recorded in some situations with `episodes()`.
     Resolved.
 -   `skip_order` ends an open episode. Resolved.

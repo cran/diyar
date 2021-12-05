@@ -1,8 +1,8 @@
 Package: diyar
 Type: Package
 Title: Record Linkage and Epidemiological Case Definitions in R
-Date: 2021-11-28
-Version: 0.4.0
+Date: 2021-12-04
+Version: 0.4.1
 URL: https://olisansonwu.github.io/diyar/index.html
 BugReports: https://github.com/OlisaNsonwu/diyar/issues
 Author: Olisaeloka Nsonwu
@@ -22,7 +22,7 @@ Suggests: knitr, rmarkdown, testthat, covr
 VignetteBuilder: knitr
 Language: en-GB
 NeedsCompilation: no
-Packaged: 2021-11-29 17:55:59 UTC; Olisaeloka.Nsonwu
+Packaged: 2021-12-04 14:37:46 UTC; Olisaeloka.Nsonwu
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2021-11-30 21:10:07 UTC
+Date/Publication: 2021-12-05 14:10:06 UTC

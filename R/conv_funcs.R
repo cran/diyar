@@ -461,7 +461,7 @@ combns <- function(x, m, FUN = NULL, simplify = TRUE, ...){
 #' listr(1:5, sep = "; ", conj = " and", lim = 2)
 #'
 #' @export
-listr <- function(x, sep = ", ", conj = " and", lim = Inf){
+listr <- function(x, sep = ", ", conj = " and ", lim = Inf){
   err <- err_atomic_vectors(x, "x")
   if(err != F) stop(err, call. = F)
   err <- err_object_types(sep, "sep", c("character"))
@@ -481,7 +481,7 @@ listr <- function(x, sep = ", ", conj = " and", lim = Inf){
     p <- x[length(x)]
     f <- x[1:(length(x)-1)]
     f <- paste(f, collapse = sep)
-    x <- ifelse(length(x) > 1, paste0(f, conj, " ", p), f)
+    x <- ifelse(length(x) > 1, paste0(f, conj, p), f)
   }else{
     x <- paste0(paste0(x[seq_len(lim)], collapse = sep), " ...")
   }
@@ -1242,7 +1242,7 @@ make_batch_pairs <- function(strata, index_record, sn){
   lgk <- which(!duplicated(strata, fromLast = TRUE))
 
   pos_repo <- list(sn = sn)
-  pos_repo$x_pos <- seq_len(length(sn))[sn]
+  pos_repo$x_pos <- sn
   pos_repo$y_pos <- rep(pos_repo$x_pos[lgk], rrr$lengths)
   pos_repo <- lapply(pos_repo, function(x) x[rc_sc_ord])
   return(pos_repo)
