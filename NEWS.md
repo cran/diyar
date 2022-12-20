@@ -3,8 +3,152 @@
 
 ## New features
 
-New function - `overlap_method_names()`. Overlap methods for a
-corresponding overlap method codes.
+-   New argument in `merge_ids()` - `shrink` and `expand`.
+-   New S3 method for class ‘d_report’ - `plot`.
+-   New S3 method for class ‘sub_criteria’ - `format`.
+-   New function - `true()`. Predefined logical test for use with
+    `sub_criteria()`.
+-   New function - `false()`. Predefined logical test for use with
+    `sub_criteria()`.
+-   New argument in `links()`- `batched`. Specify if all record pairs
+    are created or compared at once (`"no"`) or in batches (`"yes"`).  
+-   New argument in `links()`- `repeats_allowed`. Specify if
+    record-pairs with duplicate elements should be created.
+-   New argument in `links()`- `permutations_allowed`. Specify if
+    permutations of the same record-pair should be created.
+-   New argument in `links()`- `ignore_same_source`. Specify if
+    record-pairs from different datasets should be created.
+    <!-- + New argument in `links_wf_probabilistic()`- `return_weights`. XXXXXX. -->
+-   New argument in `eval_sub_criteria()`- `depth`. First order of
+    recursion.
+-   New function - `sets()` and `make_sets()`. Create permutations of
+    record-sets.
+
+## Changes
+
+-   `links()` - When `shrink` is `TRUE`, records in a record-group must
+    meet every listed match `criteria` and `sub_criteria`. For example,
+    if `pid_cri` is 3, then the record must have meet matched another on
+    the the first three match criteria.
+-   `links()` - `pid@iteration` now tracks when a record was dealt with
+    instead of when it was assigned to a record-group. For example, a
+    record can be closed (matched or not matched) at iteration 1 but
+    assigned to a record-group at iteration 5.
+-   `make_pairs()` - `x.*` and `y.*` values in the output are now
+    swapped.
+-   `sub_criteria` can now export any data created by `match_func`. To
+    do this, `match_func` must export a `list`, where the first element
+    is a logical object. See an example below.
+
+``` r
+library(diyar)
+val <- rep(month.abb[1:5], 2); val
+#>  [1] "Jan" "Feb" "Mar" "Apr" "May" "Jan" "Feb" "Mar" "Apr" "May"
+match_and_export <- function(x, y){
+  output <- list(x == y, 
+                 data.frame(x_val = x, y_val = y, is_match = x == y))
+  return(output)
+}
+sub.cri.1 <- sub_criteria(
+  val, match_funcs = list(match.export = match_and_export)
+)
+
+format(sub.cri.1, show_levels = TRUE)
+#> logical_test-{
+#> Lv.0.1-match.export(Jan,Feb ...)
+#> }
+eval_sub_criteria(sub.cri.1)
+#> $logical_test
+#>  [1] 1 0 0 0 0 1 0 0 0 0
+#> 
+#> $mf.0.1
+#>    x_val y_val is_match
+#> 1    Jan   Jan     TRUE
+#> 2    Feb   Jan    FALSE
+#> 3    Mar   Jan    FALSE
+#> 4    Apr   Jan    FALSE
+#> 5    May   Jan    FALSE
+#> 6    Jan   Jan     TRUE
+#> 7    Feb   Jan    FALSE
+#> 8    Mar   Jan    FALSE
+#> 9    Apr   Jan    FALSE
+#> 10   May   Jan    FALSE
+```
+
+-   `links` can now export any data created within a `sub_criteria`. To
+    do this, the `sub_criteria` must be created as described above. See
+    an example below
+
+``` r
+val <- 1:5
+diff_one_and_export <- function(x, y){
+  diff <- x - y
+  is_match <- diff <= 1
+  output <- list(is_match, 
+                 data.frame(x_val = x, y_val = y, diff = diff,  is_match = is_match))
+  return(output)
+}
+sub.cri.2 <- sub_criteria(
+  val, match_funcs = list(diff.export = diff_one_and_export)
+)
+links(
+  criteria = "place_holder", 
+  sub_criteria = list("cr1" = sub.cri.2))
+#> $pid
+#> [1] "P.1 (CRI 001)" "P.1 (CRI 001)" "P.3 (CRI 001)" "P.3 (CRI 001)"
+#> [5] "P.5 (No hits)"
+#> 
+#> $export
+#> $export$cri.1
+#> $export$cri.1$iteration.1
+#> $export$cri.1$iteration.1$mf.0.1
+#>   x_val y_val diff is_match
+#> 1     5     1    4    FALSE
+#> 2     4     1    3    FALSE
+#> 3     3     1    2    FALSE
+#> 4     2     1    1     TRUE
+#> 5     1     1    0     TRUE
+#> 
+#> 
+#> $export$cri.1$iteration.2
+#> $export$cri.1$iteration.2$mf.0.1
+#>   x_val y_val diff is_match
+#> 1     5     3    2    FALSE
+#> 2     4     3    1     TRUE
+#> 3     3     3    0     TRUE
+#> 
+#> 
+#> $export$cri.1$iteration.3
+#> $export$cri.1$iteration.3$mf.0.1
+#>   x_val y_val diff is_match
+#> 1     5     5    0     TRUE
+```
+
+## Bug fixes
+
+-   `summary.epid()` - Incorrect count for ‘`by episode type`’.
+    Resolved.
+-   `episodes()` - Incorrect results in some instances with
+    `skip_order`. Resolved.
+-   `make_ids()` - Did not capture all records in that should be in a
+    record-group when matches are recursive. Resolved.
+-   `make_pairs()` - Incorrect record-pairs in some instances. Resolved.
+-   `eval_sub_criteria()` - When output of `match_func` is length one,
+    it’s not recycled. Resolved.
+-   `reverse_number_line()` - Incorrect results in some instances.
+    Resolved.
+-   `links()`- Incorrect `iteration` (`pids` slot) for non-matches.
+    Resolved.
+-   `links()` and `episodes()` - Timing for each iteration was
+    incorrect. Resolved.
+
+# Version 0.4.1
+
+## New features
+
+-   New function - `overlap_method_names()`. Overlap methods for a
+    corresponding overlap method codes.
+-   Memory usage added to `*with_report` options for display.
 
 ## Changes
 
@@ -18,8 +162,8 @@ corresponding overlap method codes.
     `"y_inbetween_x"`. `"inbetween"` will continue to be supported as a
     keyword for `"x_inbetween_y" OR "y_inbetween_x"` methods
 -   Optimised `overlaps()`.
--   Changed overlap method codes. Please review any previously specified
-    codes with `overlap_method_names()`.
+-   Some overlap method codes have changed. Please review any previously
+    specified codes with `overlap_method_names()`.
 
 ## Bug fixes
 
@@ -131,7 +275,7 @@ corresponding overlap method codes.
 -   `episodes()` and `links()`. Speed improvements.
 -   Default time zone for an `epid_interval` or `pane_interval` with
     `POSIXct` objects is now “GMT”.
--   `number_line_sequence()` - splits number\_line objects. Also
+-   `number_line_sequence()` - splits number_line objects. Also
     available as a `seq` method.
 -   `epid_total`, `pid_total` and `pane_total` slots are populated by
     default. No need to used `group_stats` to get these.

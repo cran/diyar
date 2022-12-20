@@ -64,14 +64,14 @@ missing_staff_id$p7 <- links(criteria = "place_holder",
 missing_staff_id[c("hair_colour", "branch_office", "p4", "p5", "p6", "p7")]
 
 ## ----warning = FALSE----------------------------------------------------------
-p8 <- link_records(attribute = list(missing_staff_id$hair_colour, 
+p8 <- links_wf_probabilistic(attribute = list(missing_staff_id$hair_colour, 
                                     missing_staff_id$branch_office), 
                    cmp_func = c(last_word_cmp, last_word_cmp), 
                    probabilistic = FALSE)
 p8
 
 ## ----warning = FALSE----------------------------------------------------------
-p9 <- link_records(attribute = list(missing_staff_id$hair_colour, 
+p9 <- links_wf_probabilistic(attribute = list(missing_staff_id$hair_colour, 
                                     missing_staff_id$branch_office), 
                    cmp_func = c(last_word_cmp, last_word_cmp), 
                    probabilistic = TRUE)

@@ -64,7 +64,7 @@ homes$grp_6 <- episodes(homes$alt_age, case_length = 16)
 homes
 
 schema(homes$grp_6, seed = 4,
-       show_labels = c("length_arrow", "length_label"),
+       show_labels = c("length_arrow", "length"),
        custom_label = paste0(homes$member, " \n(", homes$alt_age, " yrs)"))
 
 ## ----warning=FALSE, fig.width=7-----------------------------------------------
@@ -92,6 +92,6 @@ schema(duplicate$grp_1, seed = 5,
 
 ## ----warning=FALSE, fig.width=7, fig.height=7---------------------------------
 schema(duplicate$grp_2, seed = 4,
-       show_labels = c("length_arrow", "length_label"),
+       show_labels = c("length_arrow", "length"),
        custom_label = paste0(duplicate$member, " (", duplicate$age, " yrs) in \n", duplicate$house_hold))
 

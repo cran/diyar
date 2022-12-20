@@ -25,7 +25,7 @@ start_point(nl_a)
 left_point(nl_a)
 
 ## ----message = FALSE, warning = FALSE-----------------------------------------
-nl_c <- number_line(as.Date("04/04/2019", "%d/%M/%Y"), as.Date("07/04/2019", "%d/%M/%Y"))
+nl_c <- number_line(as.Date("2019-04-04"), as.Date("2019-4-07"))
 nl_c
 
 # Expand the `number_line` by 2 days from both ends 
@@ -56,29 +56,40 @@ nl_k <- invert_number_line(nl_c, "left"); nl_k
 nl_l <- seq(nl_c, length.out = 3); nl_l
 
 ## ----warning=FALSE, include=FALSE---------------------------------------------
- # exact <- c(number_line(1, 2), number_line(1, 2),
- #            number_line(2, 1), number_line(2, 1),
- #            number_line(1, 1), number_line(1, 1))
- # reverse <- c(number_line(4, 3), number_line(3, 4),
- #              number_line(3, 4), number_line(4, 3))
- # inbetween <- c(number_line(5, 8), number_line(6, 7),
- #                number_line(6, 7), number_line(5, 8),
- #                number_line(5, 8), as.number_line(6))
- # across <- c(number_line(9, 11), number_line(10, 12))
- # chain <- c(number_line(13, 15), number_line(15, 17))
- # aligns_start <- c(number_line(18, 20), number_line(18, 19))
- # aligns_end <- c(number_line(18, 20), number_line(19, 20))
- # 
- # nl2 <- c(exact, reverse, inbetween, across, chain, aligns_start, aligns_end)
- # strata <- sort(rep(seq_len(length(nl2)/2), 2))
- # nl_ep <- episodes(nl2, strata = strata, case_length = index_window(nl2), custom_sort = seq_len(length(nl2)))
- # plt1 <- schema(nl_ep[1:12], seed = 2, show_labels = c("date", "case_overlap_methods"),
- #                theme = "light")
- # plt2 <- schema(nl_ep[13:24], seed = 2, show_labels = c("date", "case_overlap_methods"),
- #                theme = "light")
- # f <- plot_grid(plt1 + theme(plot.background = element_rect(color = "white")),
- #                plt2 + theme(plot.background = element_rect(color = "white")))
- # ggsave(dpi = 100, plot = f, filename = "fig_n1.png", width = 15, height = 9, units = "in")
+#  exact <- c(number_line(1, 2), number_line(1, 2),
+#            number_line(2, 1), number_line(2, 1),
+#            number_line(1, 1), number_line(1, 1))
+# inbetween <- c(number_line(5, 8), number_line(6, 7),
+#                number_line(6, 7), number_line(5, 8),
+#                number_line(5, 8), as.number_line(6))
+# across <- c(number_line(9, 11), number_line(10, 12),
+#             number_line(10, 12), number_line(9, 11))
+# chain <- c(number_line(13, 15), number_line(15, 17),
+#            number_line(15, 17), number_line(13, 15))
+# aligns_start <- c(number_line(18, 20), number_line(18, 19),
+#                   number_line(18, 19), number_line(18, 20))
+# aligns_end <- c(number_line(18, 20), number_line(19, 20),
+#                 number_line(19, 20), number_line(18, 20))
+# 
+# 
+# library(cowplot)
+# library(ggplot2)
+# schema <- function(...){
+#   diyar::schema(..., theme = "dark") +
+#     theme(plot.background = element_rect(color = "black"))
+# }
+# f <- plot_grid(
+#   plot_grid(schema(exact[1:2]), schema(exact[3:4]), schema(exact[5:6]), ncol = 1),
+#   plot_grid(schema(inbetween[1:2]), schema(inbetween[3:4]), schema(inbetween[5:6]), ncol = 1),
+#   plot_grid(schema(across[1:2]), schema(across[3:4]), ncol = 1),
+#   
+#   plot_grid(schema(chain[1:2]), schema(chain[3:4]), ncol = 1),
+#   plot_grid(schema(aligns_start[1:2]), schema(aligns_start[3:4]), ncol = 1),
+#   plot_grid(schema(aligns_end[1:2]), schema(aligns_end[3:4]), ncol = 1),
+#   nrow = 1, label_colour = rgb(0, 0, 0)
+# )
+# 
+# ggsave(dpi = 100, plot = f, filename = "fig_n1.png", width = 15, height = 9, units = "in")
 
 ## ----message = FALSE, warning = FALSE-----------------------------------------
 nl_1 <- c(number_line(1, 5), number_line(1, 5), number_line(5, 9))

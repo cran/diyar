@@ -59,7 +59,7 @@ left_point(nl_a)
 There are convenience functions to reverse, shrink, expand or shift a `number_line` along the number line.
 
 ```{r message = FALSE, warning = FALSE}
-nl_c <- number_line(as.Date("04/04/2019", "%d/%M/%Y"), as.Date("07/04/2019", "%d/%M/%Y"))
+nl_c <- number_line(as.Date("2019-04-04"), as.Date("2019-4-07"))
 nl_c
 
 # Expand the `number_line` by 2 days from both ends 
@@ -91,32 +91,43 @@ nl_l <- seq(nl_c, length.out = 3); nl_l
 ```
 
 ## Overlaps
-`number_line` objects can overlap with each other. `diyar` recognises seven ways this can happen. These are `exact()`, `reverse()`, `inbetween()`, `across()`, `chain()`, `aligns_start()` and `aligns_end()`. The 7 methods are mutually exclusive. There are 2 convenience methods - `"none"` and `overlap()`, which are mutually inclusive with the other 7. See Figure 1.
+`number_line` objects can overlap with each other. `diyar` recognises seven ways this can happen. These are `exact()`, `inbetween()`, `across()`, `chain()`, `aligns_start()` and `aligns_end()`. The 6 methods are mutually exclusive. There are 2 convenience methods - `"none"` and `overlap()`, which are mutually inclusive with the other 6. See Figure 1.
 
 ```{r warning=FALSE, include=FALSE}
- # exact <- c(number_line(1, 2), number_line(1, 2),
- #            number_line(2, 1), number_line(2, 1),
- #            number_line(1, 1), number_line(1, 1))
- # reverse <- c(number_line(4, 3), number_line(3, 4),
- #              number_line(3, 4), number_line(4, 3))
- # inbetween <- c(number_line(5, 8), number_line(6, 7),
- #                number_line(6, 7), number_line(5, 8),
- #                number_line(5, 8), as.number_line(6))
- # across <- c(number_line(9, 11), number_line(10, 12))
- # chain <- c(number_line(13, 15), number_line(15, 17))
- # aligns_start <- c(number_line(18, 20), number_line(18, 19))
- # aligns_end <- c(number_line(18, 20), number_line(19, 20))
- # 
- # nl2 <- c(exact, reverse, inbetween, across, chain, aligns_start, aligns_end)
- # strata <- sort(rep(seq_len(length(nl2)/2), 2))
- # nl_ep <- episodes(nl2, strata = strata, case_length = index_window(nl2), custom_sort = seq_len(length(nl2)))
- # plt1 <- schema(nl_ep[1:12], seed = 2, show_labels = c("date", "case_overlap_methods"),
- #                theme = "light")
- # plt2 <- schema(nl_ep[13:24], seed = 2, show_labels = c("date", "case_overlap_methods"),
- #                theme = "light")
- # f <- plot_grid(plt1 + theme(plot.background = element_rect(color = "white")),
- #                plt2 + theme(plot.background = element_rect(color = "white")))
- # ggsave(dpi = 100, plot = f, filename = "fig_n1.png", width = 15, height = 9, units = "in")
+#  exact <- c(number_line(1, 2), number_line(1, 2),
+#            number_line(2, 1), number_line(2, 1),
+#            number_line(1, 1), number_line(1, 1))
+# inbetween <- c(number_line(5, 8), number_line(6, 7),
+#                number_line(6, 7), number_line(5, 8),
+#                number_line(5, 8), as.number_line(6))
+# across <- c(number_line(9, 11), number_line(10, 12),
+#             number_line(10, 12), number_line(9, 11))
+# chain <- c(number_line(13, 15), number_line(15, 17),
+#            number_line(15, 17), number_line(13, 15))
+# aligns_start <- c(number_line(18, 20), number_line(18, 19),
+#                   number_line(18, 19), number_line(18, 20))
+# aligns_end <- c(number_line(18, 20), number_line(19, 20),
+#                 number_line(19, 20), number_line(18, 20))
+# 
+# 
+# library(cowplot)
+# library(ggplot2)
+# schema <- function(...){
+#   diyar::schema(..., theme = "dark") +
+#     theme(plot.background = element_rect(color = "black"))
+# }
+# f <- plot_grid(
+#   plot_grid(schema(exact[1:2]), schema(exact[3:4]), schema(exact[5:6]), ncol = 1),
+#   plot_grid(schema(inbetween[1:2]), schema(inbetween[3:4]), schema(inbetween[5:6]), ncol = 1),
+#   plot_grid(schema(across[1:2]), schema(across[3:4]), ncol = 1),
+#   
+#   plot_grid(schema(chain[1:2]), schema(chain[3:4]), ncol = 1),
+#   plot_grid(schema(aligns_start[1:2]), schema(aligns_start[3:4]), ncol = 1),
+#   plot_grid(schema(aligns_end[1:2]), schema(aligns_end[3:4]), ncol = 1),
+#   nrow = 1, label_colour = rgb(0, 0, 0)
+# )
+# 
+# ggsave(dpi = 100, plot = f, filename = "fig_n1.png", width = 15, height = 9, units = "in")
 ```
 
 **Figure 1: Overlap methods for `number_line`**

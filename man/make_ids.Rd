@@ -2,14 +2,14 @@
 % Please edit documentation in R/make_ids.R
 \name{make_ids}
 \alias{make_ids}
-\title{Convert and edge list to record identifiers.}
+\title{Convert an edge list to record identifiers.}
 \usage{
 make_ids(x_pos, y_pos, id_length = max(x_pos, y_pos))
 }
 \arguments{
-\item{x_pos}{\code{[integer]}. Index of one half of a record-pair}
+\item{x_pos}{\code{[integer]}. Index of first half of a record-pair.}
 
-\item{y_pos}{\code{[integer]}. Index of one half of a record-pair}
+\item{y_pos}{\code{[integer]}. Index of second half of a record-pair.}
 
 \item{id_length}{Length of the record identifier.}
 }
@@ -17,7 +17,7 @@ make_ids(x_pos, y_pos, id_length = max(x_pos, y_pos))
 \code{list}
 }
 \description{
-Create record-pair combination of a vector's elements.
+Convert an edge list to record identifiers.
 }
 \details{
 Record groups from non-recursive links have the lowest record ID (\code{sn}) in the set as their group ID.

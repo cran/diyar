@@ -64,7 +64,7 @@ event_dt$ep9 <- episodes(event_dt$date, list(number_line(-2, -1),
 ## ----warning=FALSE, fig.width=7-----------------------------------------------
 schema(event_dt$ep8, seed = 2, show_labels = c("length_arrow"), 
        custom_label = paste0(decode(event_dt$ep8@case_nm), " (", event_dt$attr_1, ")"))
-schema(event_dt$ep9, seed = 2, show_labels = c("length_arrow", "length_label"))
+schema(event_dt$ep9, seed = 2, show_labels = c("length_arrow", "length"))
 
 ## ----warning=FALSE------------------------------------------------------------
 # Dummy data of hospital stays

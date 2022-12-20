@@ -44,15 +44,15 @@ setMethod("[", signature(x = "number_line"),
           function(x, i, j, ..., drop = TRUE) {
             is_lazy_opt <- !is.null(attr(x, "opts"))
             is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
-            if(is_lazy_opt){
-             i <- 1
-             attr(x, "opts") <- NULL
+            if(is_lazy_opt & length(x) == 1 & length(i) > 0){
+              i <- 1
+              attr(x, "opts") <- NULL
             }
             x@.Data <- x@.Data[i]
             x@start <- x@start[i]
             x@id <- x@id[i]
             x@gid <- x@gid[i]
-            if(is_lazy_opt){
+            if(is_lazy_opt & length(x) == 1 & length(i) > 0){
               attr(x, "opts") <- "d_lazy_opts"
             }
             return(x)
@@ -65,7 +65,7 @@ setMethod("[[", signature(x = "number_line"),
           function(x, i, j, ..., exact = TRUE) {
             is_lazy_opt <- !is.null(attr(x, "opts"))
             is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
-            if(is_lazy_opt){
+            if(is_lazy_opt & length(x) == 1 & length(i) > 0){
               i <- 1
               attr(x, "opts") <- NULL
             }
@@ -73,7 +73,7 @@ setMethod("[[", signature(x = "number_line"),
             x@start <- x@start[i]
             x@id <- x@id[i]
             x@gid <- x@gid[i]
-            if(is_lazy_opt){
+            if(is_lazy_opt & length(x) == 1 & length(i) > 0){
               attr(x, "opts") <- "d_lazy_opts"
             }
             return(x)
@@ -86,7 +86,7 @@ setMethod("[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
   if (is.number_line(value)) {
     is_lazy_opt <- !is.null(attr(x, "opts"))
     is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
-    if(is_lazy_opt){
+    if(is_lazy_opt & length(x) == 1 & length(i) > 0){
       i <- 1
       attr(x, "opts") <- NULL
     }
@@ -94,7 +94,7 @@ setMethod("[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
     x@start[i] <- value@start
     x@id[i] <- value@id
     x@gid[i] <- value@gid
-    if(is_lazy_opt){
+    if(is_lazy_opt & length(x) == 1 & length(i) > 0){
       attr(x, "opts") <- "d_lazy_opts"
     }
     return(x)
@@ -107,7 +107,7 @@ setMethod("[[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
   if (is.number_line(value)) {
     is_lazy_opt <- !is.null(attr(x, "opts"))
     is_lazy_opt[is_lazy_opt] <- attr(x, "opts") == "d_lazy_opts"
-    if(is_lazy_opt){
+    if(is_lazy_opt & length(x) == 1 & length(i) > 0){
       i <- 1
       attr(x, "opts") <- NULL
     }
@@ -115,7 +115,7 @@ setMethod("[[<-", signature(x = "number_line"), function(x, i, j, ..., value) {
     x@start[i] <- value@start
     x@id[i] <- value@id
     x@gid[i] <- value@gid
-    if(is_lazy_opt){
+    if(is_lazy_opt & length(x) == 1 & length(i) > 0){
       attr(x, "opts") <- "d_lazy_opts"
     }
     return(x)
@@ -148,17 +148,10 @@ unique.number_line <- function(x, ...){
 }
 
 #' @rdname number_line-class
-#' @param fill \code{[logical]}. Retain (\code{TRUE}) or drop (\code{FALSE}) the remainder of an uneven split
-#' @param simplify \code{[logical]}. Split into \code{number_line} or sequence of finite numbers
 #' @export
-seq.number_line <- function(x,
-                            fill = TRUE,
-                            simplify = FALSE,
-                            ...){
-  x <- number_line_sequence(x,
-                            fill = fill,
-                            simplify = simplify,
-                            ...)
+seq.number_line <- function(x, ...){
+  x <- seq(from = x@start, to = right_point(x), ...)
+  x <- number_line(x[seq_len(length(x)-1)], r = x[-1])
   return(x)
 }
 
@@ -335,15 +328,19 @@ summary.epid <- function(object, ...){
   summ$iterations <- max(object@iteration)
   summ$total_records <- length(object)
   summ$total_episodes <- length(object[object@case_nm == 0])
+  # browser()
   x <- object[order(-object@wind_nm)]
-  x <- x[x@case_nm != -1]
-  x <- decode(x@wind_nm[!duplicated(x@.Data)])
+  x <- x[!duplicated(x@.Data)]
+  x <- decode(x@wind_nm[x@case_nm != -1])
   x[x == "Case"] <- "Fixed"
   x[x == "Recurrence"] <- "Rolling"
   summ$episode_type <- dst_tab(x = x, order_by_label = c("Fixed", "Rolling"))
-  x <- object[order(object@wind_id$wind_id1)]
-  x <- x[x@wind_nm == 1 & !duplicated(x@wind_id$wind_id1)]
+
+  x <- object[object@wind_nm == 1]
+  x <- x[!duplicated(x@wind_id$wind_id1)]
+  x <- x[order(x@.Data)]
   x <- rle(x@.Data)
+
   summ$recurrence <- dst_tab(x = paste0(x$lengths[order(x$lengths)]))
   if(length(summ$recurrence$values) > 0){
     summ$recurrence$values <- paste0(summ$recurrence$values, " times")
@@ -505,10 +502,10 @@ setMethod("rep", signature(x = "epid"), function(x, ...) {
                dist_wind_index = rep(x@dist_wind_index, ...),
                wind_nm = rep(x@wind_nm, ...),
                case_nm = rep(x@case_nm, ...),
-               epid_interval = rep(x@epid_interval, ...),
-               epid_length = rep(x@epid_length, ...),
+               epid_interval = suppressWarnings(rep(x@epid_interval, ...)),
+               epid_length = suppressWarnings(rep(x@epid_length, ...)),
                epid_total = rep(x@epid_total, ...),
-               epid_dataset = rep(x@epid_dataset, ...),
+               epid_dataset = suppressWarnings(rep(x@epid_dataset, ...)),
                iteration = rep(x@iteration, ...))
 })
 
@@ -838,7 +835,7 @@ setMethod("rep", signature(x = "pane"), function(x, ...) {
                pane_interval = rep(x@pane_interval, ...),
                pane_length = rep(x@pane_length, ...),
                pane_total = rep(x@pane_total, ...),
-               pane_dataset = rep(x@pane_dataset, ...))
+               pane_dataset = suppressWarnings(rep(x@pane_dataset, ...)))
 })
 
 #' @aliases [,pane-method
@@ -902,7 +899,6 @@ setMethod("c", signature(x = "pane"), function(x,...) {
 })
 
 #' @name pid-class
-#'
 #' @title \code{pid} objects
 #'
 #' @description
@@ -1104,7 +1100,7 @@ setMethod("rep", signature(x = "pid"), function(x, ...) {
                sn = rep(x@sn, ...),
                pid_total = rep(x@pid_total, ...),
                link_id = rep(x@link_id, ...),
-               pid_dataset = rep(x@pid_dataset, ...),
+               pid_dataset = suppressWarnings(rep(x@pid_dataset, ...)),
                pid_cri = rep(x@pid_cri, ...),
                iteration = rep(x@iteration, ...))
 })
@@ -1159,16 +1155,24 @@ setMethod("c", signature(x = "pid"), function(x,...) {
 #' @name d_report
 #' @title d_report
 #' @aliases d_report
+#' @param metric Report information
 #' @export
-plot.d_report <- function(x, ...){
+plot.d_report <- function(x, ..., metric = c("cumulative_duration", "duration", "max_memory",
+                                             "records_checked", "records_skipped", "records_assigned")){
   . <- NULL
+  metric_lst <- paste0("^", metric, collapse = "|")
   t <- length(x$iteration)
-  x <- data.frame(x = c(x$iteration, x$iteration, x$iteration, x$iteration),
-                   y = c(as.numeric(x$duration), x$records_checked, x$records_tracked, x$records_skipped),
-                   l = c(rep(paste0("duration (", attr(x$duration, "units"), ")"), t),
-                         rep("records_checked", t), rep("records_assigned", t),
-                         rep("records_skipped", t)),
-                   stringsAsFactors = FALSE)
+  x <- data.frame(x = c(x$iteration, x$iteration, x$iteration,
+                        x$iteration, x$iteration, x$iteration),
+                  y = c(as.numeric(x$duration), as.numeric(x$cumm_time),  x$records_checked,
+                        x$records_tracked, x$records_skipped, x$memory_used),
+                  l = c(rep(paste0("duration (", attr(x$duration, "units"), ")"), t),
+                        rep(paste0("cumulative_duration (", attr(x$cumm_time, "units"), ")"), t),
+                        rep("records_checked", t), rep("records_assigned", t),
+                        rep("records_skipped", t), rep("max_memory (MB)", t)),
+                  stringsAsFactors = FALSE)
+  x <- x[grepl(metric_lst, x$l),]
+
   x$x_cd <- match(x$x, x$x)
   x_breaks <- x$x_cd[!duplicated(x$x)]
   x_labs <- x$x[!duplicated(x$x)]
@@ -1199,23 +1203,27 @@ as.data.frame.d_report <- function(x, ...){
 
 
 `[.d_lazy_opts` <- function(x, i, ..., drop = TRUE) {
-  if(length(x) == 1){
-    return(x)
-  }else{
-    x <- as.vector(x)
-    x <- x[i]
-    class(x) <- "d_lazy_opts"
-    return(x)
-  }
-}
-
-`[<-.d_lazy_opts` <- function(x, i, j, ..., value) {
-  if(length(x) == 1){
+  x <- as.vector(x)
+  if(length(i) == 0 | length(x) == 0){
+    i <- 0
+  }else if(length(x) == 1){
     i <- 1
   }
-  x <- as.vector(x)
-  x[i] <- value
+  x <- x[i]
   class(x) <- "d_lazy_opts"
   return(x)
 }
 
+`[<-.d_lazy_opts` <- function(x, i, j, ..., value) {
+  x <- as.vector(x)
+  if(length(x) == 1 & length(value) == 1){
+    i <- 1
+  }else if(length(x) == 0 | length(value) == 0){
+    i <- 0
+  }else if(length(x) == 1 & length(value) > 1){
+    stop("Unexpected situation in `[<-.d_lazy_opts`")
+  }
+  x[i] <- value
+  class(x) <- "d_lazy_opts"
+  return(x)
+}

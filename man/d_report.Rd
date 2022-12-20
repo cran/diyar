@@ -7,7 +7,12 @@
 \alias{as.data.frame.d_report}
 \title{d_report}
 \usage{
-\method{plot}{d_report}(x, ...)
+\method{plot}{d_report}(
+  x,
+  ...,
+  metric = c("cumulative_duration", "duration", "max_memory", "records_checked",
+    "records_skipped", "records_assigned")
+)
 
 \method{as.list}{d_report}(x, ...)
 
@@ -17,6 +22,8 @@
 \item{x}{\code{[d_report]}.}
 
 \item{...}{Arguments passed to other methods}
+
+\item{metric}{Report information}
 }
 \description{
 d_report

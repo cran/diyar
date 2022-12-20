@@ -6,6 +6,8 @@
 \alias{range_match}
 \alias{range_match_legacy}
 \alias{prob_link}
+\alias{true}
+\alias{false}
 \title{Predefined logical tests in \bold{\code{diyar}}}
 \usage{
 exact_match(x, y)
@@ -21,13 +23,17 @@ prob_link(
   attr_threshold,
   score_threshold,
   probabilistic,
-  return_weights
+  return_weights = FALSE
 )
+
+true(x, y)
+
+false(x, y)
 }
 \arguments{
-\item{x}{Value of an attribute(s) to be compare against.}
+\item{x}{Attribute(s) to be compared against.}
 
-\item{y}{Value of an attribute(s) to be compare by.}
+\item{y}{Attribute(s) to be compared by.}
 
 \item{range}{Difference between \code{y} and \code{x}.}
 
@@ -39,10 +45,10 @@ prob_link(
 
 \item{probabilistic}{If \code{TRUE}, matches determined through a score derived base on Fellegi-Sunter model for probabilistic linkage. See \code{\link{links_wf_probabilistic}}.}
 
-\item{return_weights}{If \code{TRUE}, returns the match-weights and score-thresholds for record pairs. See \code{\link{links_wf_probabilistic}}.}
+\item{return_weights}{If \code{TRUE}, returns the match-weights and score-thresholds for record pairs.}
 }
 \description{
-A collection of predefined logical tests used with \bold{\code{\link{sub_criteria}}} objects.
+A collection of predefined logical tests used with \bold{\code{\link{sub_criteria}}} objects
 }
 \details{
 \bold{\code{exact_match()}} - test that  \code{x == y}
@@ -51,7 +57,31 @@ A collection of predefined logical tests used with \bold{\code{\link{sub_criteri
 
 \bold{\code{range_match_legacy()}} - test that \code{overlap(as.number_line(x@gid), y)} is \code{TRUE}.
 
-\bold{\code{prob_link()}} - Test that a record-sets \code{x} and \code{y} are from the same entity based on calculated weights and probability scores.
+\bold{\code{prob_link()}} - Test that a record-pair relate to the same entity based on Fellegi and Sunter (1969) model for deciding if two records belong to the same entity.
+
+In summary, record-pairs are created and categorised as matches and non-matches (\code{attr_threshold}) with user-defined functions (\code{cmp_func}).
+If \code{probabilistic} is \code{TRUE}, two probabilities (\code{m} and \code{u}) are used to calculate weights for matches and non-matches.
+The \code{m}-probability is the probability that matched records are actually from the same entity i.e. a true match,
+while \code{u}-probability is the probability that matched records are not from the same entity i.e. a false match.
+Record-pairs whose total score are above a certain threshold (\code{score_threshold}) are assumed to belong to the same entity.
+
+Agreement (match) and disagreement (non-match) scores are calculated as described by Asher et al. (2020).
+
+For each record pair, an agreement for attribute \eqn{i} is calculated as;
+
+\deqn{\log_{2}(m_{i}/u_{i})}{log_2 (m_i / u_i)}
+
+For each record pair, a disagreement score for attribute \eqn{i} is calculated as;
+
+\deqn{\log_{2}((1-m_{i})/(1-u_{i}))}{log_2 ((1-m_i) / (1-u_i))}
+
+where \eqn{m_{i}}{m_i} and \eqn{u_{i}}{u_i} are the \code{m} and \code{u}-probabilities for each value of attribute \eqn{i}.
+
+Note that each probability is calculated as a combined probability for the record pair.
+For example, if the values of the record-pair have \code{u}-probabilities of \code{0.1} and \code{0.2} respectively,
+then the \code{u}-probability for the pair will be \code{0.02}.
+
+Missing data (\code{NA}) are considered non-matches and assigned a \code{u}-probability of \code{0}.
 }
 \examples{
 `exact_match`
@@ -69,6 +99,5 @@ y_nl2 <- number_line(16, 10)
 
 range_match_legacy(x = x_nl, y = y_nl1)
 range_match_legacy(x = x_nl, y = y_nl2)
-
 
 }

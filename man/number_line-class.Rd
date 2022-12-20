@@ -7,9 +7,7 @@
 \alias{rep,number_line-method}
 \alias{[,number_line-method}
 \alias{[[,number_line-method}
-\alias{[<-,number_line,ANY,ANY,ANY-method}
 \alias{[<-,number_line-method}
-\alias{[[<-,number_line,ANY,ANY,ANY-method}
 \alias{[[<-,number_line-method}
 \alias{$,number_line-method}
 \alias{$<-,number_line-method}
@@ -30,9 +28,9 @@
 
 \S4method{[[}{number_line}(x, i, j, ..., exact = TRUE)
 
-\S4method{[}{number_line,ANY,ANY,ANY}(x, i, j, ...) <- value
+\S4method{[}{number_line}(x, i, j, ...) <- value
 
-\S4method{[[}{number_line,ANY,ANY,ANY}(x, i, j, ...) <- value
+\S4method{[[}{number_line}(x, i, j, ...) <- value
 
 \S4method{$}{number_line}(x, name)
 
@@ -42,7 +40,7 @@
 
 \method{unique}{number_line}(x, ...)
 
-\method{seq}{number_line}(x, fill = TRUE, simplify = FALSE, ...)
+\method{seq}{number_line}(x, ...)
 
 \method{sort}{number_line}(x, decreasing = FALSE, ...)
 
@@ -70,10 +68,6 @@
 \item{value}{value}
 
 \item{name}{slot name}
-
-\item{fill}{\code{[logical]}. Retain (\code{TRUE}) or drop (\code{FALSE}) the remainder of an uneven split}
-
-\item{simplify}{\code{[logical]}. Split into \code{number_line} or sequence of finite numbers}
 
 \item{decreasing}{If \code{TRUE}, sort in descending order.}
 }

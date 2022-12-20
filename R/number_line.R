@@ -3,17 +3,17 @@
 #' @description A range of \code{numeric} values.
 #'
 #' @details
-#' A \code{number_line} represents a range of numbers on a number line.
-#' It is made up of a \code{start} and \code{end} point which are the lower and upper ends of the range respectively.
+#' A \code{number_line} object represents a range of numbers.
+#' It is made up of a \code{start} and \code{end} point as the lower and upper ends of the range respectively.
 #' The location of the \code{start} point - \code{left} or \code{right},
-#' determines whether it is an \code{"increasing"} or \code{"decreasing"} range.
+#' determines whether it is an \code{"increasing"} or \code{"decreasing"} \code{number_line}.
 #' This is the \code{direction} of the \code{number_line}.
 #'
 #' @seealso
 #' \code{\link{overlaps}}; \code{\link{set_operations}}; \code{\link{episodes}}; \code{\link{links}}
 #'
-#' @param l \code{[numeric based]}. Left point of the \code{number_line}. Must be able to be coerced to a \code{numeric} object.
-#' @param r \code{[numeric based]}. Right point of the \code{number_line}. Must be able to be coerced to a \code{numeric} object.
+#' @param l \code{[numeric-based]}. Left point of the \code{number_line}.
+#' @param r \code{[numeric-based]}. Right point of the \code{number_line}. Must be able to be coerced to a \code{numeric} object.
 #' @param id \code{[integer]}. Unique element identifier. Optional.
 #' @param gid \code{[integer]}. Unique group identifier. Optional.
 #'
@@ -21,13 +21,11 @@
 #'
 #' @aliases number_line
 #' @examples
-#' date <- function(x) as.Date(x, "%d/%m/%Y")
-#' dttm <- function(x) as.POSIXct(x, "UTC", format = "%d/%m/%Y %H:%M:%S")
-#'
 #' number_line(-100, 100)
 #'
 #' # Also compatible with other numeric based object classes
-#' number_line(dttm("15/05/2019 13:15:07"), dttm("15/05/2019 15:17:10"))
+#' number_line(as.POSIXct("2019-05-15 13:15:07", tz = "UTC"),
+#'             as.POSIXct("2019-05-15 15:17:10", tz = "UTC"))
 #'
 #' @export
 number_line <- function(l, r, id = NULL, gid = NULL){
@@ -62,8 +60,8 @@ number_line <- function(l, r, id = NULL, gid = NULL){
 
 #' @rdname number_line
 #' @examples
-#' # Coerce applicable object classes to `number_line` objects
-#' as.number_line(5.1); as.number_line(date("21/10/2019"))
+#' # Coerce compatible object classes to `number_line` objects
+#' as.number_line(5.1); as.number_line(as.Date("2019-10-21"))
 #'
 #' @export
 as.number_line <- function(x){
@@ -87,7 +85,7 @@ as.number_line <- function(x){
 #' @rdname number_line
 #' @examples
 #' # A test for number_line objects
-#' a <- number_line(date("25/04/2019"), date("01/01/2019"))
+#' a <- number_line(as.Date("2019-04-25"), as.Date("2019-01-01"))
 #' is.number_line(a)
 #'
 #' @export
@@ -113,7 +111,9 @@ left_point <- function(x){
   err <- err_object_types(x, "x", "number_line")
   if(err != FALSE) stop(err, call. = FALSE)
   if(length(x) == 0) return(number_line())
-  number_line(r =right_point(x),  l=value, id=x@id, gid=x@gid)
+  x@.Data <- as.numeric(x@start +x@.Data) - as.numeric(value)
+  x@start <- (as.numeric(x@start) * 0) + value
+  x
 }
 
 #' @rdname number_line
@@ -131,7 +131,8 @@ right_point <- function(x){
   err <- err_object_types(x, "x", "number_line")
   if(err != FALSE) stop(err, call. = FALSE)
   if(length(x) == 0) return(number_line())
-  number_line(r=value,  l=x@start, id=x@id, gid=x@gid)
+  x@.Data <- as.numeric(value) - as.numeric(x@start)
+  x
 }
 
 #' @rdname number_line
@@ -140,8 +141,11 @@ start_point <- function(x){
   if(missing(x)) stop("argument `x` is missing, with no default", call. = FALSE)
   err <- err_object_types(x, "x", "number_line")
   if(err != FALSE) stop(err, call. = FALSE)
-  x <- reverse_number_line(x,"decreasing")
-  x@start
+  y <- x@start
+  indx <- which(x@.Data < 0)
+  y[indx] <- x@start[indx] + x@.Data[indx]
+  rm(x, indx)
+  return(y)
 }
 
 #' @rdname number_line
@@ -149,11 +153,13 @@ start_point <- function(x){
 "start_point<-" <- function(x, value) {
   err <- err_object_types(x, "x", "number_line")
   if(err != FALSE) stop(err, call. = FALSE)
-  l <- x@start; r <- value
-  l[x@.Data >= 0] <- value[x@.Data >= 0]
-  r[x@.Data >= 0] <- (x@start + x@.Data)[x@.Data >= 0]
 
-  number_line(l=l, r=r, id=x@id, gid=x@gid)
+  value <- mk_lazy_opt(value)
+  lgk <- x@.Data < 0
+  x@.Data[!lgk] <- as.numeric(x@start[!lgk] + x@.Data[!lgk]) - value[!lgk]
+  x@start[!lgk] <- (as.numeric(x@start[!lgk]) * 0) + value[!lgk]
+  x@.Data[lgk] <- as.numeric(value[lgk]) - as.numeric(x@start[lgk])
+  x
 }
 
 #' @rdname number_line
@@ -162,8 +168,11 @@ end_point <- function(x){
   if(missing(x)) stop("argument `x` is missing, with no default", call. = FALSE)
   err <- err_object_types(x, "x", "number_line")
   if(err != FALSE) stop(err, call. = FALSE)
-  x <- reverse_number_line(x,"decreasing")
-  x@start + x@.Data
+  y <- x@start + x@.Data
+  indx <- which(x@.Data < 0)
+  y[indx] <- x@start[indx]
+  rm(x, indx)
+  return(y)
 }
 
 #' @rdname number_line
@@ -172,11 +181,12 @@ end_point <- function(x){
   err <- err_object_types(x, "x", "number_line")
   if(err != FALSE) stop(err, call. = FALSE)
 
-  l <- value; r <- (x@start + x@.Data)
-  l[x@.Data >= 0] <- x@start[x@.Data >= 0]
-  r[x@.Data >= 0] <- value[x@.Data >= 0]
-
-  number_line(l=l, r=r, id=x@id, gid=x@gid)
+  value <- mk_lazy_opt(value)
+  lgk <- x@.Data < 0
+  x@.Data[lgk] <- as.numeric(x@start[lgk] + x@.Data[lgk]) - value[lgk]
+  x@start[lgk] <- (as.numeric(x@start[lgk]) * 0) + value[lgk]
+  x@.Data[!lgk] <- as.numeric(value[!lgk]) - as.numeric(x@start[!lgk])
+  x
 }
 
 #' @rdname number_line
@@ -190,16 +200,16 @@ number_line_width <- function(x){
 
 #' @rdname number_line
 #' @param x \code{[number_line]}
-#' @param direction \code{[character]}. Type of \code{"number_line"} objects to be reversed.
+#' @param direction \code{[character]}. Type of \code{number_line} reverse.
 #' Options are; \code{"increasing"}, \code{"decreasing"} or \code{"both"} (default).
 #' @details
-#' \bold{\code{reverse_number_line()}} - reverses the direction of a \code{number_line}.
+#' \bold{\code{reverse_number_line()}} - reverse the direction of a \code{number_line}.
 #' A reversed \code{number_line} has its \code{left} and \code{right} points swapped.
 #' The \code{direction} argument specifies which type of \code{number_line} will be reversed.
 #' \code{number_line} with non-finite \code{start} or \code{end} points (i.e. \code{NA}, \code{NaN} and \code{Inf}) can't be reversed.
 #' @examples
 #' # Reverse number_line objects
-#' reverse_number_line(number_line(date("25/04/2019"), date("01/01/2019")))
+#' reverse_number_line(number_line(as.Date("2019-04-25"), as.Date("2019-01-01")))
 #' reverse_number_line(number_line(200, -100), "increasing")
 #' reverse_number_line(number_line(200, -100), "decreasing")
 #'
@@ -219,21 +229,14 @@ reverse_number_line <- function(x, direction = "both"){
   direction <- tolower(direction)
   fnt <- is.finite(as.numeric(x@start)) & is.finite(as.numeric(x@.Data))
 
-  x[direction=="increasing" & x@.Data>0 & fnt == T] <- number_line(l= x@start[direction=="increasing" & x@.Data>0 & fnt == T] + x@.Data[direction=="increasing" & x@.Data>0 & fnt == T],
-                                                                   r= x@start[direction=="increasing" & x@.Data>0 & fnt == T],
-                                                                   id=x@id[direction=="increasing" & x@.Data>0 & fnt == T],
-                                                                   gid=x@gid[direction=="increasing" & x@.Data>0 & fnt == T])
+  y <- x
+  indx <- which(((direction %in% c("decreasing", "both") & y@.Data < 0) |
+                  (direction %in% c("increasing", "both") & y@.Data > 0)) & fnt)
 
-  x[direction=="decreasing" & x@.Data<0 & fnt == T] <- number_line(l= x@start[direction=="decreasing" & x@.Data<0 & fnt == T] + x@.Data[direction=="decreasing" & x@.Data<0 & fnt == T],
-                                                                   r= x@start[direction=="decreasing" & x@.Data<0 & fnt == T],
-                                                                   id= x@id[direction=="decreasing" & x@.Data<0 & fnt == T],
-                                                                   gid= x@gid[direction=="decreasing" & x@.Data<0 & fnt == T])
+  left_point(x[indx]) <- right_point(y[indx])
+  right_point(x[indx]) <- left_point(y[indx])
 
-  x[direction == "both" & x@.Data !=0 & fnt == T] <- number_line(l= x@start[direction == "both" & x@.Data !=0 & fnt == T] + x@.Data[direction == "both" & x@.Data !=0 & fnt == T],
-                                                                 r= x@start[direction == "both" & x@.Data !=0 & fnt == T],
-                                                                 id= x@id[direction == "both" & x@.Data !=0 & fnt == T],
-                                                                 gid= x@gid[direction == "both" & x@.Data !=0 & fnt == T])
-
+  rm(indx, y)
   return(x)
 }
 
@@ -261,7 +264,7 @@ shift_number_line <- function(x, by = 1){
   if(err != FALSE) stop(err, call. = FALSE)
 
   by[!is.finite(by)] <- NA_real_
-  n <- ifelse(is.finite(x@start) & is.finite(x@.Data),1,0)
+  n <- is.finite(x@start) & is.finite(x@.Data)
   by <- by * n
 
   x@start <- x@start + by
@@ -346,17 +349,22 @@ invert_number_line <- function(x, point = "both"){
   if(err != FALSE) stop(err, call. = FALSE)
 
   point <- tolower(point)
+  if(length(point) == 1){
+    point <- rep(point, length(x))
+  }
 
-  x <- number_line(l=as.numeric(x@start), r=as.numeric(x@start)+x@.Data, id=x@id, gid=x@gid)
-  left_point(x[point=="left"]) <- -x@start[point=="left"]
-  right_point(x[point=="right"]) <- -(x@start[point=="right"] + x@.Data[point=="right"])
-  start_point(x[point == "start"]) <- -start_point(x[point == "start"])
-  end_point(x[point == "end"]) <- -end_point(x[point == "end"])
-  left_point(x[point == "both"]) <- -x@start[point == "both"]; right_point(x[point == "both"]) <- -(x@start[point == "both"] + x@.Data[point == "both"])
+  x@start <- as.numeric(as.numeric(x@start))
+  indx <- which(point %in% c("left", "both"))
+  left_point(x[indx]) <- -x@start[indx]
+  indx <- which(point %in% c("right", "both"))
+  right_point(x[indx]) <- -(x@start[indx] + x@.Data[indx])
+  indx <- which(point == "start")
+  start_point(x[indx]) <- -start_point(x[indx])
+  indx <- which(point == "end")
+  end_point(x[indx]) <- -end_point(x[indx])
 
   return(x)
 }
-
 # @details
 # \bold{\code{compress_number_line()}} - \code{"compress"} or \code{"collapse"} overlapping \code{number_line} into a new \code{number_line} that covers the \code{start} and \code{end} points of the originals.
 # This results in duplicate \code{number_line} with the \code{start} and \code{end} points of the newly expanded \code{number_line}
@@ -446,10 +454,10 @@ compress_number_line <- function(x, methods = 8, collapse = FALSE,
 }
 
 #' @rdname number_line
-#' @param by \code{[integer]}. Increment or decrement. Passed to \code{seq()} in \code{number_line_sequence()}
-#' @param length.out \code{[integer]}. Number of splits. For example, \code{1} for two parts or \code{2} for three parts. Passed to \code{seq()}
-#' @param fill \code{[logical]}. Retain (\code{TRUE}) or drop (\code{FALSE}) the remainder of an uneven split
-#' @param simplify \code{[logical]}. Split into \code{number_line} or sequence of finite numbers
+#' @param by \code{[integer]}. Increment or decrement. Passed to \code{seq()} in \code{number_line_sequence()}.
+#' @param length.out \code{[integer]}. Number of splits. For example, \code{1} for two parts or \code{2} for three parts. Passed to \code{seq()}.
+#' @param fill \code{[logical]}. Retain (\code{TRUE}) or drop (\code{FALSE}) the remainder of an uneven split.
+#' @param simplify \code{[logical]}. If \code{TRUE}, returns a sequence of finite numbers.
 #'
 #' @details
 #' \bold{\code{number_line_sequence()}} - Split a \code{number_line} into equal parts (\code{length.out}) or by a fixed recurring width (\code{by}).
