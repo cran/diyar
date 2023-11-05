@@ -111,130 +111,22 @@ make_sets <- function(x, r, strata = NULL, permutations_allowed = TRUE, repeats_
 
 #' @export
 #' @rdname make_pairs
-make_sets_v2 <- function(x, r, strata = NULL, permutations_allowed = TRUE, repeats_allowed = TRUE){
-  if(!is.null(strata)){
-    strata <- match(strata, strata)
-    pos <- seq_len(length(x))
-    s_ord <- order(strata)
-    strata <- strata[s_ord]
-    pos <- pos[s_ord]
-    rl <- rle(strata)
-    n <- max(rl$lengths)
-  }else{
-    n <- length(x)
-  }
-  repo <- sets(n = n,
-               r = r,
-               permutations_allowed = permutations_allowed,
-               repeats_allowed = repeats_allowed)
-  if(!is.null(strata)){
-    sn <- seq_len(length(x))
-    rl$start_sn <- sn[!duplicated(strata)]
-    unq_lens <- rl$lengths[!duplicated(rl$lengths)]
-    repo <- lapply(unq_lens, function(x){
-      exc_indx <- which(repo > x)
-      exc_indx <- exc_indx %% nrow(repo)
-      exc_indx[exc_indx == 0] <- nrow(repo)
-      x.repo <- repo[!seq_len(nrow(repo)) %in% exc_indx,]
-      x.repo
-    })
-    repo <- repo[match(rl$lengths, unq_lens)]
-    reps <- (unq_lens ^ 2)
-    reps <- reps[match(rl$lengths, unq_lens)]
-    repo <- do.call("rbind", repo)
-    start_sn <- rep(rep(rl$start_sn, reps), r)
-    repo <- repo  + (start_sn - 1)
-    repo <- pos[repo]
-    repo <- matrix(repo, ncol = r)
-  }
-
-  repo <- split(repo,
-                rep(seq_len(r), rep(nrow(repo), r)))
-  repo <- c(repo,
-            lapply(repo, function(i) x[i]))
-  names(repo) <- paste0("x",
-                        rep(1:r, 2),
-                        rep(c("_pos", "_val"), rep(r, 2)))
-  rm(list = ls()[ls() != "repo"])
-  return(repo)
-}
-
-
-#' @export
-#' @rdname make_pairs
 make_pairs <- function(x, strata = NULL, repeats_allowed = TRUE, permutations_allowed = FALSE){
-  # Validations
   errs <- err_make_pairs_1(x = x, strata = strata,
                            repeats_allowed = repeats_allowed,
                            permutations_allowed = permutations_allowed)
   if(!isFALSE(errs)) stop(errs, call. = FALSE)
 
-  if(!is.null(strata)){
-    if(length(strata[!duplicated(strata)]) == 1){
-      strata <- NULL
-    }
-  }
-  sn <- pos <- seq_len(length(x))
-  repo <- list()
-  if(!is.null(strata)){
-    strata <- match(strata, strata[!duplicated(strata)])
-    s_ord <- order(strata)
-    strata <- strata[s_ord]
-    sn <- sn[s_ord]
-    rl <- rle(strata)
-  }else{
-    rl <- list(lengths = length(x), values = 1)
+  if(length(strata) %in% c(0, 1)){
+    strata <- rep(TRUE, length(x))
   }
 
-  ord <- sequence(rl$lengths)
-  repo$x_pos <- rep(ord, ord)
-  repo$y_pos <- sequence(ord)
-
-  pts <- rl$lengths[!duplicated(rl$lengths)]
-  pts_val <- unlist(lapply(pts, function(x){
-    if(x == 1){
-      x
-    }else{
-      permute_num(x)
-    }
-  }), use.names = FALSE)
-  pts_val <- as.integer(pts_val)
-  if(!is.null(strata)){
-    lgk <- which(!duplicated(strata, fromLast = TRUE))
-  }else{
-    lgk <- length(x)
-  }
-
-  if(!is.null(strata)){
-    repo$y_max_pos <- rep(pos[lgk], pts_val[match(rl$lengths, pts)])
-    repo$reps <- rep(pts_val[match(rl$lengths, pts)], pts_val[match(rl$lengths, pts)])
-    repo$ref <- (repo$y_max_pos + 1L)
-    repo$y_pos <- repo$ref - repo$y_pos
-    repo$x_pos <- repo$ref - repo$x_pos
-  }
-
-  repo$x_pos <- sn[repo$x_pos]
-  repo$y_pos <- sn[repo$y_pos]
-
-  repo$x_val <- x[repo$x_pos]
-  repo$y_val <- x[repo$y_pos]
-  repo$ref <- repo$reps <- repo$y_max_pos <- NULL
-
-  if(isFALSE(repeats_allowed)){
-    lgk <- which(repo$x_pos != repo$y_pos)
-    repo <- lapply(repo, function(x) x[lgk])
-  }
-
-  if(isTRUE(permutations_allowed)){
-    lgk <- which(repo$x_pos != repo$y_pos)
-    repo <- list(x_pos = c(repo$x_pos[lgk], repo$y_pos),
-                 y_pos = c(repo$y_pos[lgk], repo$x_pos),
-                 x_val = c(repo$x_val[lgk], repo$y_val),
-                 y_val = c(repo$y_val[lgk], repo$x_val))
-  }
-
-  s_ord <- order(repo$y_pos, repo$x_pos)
-  repo <- lapply(repo, function(x) x[s_ord])
+  repo <- make_pairs_batched(
+    x = x,
+    strata = strata,
+    look_back = permutations_allowed,
+    include_repeat = repeats_allowed
+  )
 
   rm(list = ls()[ls() != "repo"])
   return(repo)
@@ -269,12 +161,11 @@ make_pairs_wf_source <- function(..., data_source = NULL){
     stop("`data_source` must be `NULL` or have the same lenght as `x`", call. = FALSE)
   }
 
-  r_sets <- split(length(opt_lst$x):1, data_source)
+  r_sets <- split(1:length(opt_lst$x), data_source)
   repo <- make_pairs(seq_len(length(r_sets)),
-                     permutations_allowed = opt_lst$repeats_allowed,
-                     # repeats_allowed = opt_lst$permutations_allowed
+                     permutations_allowed = opt_lst$permutations_allowed,
                      repeats_allowed = FALSE
-                     )
+  )
 
   repo <- lapply(seq_len(length(repo[[1]])), function(i){
     xi <- repo$x_pos[[i]]
@@ -282,6 +173,7 @@ make_pairs_wf_source <- function(..., data_source = NULL){
 
     x_pos <- rep(r_sets[[xi]], length(r_sets[yi][[1]]), use.names = FALSE)
     y_pos <- rep(r_sets[[yi]], length(r_sets[xi][[1]]), use.names = FALSE)
+    index_ord <- rep(seq_len(length(r_sets[[xi]])), rep(length(r_sets[yi][[1]]), length(r_sets[[xi]]))  , use.names = FALSE)
 
     if(length(r_sets[[xi]]) < length(r_sets[[yi]])){
       x_pos <- sort(x_pos)
@@ -289,11 +181,13 @@ make_pairs_wf_source <- function(..., data_source = NULL){
       y_pos <- sort(y_pos)
     }
 
-    list(x_pos = x_pos, y_pos = y_pos)
+    list(x_pos = x_pos, y_pos = y_pos, index_ord = index_ord)
   })
 
   repo <- list(x_pos = unlist(lapply(repo, function(x) x$x_pos)),
-               y_pos = unlist(lapply(repo, function(x) x$y_pos)))
+               y_pos = unlist(lapply(repo, function(x) x$y_pos)),
+               index_ord = unlist(lapply(repo, function(x) x$index_ord))
+               )
 
   repo$x_val <- opt_lst$x[repo$x_pos]
   repo$y_val <- opt_lst$x[repo$y_pos]

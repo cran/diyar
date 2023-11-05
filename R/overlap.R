@@ -525,7 +525,7 @@ overlap_method <- function(x, y){
 
   m <- rep("none", max(c(length(x), length(y))))
 
-  m_lgk <- which(m == "none")
+  m_lgk <- TRUE
   lgk <- which(x_across_y(x[m_lgk], y[m_lgk]))
   m[m_lgk[lgk]] <- "x_across_y"
 
@@ -534,7 +534,7 @@ overlap_method <- function(x, y){
     rm(list = ls()[ls() != "m"])
     return(m)
   }
-  lgk <- which(y_across_x(x, y[m_lgk]))
+  lgk <- which(y_across_x(x[m_lgk], y[m_lgk]))
   m[m_lgk[lgk]] <- "y_across_x"
 
   m_lgk <- which(m == "none")
@@ -620,7 +620,7 @@ include_overlap_method <- function(methods){
   lst <- c("overlap", "none", "exact",
            "x_across_y", "y_across_x",
            "x_chain_y", "y_chain_x",
-           "x_aligns_start_x", "x_aligns_start_y",
+           "x_aligns_start_y", "y_aligns_start_x",
            "x_aligns_end_y", "y_aligns_end_x",
            "x_inbetween_y", "y_inbetween_x")
   if(any(methods == "across")){
@@ -661,7 +661,8 @@ exclude_overlap_method <- function(methods){
   err <- err_object_types(methods, "methods", "character")
   if(err != F) stop(err, call. = F)
 
-  lst <- c("exact", "x_across_y", "y_across_x",
+  lst <- c("exact",
+           "x_across_y", "y_across_x",
            "x_chain_y", "y_chain_x",
            "x_aligns_start_y", "y_aligns_start_x",
            "x_aligns_end_y", "y_aligns_end_x",

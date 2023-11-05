@@ -30,9 +30,9 @@ as.pid(x, ...)
 
 \method{print}{pid_summary}(x, ...)
 
-\method{as.data.frame}{pid}(x, ...)
+\method{as.data.frame}{pid}(x, ..., decode = TRUE)
 
-\method{as.list}{pid}(x, ...)
+\method{as.list}{pid}(x, ..., decode = TRUE)
 
 \S4method{show}{pid}(object)
 
@@ -50,6 +50,8 @@ as.pid(x, ...)
 \item{...}{...}
 
 \item{object}{object}
+
+\item{decode}{If \code{TRUE}, data is \code{\link[=decode]{decoded}}}
 
 \item{i}{i}
 
@@ -69,15 +71,15 @@ S4 objects storing the result of \code{\link{links}}.
 
 \item{\code{.Data}}{Unique group identifier.}
 
-\item{\code{link_id}}{Unique record identifier for matching records.}
+\item{\code{link_id}}{Unique reference ID for each match.}
 
-\item{\code{pid_cri}}{Matching criteria.}
+\item{\code{pid_cri}}{Match stage of the step-wise linkage.}
 
 \item{\code{pid_dataset}}{Data sources in each group.}
 
 \item{\code{pid_total}}{The number of records in each group.}
 
-\item{\code{iteration}}{The iteration of the linkage process when a record was linked to its group.}
+\item{\code{iteration}}{The iteration when a record was matched to it's group (\code{.Data}).}
 }}
 
 \examples{

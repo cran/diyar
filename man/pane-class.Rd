@@ -30,9 +30,9 @@ as.pane(x)
 
 \method{print}{pane_summary}(x, ...)
 
-\method{as.data.frame}{pane}(x, ...)
+\method{as.data.frame}{pane}(x, ..., decode = TRUE)
 
-\method{as.list}{pane}(x, ...)
+\method{as.list}{pane}(x, ..., decode = TRUE)
 
 \S4method{show}{pane}(object)
 
@@ -50,6 +50,8 @@ as.pane(x)
 \item{...}{...}
 
 \item{object}{object}
+
+\item{decode}{If \code{TRUE}, data is \code{\link[=decode]{decoded}}}
 
 \item{i}{i}
 

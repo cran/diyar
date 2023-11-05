@@ -48,10 +48,18 @@ setMethod("[", signature(x = "number_line"),
               i <- 1
               attr(x, "opts") <- NULL
             }
-            x@.Data <- x@.Data[i]
-            x@start <- x@start[i]
-            x@id <- x@id[i]
-            x@gid <- x@gid[i]
+            if(length(x@.Data) > 0){
+              x@.Data <- x@.Data[i]
+            }
+            if(length(x@start) > 0){
+              x@start <- x@start[i]
+            }
+            if(length(x@id) > 0){
+              x@id <- x@id[i]
+            }
+            if(length(x@gid) > 0){
+              x@gid <- x@gid[i]
+            }
             if(is_lazy_opt & length(x) == 1 & length(i) > 0){
               attr(x, "opts") <- "d_lazy_opts"
             }
@@ -69,10 +77,18 @@ setMethod("[[", signature(x = "number_line"),
               i <- 1
               attr(x, "opts") <- NULL
             }
-            x@.Data <- x@.Data[i]
-            x@start <- x@start[i]
-            x@id <- x@id[i]
-            x@gid <- x@gid[i]
+            if(length(x@.Data) > 0){
+              x@.Data <- x@.Data[i]
+            }
+            if(length(x@start) > 0){
+              x@start <- x@start[i]
+            }
+            if(length(x@id) > 0){
+              x@id <- x@id[i]
+            }
+            if(length(x@gid) > 0){
+              x@gid <- x@gid[i]
+            }
             if(is_lazy_opt & length(x) == 1 & length(i) > 0){
               attr(x, "opts") <- "d_lazy_opts"
             }
@@ -136,8 +152,21 @@ setMethod("$<-", signature(x = "number_line"), function(x, name, value) {
 
 #' @rdname number_line-class
 setMethod("c", signature(x = "number_line"), function(x,...) {
-  x <- to_s4(do.call("rbind", lapply(list(x, ...), function(y) as.data.frame(as.number_line(y)))))
-  return(x)
+  tmp.func <- function(x){
+    if(!inherits(x, "number_line")){
+      x <- as.number_line(x)
+    }
+    as.data.frame(S4_to_list(x, .Data_type = "diff"))
+  }
+  x <- do.call("rbind", lapply(list(x, ...), tmp.func))
+  y <- methods::new("number_line")
+  if(any(grepl("start", names(x)))){
+    y@start <- x$start
+  }
+  if(any(grepl("diff", names(x)))){
+    y@.Data <- x$diff
+  }
+  return(y)
 })
 
 #' @rdname number_line-class
@@ -148,10 +177,25 @@ unique.number_line <- function(x, ...){
 }
 
 #' @rdname number_line-class
+#' @param precision Round precision
+#' @param fill \code{[logical]}. Retain (\code{TRUE}) or
+#' drop (\code{FALSE}) the remainder of an uneven split.
 #' @export
-seq.number_line <- function(x, ...){
-  x <- seq(from = x@start, to = right_point(x), ...)
-  x <- number_line(x[seq_len(length(x)-1)], r = x[-1])
+seq.number_line <- function(x, precision = NULL, fill = FALSE, ...){
+  y <- seq(from = start_point(x), to = end_point(x), ...)
+  l <- y[-length(y)]
+  r <- y[-1]
+
+  if(fill){
+    if(y[length(y)] != end_point(x)){
+      l <- c(l, y[length(y)])
+      r <- c(r, end_point(x))
+    }
+  }
+  if(!is.null(precision)){
+    l[-1] <- round_to(l[-1], to = precision, f = ceiling)
+  }
+  x <- number_line(l, r)
   return(x)
 }
 
@@ -185,7 +229,7 @@ format.number_line <- function(x, ...){
 #' @export
 as.list.number_line <- function(x, ...){
   x_df <- as.data.frame(x)
-  cmbi_cd <-  combi(x_df$start, x_df$end, x_df$id, x_df$gid)
+  cmbi_cd <-  combi(x_df$start, x_df$end)
   x_dups <- x[!duplicated(cmbi_cd)]
   y <- lapply(seq_len(length(x_dups)), function(j) x_dups[j])
   y <- y[match(cmbi_cd, cmbi_cd[!duplicated(cmbi_cd)])]
@@ -195,12 +239,9 @@ as.list.number_line <- function(x, ...){
 #' @rdname number_line-class
 #' @export
 as.data.frame.number_line <- function(x, ...){
-  y <- data.frame(start = x@start,
-                  end = x@start + x@.Data,
-                  id = x@id,
-                  gid = x@gid,
-                  ...)
-  return(y)
+  x <- as.data.frame(S4_to_list(x, .Data_type = "end"),  ...)
+  x$end <- x$start + x$end
+  x[c("start", "end", names(x)[!grepl("start|end", names(x))])]
 }
 
 #' @name epid-class
@@ -208,7 +249,7 @@ as.data.frame.number_line <- function(x, ...){
 #'
 #' @slot sn Unique record identifier.
 #' @slot .Data Unique \code{episode} identifier.
-#' @slot wind_id Unique window identifier.
+#' @slot wind_id Unique reference ID for each match.
 #' @slot wind_nm Type of window i.e. "Case" or "Recurrence".
 #' @slot case_nm Record type in regards to case assignment.
 #' @slot dist_wind_index Unit difference between each record and its window's reference record.
@@ -217,7 +258,7 @@ as.data.frame.number_line <- function(x, ...){
 #' @slot epid_interval The start and end dates of each \code{episode}. A \code{\link{number_line}} object.
 #' @slot epid_length The duration or length of (\code{epid_interval}).
 #' @slot epid_total The number of records in each \code{episode}.
-#' @slot iteration The iteration of the tracking process when a record was linked to its episode.
+#' @slot iteration The iteration when a record was matched to it's group (\code{.Data}).
 #' @slot options Some options passed to the instance of \code{\link{episodes}}.
 #'
 #' @description
@@ -249,55 +290,20 @@ setClass("epid",
 #' is.epid(ep); is.epid(2)
 #'
 #' @export
-is.epid <- function(x) all(class(x) == "epid")
+is.epid <- function(x){
+  inherits(x, "epid")
+}
 
 #' @rdname epid-class
+#' @examples
+#' ep <- episodes(date = 1)
+#' is.epid(ep); is.epid(2)
+#'
 #' @export
-as.epid <- function(x){
-  x <- match(x, x[!duplicated(x)])
-  tots <- rle(sort(x))
-
-  x <- methods::new("epid",
-                    .Data = x,
-                    sn = seq_len(length(x)),
-                    wind_id = list(wind_id1 = x))
-
-  x@dist_epid_index <- x@dist_wind_index <-
-    x@case_nm <- x@wind_nm <-
-    rep(0L, length(x))
-  x@case_nm[duplicated(x@.Data)] <- 2L
-  x@wind_nm[duplicated(x@.Data)] <- 1L
-
-  class(x@case_nm) <- "d_label"
-  attr(x@case_nm, "value") <- -1L : 5L
-  attr(x@case_nm, "label") <- c("Skipped", "Case", "Recurrent", "Duplicate_C", "Duplicate_R", "Case_CR", "Recurrent_CR")
-  attr(x@case_nm, "state") <- "encoded"
-
-  class(x@wind_nm) <- "d_label"
-  attr(x@wind_nm, "value") <- -1L : 1L
-  attr(x@wind_nm, "label") <- c("Skipped", "Case", "Recurrence")
-  attr(x@wind_nm, "state") <- "encoded"
-
-  x@epid_total <- tots$lengths[match(x, tots$values)]
-  x@iteration <- rep(1L, length(x))
-
-  x@options <- list(date = x@.Data,
-                    strata = x@.Data,
-                    case_length = list(Inf),
-                    recurrence_length = list(Inf))
-
-  x@options$episode_unit <- "seconds"
-  x@options$episode_unit <- match(x@options$episode_unit, names(diyar::episode_unit))
-
-  class(x@options$episode_unit) <- "d_label"
-  attr(x@options$episode_unit, "value") <- as.vector(sort(x@options$episode_unit[!duplicated(x@options$episode_unit)]))
-  attr(x@options$episode_unit, "label") <- names(diyar::episode_unit)[attr(x@options$episode_unit, "value")]
-  attr(x@options$episode_unit, "state") <- "encoded"
-
-  x@options$from_last <- FALSE
-
-  return(x)
+as.epid <- function(x, ...){
+  make_episodes(y_pos = x, ...)
 }
+
 
 #' @rdname epid-class
 #' @export
@@ -328,33 +334,60 @@ summary.epid <- function(object, ...){
   summ$iterations <- max(object@iteration)
   summ$total_records <- length(object)
   summ$total_episodes <- length(object[object@case_nm == 0])
-  # browser()
-  x <- object[order(-object@wind_nm)]
-  x <- x[!duplicated(x@.Data)]
-  x <- decode(x@wind_nm[x@case_nm != -1])
-  x[x == "Case"] <- "Fixed"
-  x[x == "Recurrence"] <- "Rolling"
-  summ$episode_type <- dst_tab(x = x, order_by_label = c("Fixed", "Rolling"))
 
-  x <- object[object@wind_nm == 1]
-  x <- x[!duplicated(x@wind_id$wind_id1)]
-  x <- x[order(x@.Data)]
-  x <- rle(x@.Data)
+  w.i <- sapply(object@wind_nm, function(x){
+    x[is.na(x)] <- 0L
+    x
+  })
+  w.i <- row_wise(w.i, value = TRUE, type = "max")
+  x <- c("Fixed", "Rolling")[w.i + 1L]
+
+
+  x <- object@.Data[x == "Fixed"]
+  x <- x[!duplicated(x)]
+  summ$episode_type <- list(lengths = c(summ$total_episodes - length(x), length(x)),
+                            values = c("Fixed", "Rolling"))
+  summ$episode_type <- lapply(summ$episode_type, function(x){
+    x[summ$episode_type$lengths > 0]
+  })
+
+  x <- sapply(object@wind_id, function(x){
+    x[w.i == 1]
+  })
+  y <- object@.Data[w.i == 1]
+  y <- rep(as.matrix(y), ncol(x))
+  x <- as.integer(x)
+  x <- y[!duplicated(x)]
+  x <- x[order(x)]
+  x <- rle(x)
 
   summ$recurrence <- dst_tab(x = paste0(x$lengths[order(x$lengths)]))
   if(length(summ$recurrence$values) > 0){
     summ$recurrence$values <- paste0(summ$recurrence$values, " times")
     summ$recurrence$values[summ$recurrence$values == "1 times"] <- "1 time"
   }
-  summ$case_nm <- dst_tab(x = decode(object@case_nm[order(object@case_nm)]), order_by_label = c("Case", "Duplicate_C", "Recurrent", "Duplicate_R", "Skipped"))
+  summ$case_nm <- dst_tab(
+    x = decode(object@case_nm[order(object@case_nm)]),
+    order_by_label = c("Case", "Duplicate_C", "Recurrent", "Duplicate_R", "Skipped"))
   x <- object@epid_total[object@case_nm == 0]
   summ$epid_total <- dst_tab(x[order(x)])
   if(length(summ$epid_total$values) > 0){
     summ$epid_total$values <- paste0(summ$epid_total$values, " records")
     summ$epid_total$values[summ$epid_total$values == "1 records"] <- "1 record"
   }
-  summ$epid_length <- if(is.null(object@epid_length)) list(values = numeric(), length = numeric()) else dst_tab(x = format((object@epid_length[object@case_nm == 0])[order(object@epid_length[object@case_nm == 0])], trim = TRUE))
-  summ$data_source <- if(is.null(object@epid_dataset)) list(values = numeric(), length = numeric()) else dst_tab(x = decode((object@epid_dataset[object@case_nm == 0])[order(object@epid_dataset[object@case_nm == 0])]), order_by_label = sort(attr(object@epid_dataset, "label")))
+  if(is.null(object@epid_length)){
+    summ$epid_length <- list(values = numeric(), length = numeric())
+  } else {
+    summ$epid_length <- dst_tab(x = format((object@epid_length[object@case_nm %in% c(0, 4)])[
+      order(object@epid_length[object@case_nm %in% c(0, 4)])], trim = TRUE))
+  }
+  if(is.null(object@epid_dataset)){
+    summ$data_source <- list(values = numeric(), length = numeric())
+  } else{
+    summ$data_source <- dst_tab(x = decode((object@epid_dataset[object@case_nm %in% c(0, 4)])[
+      order(object@epid_dataset[object@case_nm %in% c(0, 4)])]),
+      order_by_label = sort(attr(object@epid_dataset, "label")))
+  }
   class(summ) <- "epid_summary"
   return(summ)
 }
@@ -408,7 +441,7 @@ print.epid_summary <- function(x, ...){
                 paste0(ds_txts["episode_type"], "\n"),
                 " by episode dataset:", "\n",
                 paste0(ds_txts["data_source"], "\n"),
-                " by episodes duration:", "\n",
+                " by episode duration:", "\n",
                 paste0(ds_txts["epid_length"], "\n"),
                 " by records per episode:", "\n",
                 paste0(ds_txts["epid_total"], "\n"),
@@ -419,69 +452,19 @@ print.epid_summary <- function(x, ...){
 }
 
 #' @rdname epid-class
+#' @param decode If \code{TRUE}, data is \code{\link[=decode]{decoded}}
 #' @export
-as.data.frame.epid <- function(x, ...){
-  y <- data.frame(epid = x@.Data,
-                  sn = x@sn,
-                  wind_nm = as.vector(decode(x@wind_nm)),
-                  case_nm = as.vector(decode(x@case_nm)),
-                  dist_wind_index = x@dist_wind_index,
-                  dist_epid_index = x@dist_epid_index,
-                  epid_total = x@epid_total,
-                  iteration = x@iteration,
-                  ...)
-  y <- cbind(y, as.data.frame(x@wind_id, ...))
-  if(length(x@epid_interval@start) != 0){
-    y$epid_start <- x@epid_interval@start
-    y$epid_end <- right_point(x@epid_interval)
-  }else{
-    y$epid_start <- NA_integer_
-    y$epid_end <- NA_integer_
-  }
-  if(length(x@epid_length) != 0){
-    y$epid_length = x@epid_length
-  }else{
-    y$epid_length = NA_integer_
-  }
-  if(length(x@epid_dataset) != 0){
-    y$epid_dataset = as.vector(decode(x@epid_dataset))
-  }else{
-    y$epid_dataset = NA_character_
-  }
-  return(y)
+as.data.frame.epid <- function(x, ..., decode = TRUE){
+  x <- as.list(x, decode = decode)
+  lgk <- as.logical(lapply(x, function(x) inherits(x, "d_label")))
+  x[lgk] <- lapply(x[lgk], as.vector)
+  as.data.frame(x, ...)
 }
 
 #' @rdname epid-class
 #' @export
-as.list.epid <- function(x, ...){
-  y <- list(epid = x@.Data,
-            sn = x@sn,
-            wind_nm = x@wind_nm,
-            case_nm = x@case_nm,
-            dist_wind_index = x@dist_wind_index,
-            dist_epid_index = x@dist_epid_index,
-            epid_total = x@epid_total,
-            iteration = x@iteration,
-            ...)
-  y <- c(y, x@wind_id)
-  if(length(x@epid_interval@start) != 0){
-    y$epid_start <- x@epid_interval@start
-    y$epid_end <- right_point(x@epid_interval)
-  }else{
-    y$epid_start <- rep(NA_integer_, length(x))
-    y$epid_end <- rep(NA_integer_, length(x))
-  }
-  if(length(x@epid_length) != 0){
-    y$epid_length <- x@epid_length
-  }else{
-    y$epid_length <- rep(NA_integer_, length(x))
-  }
-  if(length(x@epid_dataset) != 0){
-    y$epid_dataset <- x@epid_dataset
-  }else{
-    y$epid_dataset <- rep(NA_character_, length(x))
-  }
-  return(y)
+as.list.epid <- function(x, ..., decode = TRUE){
+  as.list(S4_to_list(x, decode = decode, .Data_type = "epid"), ...)
 }
 
 #' @rdname epid-class
@@ -521,7 +504,7 @@ setMethod("[", signature(x = "epid"),
                          case_nm = x@case_nm[i],
                          sn = x@sn[i],
                          wind_id = lapply(x@wind_id, function(y) y[i]),
-                         wind_nm = x@wind_nm[i],
+                         wind_nm = lapply(x@wind_nm, function(y) y[i]),
                          dist_epid_index = x@dist_epid_index[i],
                          dist_wind_index = x@dist_wind_index[i],
                          epid_length = x@epid_length[i],
@@ -567,14 +550,15 @@ setMethod("[[", signature(x = "epid"),
 
 #' @rdname epid-class
 setMethod("c", signature(x = "epid"), function(x,...) {
-  x <- to_s4(do.call("rbind", lapply(list(x, ...), as.data.frame)))
+  tmp.func <- function(x) as.data.frame(x, decode = FALSE)
+  x <- to_s4(do.call("rbind", lapply(list(x, ...), tmp.func)))
   for (vr in methods::slotNames(x)){
     if(length(methods::slot(x, vr)) > 0){
       if(all(is.na(methods::slot(x, vr)))){
         if(vr == "options"){
           methods::slot(x, vr) <- list()
         }else{
-          methods::slot(x, vr) <- NULL
+          methods::slot(x, vr) <- methods::slot(x, vr)[0]
         }
       }
     }
@@ -751,69 +735,23 @@ print.pane_summary <- function(x, ...){
 }
 
 #' @rdname pane-class
+#' @param decode If \code{TRUE}, data is \code{\link[=decode]{decoded}}
 #' @export
-as.data.frame.pane <- function(x, ...){
-  y <- data.frame(pane = x@.Data,
-                  sn = x@sn,
-                  case_nm = as.vector(decode(x@case_nm)),
-                  dist_pane_index = x@dist_pane_index,
-                  window_matched = x@window_matched,
-                  pane_total = x@pane_total,
-                  ...)
-  if(length(x@pane_interval) != 0){
-    y$pane_start <- x@pane_interval@start
-    y$pane_end <- right_point(x@pane_interval)
-  }else{
-    y$pane_start <- NA_integer_
-    y$pane_end <- NA_integer_
-  }
-  if(length(x@pane_length) != 0){
-    y$pane_length <- x@pane_length
-  }else{
-    y$pane_length <- NA_integer_
-  }
-  if(length(x@pane_dataset) != 0){
-    y$pane_dataset <- decode(x@pane_dataset)
-  }else{
-    y$pane_dataset <- NA_character_
-  }
-  window_list <- lapply(x@window_list[!duplicated(x@window_list)], function(x){
-    listr(format(number_line(round(x@start, 2), round(right_point(x), 2))), conj = ",")
-  })
-  y$window_list <- as.character(window_list[match(names(x@window_list), names(window_list))])
-  return(y)
+as.data.frame.pane <- function(x, ..., decode = TRUE){
+  x <- as.list(x, decode = decode)
+  lgk <- as.logical(lapply(x, function(x) inherits(x, "d_label")))
+  x[lgk] <- lapply(x[lgk], as.vector)
+  wl <- x$window_list
+  x$window_list <- NULL
+  x <- as.data.frame(x, ...)
+  x$window_list <- wl
+  x
 }
 
 #' @rdname pane-class
 #' @export
-as.list.pane <- function(x, ...){
-  y <- list(pane = x@.Data,
-            sn = x@sn,
-            case_nm = decode(x@case_nm),
-            dist_pane_index = x@dist_pane_index,
-            dist_pane_index = x@dist_pane_index,
-            window_matched = x@window_matched,
-            pane_total = x@pane_total,
-            ...)
-  if(length(x@pane_interval) != 0){
-    y$pane_start <- x@pane_interval@start
-    y$pane_end <- right_point(x@pane_interval)
-  }else{
-    y$pane_start <- rep(NA_integer_, length(x))
-    y$pane_end <- rep(NA_integer_, length(x))
-  }
-  if(length(x@pane_length) != 0){
-    y$pane_length <- x@pane_length
-  }else{
-    y$pane_length <- rep(NA_integer_, length(x))
-  }
-  if(length(x@pane_dataset) != 0){
-    y$pane_dataset <- decode(x@pane_dataset)
-  }else{
-    y$pane_dataset <- rep(NA_character_, length(x))
-  }
-  y$window_list <- x@window_list
-  return(y)
+as.list.pane <- function(x, ..., decode = TRUE){
+  as.list(S4_to_list(x, decode = decode, .Data_type = "pane"), ...)
 }
 
 #' @rdname pane-class
@@ -883,7 +821,8 @@ setMethod("[[", signature(x = "pane"),
 
 #' @rdname pane-class
 setMethod("c", signature(x = "pane"), function(x,...) {
-  x <- to_s4(do.call("rbind", lapply(list(x, ...), as.data.frame)))
+  tmp.func <- function(x) as.data.frame(x, decode = FALSE)
+  x <- to_s4(do.call("rbind", lapply(list(x, ...), tmp.func)))
   for (vr in methods::slotNames(x)){
     if(length(methods::slot(x, vr)) > 0){
       if(all(is.na(methods::slot(x, vr)))){
@@ -906,11 +845,11 @@ setMethod("c", signature(x = "pane"), function(x,...) {
 #'
 #' @slot sn Unique record identifier.
 #' @slot .Data Unique group identifier.
-#' @slot link_id Unique record identifier for matching records.
-#' @slot pid_cri Matching criteria.
+#' @slot link_id Unique reference ID for each match.
+#' @slot pid_cri Match stage of the step-wise linkage.
 #' @slot pid_dataset Data sources in each group.
 #' @slot pid_total The number of records in each group.
-#' @slot iteration The iteration of the linkage process when a record was linked to its group.
+#' @slot iteration The iteration when a record was matched to it's group (\code{.Data}).
 #'
 #' @aliases pid-class
 #' @importFrom "methods" "new"
@@ -920,7 +859,7 @@ setClass("pid",
          contains = "integer",
          representation(sn = "integer",
                         pid_cri = "integer",
-                        link_id = "integer",
+                        link_id = "list",
                         pid_dataset = "ANY",
                         pid_total = "integer",
                         iteration = "integer"))
@@ -936,21 +875,9 @@ is.pid <- function(x) all(class(x) == "pid")
 
 #' @rdname pid-class
 #' @export
+#' @export
 as.pid <- function(x, ...){
-  x <- match(x, x[!duplicated(x)])
-  tots <- rle(sort(x))
-  x <- methods::new("pid",
-                    .Data = x,
-                    sn = seq_len(length(x)),
-                    pid_cri = rep(1L, length(x)),
-                    link_id = x,
-                    pid_total = tots$lengths[match(x, tots$values)],
-                    pid_dataset = NULL,
-                    iteration = rep(1L, length(x)))
-
-  x@pid_cri[!duplicated(x@.Data, fromLast = TRUE) &
-              !duplicated(x@.Data, fromLast = FALSE)] <- 0L
-  return(x)
+  make_pids(y_pos = x, ...)
 }
 
 #' @rdname pid-class
@@ -1051,39 +978,19 @@ print.pid_summary <- function(x, ...){
 }
 
 #' @rdname pid-class
+#' @param decode If \code{TRUE}, data is \code{\link[=decode]{decoded}}
 #' @export
-as.data.frame.pid <- function(x, ...){
-  y <- data.frame(pid = x@.Data,
-                  sn = x@sn,
-                  pid_cri = x@pid_cri,
-                  link_id = x@link_id,
-                  pid_total = x@pid_total,
-                  iteration = x@iteration,
-                  ...)
-  if(length(x@pid_dataset) != 0){
-    y$pid_dataset <- as.vector(decode(x@pid_dataset))
-  }else{
-    y$pid_dataset <- NA_character_
-  }
-  return(y)
+as.data.frame.pid <- function(x, ..., decode = TRUE){
+  x <- as.list(x, decode = decode)
+  lgk <- as.logical(lapply(x, function(x) inherits(x, "d_label")))
+  x[lgk] <- lapply(x[lgk], as.vector)
+  as.data.frame(x, ...)
 }
 
 #' @rdname pid-class
 #' @export
-as.list.pid <- function(x, ...){
-  y <- list(pid = x@.Data,
-            sn = x@sn,
-            pid_cri = x@pid_cri,
-            link_id = x@link_id,
-            pid_total = x@pid_total,
-            iteration = x@iteration,
-            ...)
-  if(length(x@pid_dataset) != 0){
-    y$pid_dataset <- x@pid_dataset
-  }else{
-    y$pid_dataset <- rep(NA_character_, length(x))
-  }
-  return(y)
+as.list.pid <- function(x, ..., decode = TRUE){
+  as.list(S4_to_list(x, decode = decode, .Data_type = "pid"), ...)
 }
 
 #' @rdname pid-class
@@ -1099,7 +1006,7 @@ setMethod("rep", signature(x = "pid"), function(x, ...) {
   methods::new("pid", rep(x@.Data, ...),
                sn = rep(x@sn, ...),
                pid_total = rep(x@pid_total, ...),
-               link_id = rep(x@link_id, ...),
+               link_id = lapply(x@link_id, function(y) rep(y, ...)),
                pid_dataset = suppressWarnings(rep(x@pid_dataset, ...)),
                pid_cri = rep(x@pid_cri, ...),
                iteration = rep(x@iteration, ...))
@@ -1115,7 +1022,7 @@ setMethod("[", signature(x = "pid"),
             methods::new("pid", x@.Data[i],
                          pid_cri = x@pid_cri[i],
                          sn = x@sn[i],
-                         link_id = x@link_id[i],
+                         link_id = lapply(x@link_id, function(y) y[i]),
                          pid_total = x@pid_total[i],
                          pid_dataset = x@pid_dataset[i],
                          iteration = x@iteration[i])
@@ -1129,7 +1036,7 @@ setMethod("[[", signature(x = "pid"),
             methods::new("pid", x@.Data[i],
                          pid_cri = x@pid_cri[i],
                          sn = x@sn[i],
-                         link_id = x@link_id[i],
+                         link_id = lapply(x@link_id, function(y) y[i]),
                          pid_total = x@pid_total[i],
                          pid_dataset = x@pid_dataset[i],
                          iteration = x@iteration[i])
@@ -1137,7 +1044,8 @@ setMethod("[[", signature(x = "pid"),
 
 #' @rdname pid-class
 setMethod("c", signature(x = "pid"), function(x,...) {
-  x <- to_s4(do.call("rbind", lapply(list(x, ...), as.data.frame)))
+  tmp.func <- function(x) as.data.frame(x, decode = FALSE)
+  x <- to_s4(do.call("rbind", lapply(list(x, ...), tmp.func)))
   for (vr in methods::slotNames(x)){
     if(length(methods::slot(x, vr)) > 0){
       if(all(is.na(methods::slot(x, vr)))){
@@ -1201,29 +1109,28 @@ as.data.frame.d_report <- function(x, ...){
   return(as.data.frame(as.list(x), ...))
 }
 
-
+#' @export
 `[.d_lazy_opts` <- function(x, i, ..., drop = TRUE) {
   x <- as.vector(x)
-  if(length(i) == 0 | length(x) == 0){
-    i <- 0
-  }else if(length(x) == 1){
-    i <- 1
+  x2 <- x[i]
+  if(length(x) == 1 & length(x2) != 0){
+    x2 <- x
   }
-  x <- x[i]
-  class(x) <- "d_lazy_opts"
-  return(x)
+  class(x2) <- "d_lazy_opts"
+  return(x2)
 }
 
-`[<-.d_lazy_opts` <- function(x, i, j, ..., value) {
-  x <- as.vector(x)
-  if(length(x) == 1 & length(value) == 1){
-    i <- 1
-  }else if(length(x) == 0 | length(value) == 0){
-    i <- 0
-  }else if(length(x) == 1 & length(value) > 1){
-    stop("Unexpected situation in `[<-.d_lazy_opts`")
-  }
-  x[i] <- value
-  class(x) <- "d_lazy_opts"
-  return(x)
-}
+# @export
+# `[<-.d_lazy_opts` <- function(x, i, j, ..., value) {
+#   x <- as.vector(x)
+#   if(length(x) == 1 & length(value) == 1){
+#     i <- 1
+#   }else if(length(x) == 0 | length(value) == 0){
+#     i <- 0
+#   }else if(length(x) == 1 & length(value) > 1){
+#     stop("Unexpected situation in `[<-.d_lazy_opts`")
+#   }
+#   x[i] <- value
+#   class(x) <- "d_lazy_opts"
+#   return(x)
+# }

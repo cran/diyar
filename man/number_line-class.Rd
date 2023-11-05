@@ -40,7 +40,7 @@
 
 \method{unique}{number_line}(x, ...)
 
-\method{seq}{number_line}(x, ...)
+\method{seq}{number_line}(x, precision = NULL, fill = FALSE, ...)
 
 \method{sort}{number_line}(x, decreasing = FALSE, ...)
 
@@ -68,6 +68,11 @@
 \item{value}{value}
 
 \item{name}{slot name}
+
+\item{precision}{Round precision}
+
+\item{fill}{\code{[logical]}. Retain (\code{TRUE}) or
+drop (\code{FALSE}) the remainder of an uneven split.}
 
 \item{decreasing}{If \code{TRUE}, sort in descending order.}
 }

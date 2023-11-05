@@ -26,7 +26,8 @@ event_dt
 
 ## ----warning=FALSE------------------------------------------------------------
 event_dt$ep3 <- episodes(event_dt$date, 3, episode_type = "rolling")
-event_dt$ep4 <- episodes(event_dt$date, 3, episode_type = "recursive")
+event_dt$ep4 <- episodes(event_dt$date, 3, 
+                         episode_type = "rolling", reference_event = "all_record")
 event_dt
 
 ## ----warning=FALSE, fig.width=7, message=FALSE--------------------------------

@@ -20,7 +20,7 @@
 \usage{
 is.epid(x)
 
-as.epid(x)
+as.epid(x, ...)
 
 \method{format}{epid}(x, ...)
 
@@ -30,9 +30,9 @@ as.epid(x)
 
 \method{print}{epid_summary}(x, ...)
 
-\method{as.data.frame}{epid}(x, ...)
+\method{as.data.frame}{epid}(x, ..., decode = TRUE)
 
-\method{as.list}{epid}(x, ...)
+\method{as.list}{epid}(x, ..., decode = TRUE)
 
 \S4method{show}{epid}(object)
 
@@ -50,6 +50,8 @@ as.epid(x)
 \item{...}{...}
 
 \item{object}{object}
+
+\item{decode}{If \code{TRUE}, data is \code{\link[=decode]{decoded}}}
 
 \item{i}{i}
 
@@ -69,7 +71,7 @@ S4 objects storing the result of \code{\link{episodes}}.
 
 \item{\code{.Data}}{Unique \code{episode} identifier.}
 
-\item{\code{wind_id}}{Unique window identifier.}
+\item{\code{wind_id}}{Unique reference ID for each match.}
 
 \item{\code{wind_nm}}{Type of window i.e. "Case" or "Recurrence".}
 
@@ -87,13 +89,16 @@ S4 objects storing the result of \code{\link{episodes}}.
 
 \item{\code{epid_total}}{The number of records in each \code{episode}.}
 
-\item{\code{iteration}}{The iteration of the tracking process when a record was linked to its episode.}
+\item{\code{iteration}}{The iteration when a record was matched to it's group (\code{.Data}).}
 
 \item{\code{options}}{Some options passed to the instance of \code{\link{episodes}}.}
 }}
 
 \examples{
 # A test for `epid` objects
+ep <- episodes(date = 1)
+is.epid(ep); is.epid(2)
+
 ep <- episodes(date = 1)
 is.epid(ep); is.epid(2)
 

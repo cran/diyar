@@ -6,7 +6,7 @@
 \usage{
 partitions(
   date,
-  window = number_line(0, Inf),
+  window = NULL,
   windows_total = 1,
   separate = FALSE,
   sn = NULL,
@@ -18,7 +18,8 @@ partitions(
   by = NULL,
   length.out = NULL,
   fill = TRUE,
-  display = "none"
+  display = "none",
+  precision = 1
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ partitions(
 \item{fill}{\code{[logical]}. Retain (\code{TRUE}) or drop (\code{FALSE}) the remainder of an uneven split.}
 
 \item{display}{\code{[character]}. Display a status update. Options are; \code{"none"} (default), \code{"progress"} or \code{"stats"}.}
+
+\item{precision}{Round precision}
 }
 \value{
 \code{\link[=pane-class]{pane}}
