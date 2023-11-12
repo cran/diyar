@@ -1,7 +1,18 @@
 
+# Version 0.5.1
+
+## New features
+
+## Changes
+
+## Bug fixes
+
+- `links()` - Incorrect results in some situations. Resolved.
+- `links_af_probabilistic()` - Failed in some situations. Resolved.
+
 # Version 0.5.0
 
-## New futures
+## New features
 
 - New option (`"semi"`) for the `batched` argument in `links()`. All
   matches are compared against the record-set in the next iteration.
